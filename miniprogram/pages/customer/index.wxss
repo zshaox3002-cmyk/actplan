@@ -4,7 +4,7 @@ page {
 }
 
 .page-container {
-  padding: 16rpx 24rpx 120rpx;
+  padding: 16rpx 24rpx 192rpx;
 }
 
 .customer-list {

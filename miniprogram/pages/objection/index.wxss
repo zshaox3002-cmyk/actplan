@@ -1,5 +1,9 @@
 /* pages/objection/index.wxss */
 
+.page-container {
+  padding-bottom: 192rpx;
+}
+
 .page-header {
   padding-bottom: var(--spacing-section);
 }

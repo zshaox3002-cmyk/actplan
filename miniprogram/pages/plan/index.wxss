@@ -1,5 +1,9 @@
 /* pages/plan/index.wxss */
 
+.page-container {
+  padding-bottom: 192rpx;
+}
+
 .plan-section {
   margin-top: var(--spacing-section);
 }
