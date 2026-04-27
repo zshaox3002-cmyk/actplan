@@ -35,11 +35,9 @@
     <!-- 空状态 -->
     <empty-state
       wx:elif="{{pageState === 'empty'}}"
-      icon="📋"
-      text="当日暂无拜访计划"
-      subText="点击右上角按钮添加计划"
-      actionLabel="添加计划"
-      bind:action="onEmptyAction"
+      icon="📅"
+      text="{{selectedDate}} 暂无计划"
+      subText="点击右下角 + 号新建拜访计划 ↘"
     />
   </view>
 

@@ -31,11 +31,9 @@
   <!-- 空状态 -->
   <empty-state
     wx:elif="{{pageState === 'empty'}}"
-    icon="👥"
-    text="暂无客户记录"
-    subText="点击右下角按钮添加客户"
-    actionLabel="添加客户"
-    bind:action="onEmptyAction"
+    icon="👤"
+    text="还没有客户"
+    subText="点击右下角 + 号添加第一位客户 ↘"
   />
 
   <!-- 错误状态 -->

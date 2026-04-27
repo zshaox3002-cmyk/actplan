@@ -50,11 +50,9 @@
   <!-- 空状态 -->
   <empty-state
     wx:elif="{{pageState === 'empty'}}"
-    icon="💡"
-    text="暂无异议记录"
-    subText="点击右下角按钮新建异议"
-    actionLabel="新建异议"
-    bind:action="onEmptyAction"
+    icon="💬"
+    text="异议池还是空的"
+    subText="点击右下角 + 号记录第一条客户异议 ↘"
   />
 
   <!-- 错误状态 -->
