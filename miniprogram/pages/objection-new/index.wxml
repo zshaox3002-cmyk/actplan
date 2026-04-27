@@ -143,6 +143,23 @@
     <block wx:else>
       <view class="section-title">填写应对话术</view>
 
+      <!-- AI 提示词卡片 -->
+      <view class="ai-prompt-card">
+        <view class="ai-prompt-header">
+          <text class="ai-prompt-icon">🤖</text>
+          <text class="ai-prompt-title">不会写？把下面这段发给 AI</text>
+          <view class="ai-prompt-copy-btn" bindtap="onCopyAIPrompt">
+            <text class="ai-prompt-copy-text">复制</text>
+          </view>
+        </view>
+        <view class="ai-prompt-body">
+          <text class="ai-prompt-text">{{aiPrompt}}</text>
+        </view>
+        <view class="ai-prompt-footer">
+          <text class="ai-prompt-hint">把 AI 回复的四步话术粘贴到下方即可</text>
+        </view>
+      </view>
+
       <!-- 异议摘要（只读回顾） -->
       <view class="review-section">
         <view class="review-row">

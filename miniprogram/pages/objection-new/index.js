@@ -48,7 +48,28 @@ Page({
     mode: 'create',              // 'create'(新建) | 'append'(追加)
 
     // Step 3 状态
-    submitMode: 'create'         // 'create' | 'append'
+    submitMode: 'create',         // 'create' | 'append'
+
+    // AI 提示词
+    aiPrompt: ''
+  },
+
+  /** 构造喂给 Chat AI 的提示词（按官方四步话术格式） */
+  _buildAIPrompt: function () {
+    var f = this.data.form;
+    var customerName = f.customer_name || '某位客户';
+    var content = f.content || '';
+    var category = f.category || '其他';
+    return '你是一名友邦保险的资深代理人导师。请针对以下客户异议，按「认同→澄清→回应→确认」四步话术格式，给我一段可以直接对客户说的应对话术。\n\n' +
+      '【客户】' + customerName + '\n' +
+      '【异议分类】' + category + '\n' +
+      '【客户原话】' + content + '\n\n' +
+      '请严格按以下 4 步输出，每步 1~3 句，口语化、不要书面体，禁止出现免责声明或"以上仅供参考"：\n' +
+      '① 认同：先共情客户的感受，承认他的顾虑合理\n' +
+      '② 澄清：用一个开放式问题确认对方真正的担忧\n' +
+      '③ 回应：给出专业、有事实支撑的正面回应\n' +
+      '④ 确认：提出一个小而具体的下一步行动，让对方容易答应\n\n' +
+      '只输出这四步话术本身，不要加标题、不要加额外说明。';
   },
 
   onLoad: function (options) {
@@ -172,7 +193,8 @@ Page({
       if (sameCategoryList.length === 0) {
         this.setData({
           submitMode: 'create',
-          currentStep: 3
+          currentStep: 3,
+          aiPrompt: this._buildAIPrompt()
         });
       }
 
@@ -213,7 +235,8 @@ Page({
     this.setData({
       selectedObjectionId: null,
       submitMode: 'create',
-      currentStep: 3
+      currentStep: 3,
+      aiPrompt: this._buildAIPrompt()
     });
   },
 
@@ -283,5 +306,23 @@ Page({
         toast.fail('新建失败：' + e.message);
       }
     }
+  },
+
+  /** 一键复制 AI 提示词到剪贴板 */
+  onCopyAIPrompt: function () {
+    var that = this;
+    wx.setClipboardData({
+      data: this.data.aiPrompt,
+      success: function () {
+        wx.showToast({
+          title: '已复制，粘贴到 AI 即可',
+          icon: 'none',
+          duration: 2000
+        });
+      },
+      fail: function () {
+        toast.fail('复制失败，请手动长按选择');
+      }
+    });
   }
 });

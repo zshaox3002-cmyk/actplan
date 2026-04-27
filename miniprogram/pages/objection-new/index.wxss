@@ -284,3 +284,74 @@
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-medium);
 }
+
+/* ---- AI 提示词卡片 ---- */
+.ai-prompt-card {
+  background: var(--color-primary-light);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-card);
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.ai-prompt-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.ai-prompt-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.ai-prompt-title {
+  flex: 1;
+  font-size: var(--font-size-secondary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ai-prompt-copy-btn {
+  padding: 8rpx 24rpx;
+  background: var(--color-primary);
+  border-radius: var(--radius-button);
+}
+
+.ai-prompt-copy-btn:active {
+  background: var(--color-primary-dark);
+}
+
+.ai-prompt-copy-text {
+  font-size: var(--font-size-helper);
+  color: #FFFFFF;
+  font-weight: var(--font-weight-medium);
+}
+
+.ai-prompt-body {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-input);
+  padding: 20rpx;
+  max-height: 280rpx;
+  overflow: hidden;
+}
+
+.ai-prompt-text {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ai-prompt-footer {
+  margin-top: 12rpx;
+}
+
+.ai-prompt-hint {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+}
