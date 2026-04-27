@@ -28,7 +28,8 @@ Page({
     currentCat: 'all',
     keyword: '',
     categories: CATEGORIES,
-    _channel: null
+    _channel: null,
+    _justCreatedIds: []   // 记录本次流程内新建的异议 ID（防止 setData 序列化丢失 _justCreated）
   },
 
   onLoad: function (options) {
@@ -133,7 +134,15 @@ Page({
           var newIds = that.data.selectedIds.slice();
           newIds.push(obj.id);
 
-          that.setData({ allObjections: all, selectedIds: newIds });
+          // 记录"本次流程内新建"的异议 ID（用独立数组存，不依赖对象属性）
+          var justCreated = that.data._justCreatedIds.slice();
+          if (obj.id != null) { justCreated.push(obj.id); }
+
+          that.setData({
+            allObjections: all,
+            selectedIds: newIds,
+            _justCreatedIds: justCreated
+          });
           that._filter(); // 重新筛选
         }
       }
@@ -152,6 +161,19 @@ Page({
     for (var i = 0; i < selected.length; i++) {
       if (selected[i].isPreset) {
         try { objectionRepo.incrementCount(selected[i].id); } catch (e) {}
+      }
+    }
+
+    // 对"本次流程内新建"的异议，显式恢复 _justCreated 标记
+    // （防止经过 setData 序列化后运行时字段丢失）
+    var justCreatedMap = {};
+    var jcIds = this.data._justCreatedIds || [];
+    for (var j = 0; j < jcIds.length; j++) {
+      justCreatedMap[jcIds[j]] = true;
+    }
+    for (var k = 0; k < selected.length; k++) {
+      if (justCreatedMap[selected[k].id]) {
+        selected[k]._justCreated = true;
       }
     }
 
