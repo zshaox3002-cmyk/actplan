@@ -146,7 +146,7 @@ Page({
           for (var i = 0; i < d.objections.length; i++) {
             var obj = d.objections[i];
             if (!obj.id) {
-              // 新建异议
+              // 新建异议（理论上很少走到，因为 objection-new 已 create）
               var created = objectionRepo.create({
                 customer_id: d.customerId,
                 content: obj.content || '',
@@ -156,8 +156,13 @@ Page({
               if (created && created.id != null) {
                 objectionIds.push(created.id);
               }
+            } else if (obj._justCreated) {
+              // 本次流程刚从 objection-new 新建并入库的异议：
+              // create 时已设 customer_id 和 count=1，无需再计数、无需再写 note
+              objectionIds.push(obj.id);
             } else {
-              // 已有异议：写入一条追加备注（内部同时 count+1 或写 objection_links）
+              // 真正的"复用"：用户从异议选择页勾选了一条已存在的历史异议，
+              // 此时应写一条追加备注（内部自动 count+1 或写 objection_links）
               var autoNote = '在本次拜访中再次遇到该异议'
                 + (summary ? '；沟通摘要：' + summary.slice(0, 40)
                    + (summary.length > 40 ? '…' : '') : '');
