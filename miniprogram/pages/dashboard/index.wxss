@@ -27,8 +27,8 @@
   font-weight: bold;
 }
 
-/* ---- 周标识栏 ---- */
-.week-banner {
+/* ---- 周期选择栏 ---- */
+.period-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -39,21 +39,80 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
-.week-badge {
+.period-selector {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   background: #E8F1FC;
   border-radius: 8rpx;
   padding: 6rpx 16rpx;
 }
 
-.week-label {
+.period-label {
   font-size: 24rpx;
   color: #1A6FD4;
   font-weight: 600;
 }
 
-.week-range {
+.period-arrow {
+  width: 24rpx;
+  height: 24rpx;
+  transition: transform 0.2s ease;
+}
+
+.period-arrow.open {
+  transform: rotate(180deg);
+}
+
+.period-range {
   font-size: 24rpx;
   color: #9CA3AF;
+}
+
+/* ---- 周期下拉选项 ---- */
+.period-dropdown {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.period-dropdown-inner {
+  position: absolute;
+  top: 180rpx;
+  left: 24rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+  min-width: 240rpx;
+  overflow: hidden;
+}
+
+.period-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  font-size: 28rpx;
+  color: #374151;
+}
+
+.period-option:active {
+  background: #F3F4F6;
+}
+
+.period-option.active {
+  color: #1A6FD4;
+  font-weight: 600;
+}
+
+.period-check {
+  font-size: 28rpx;
+  color: #1A6FD4;
+  font-weight: 700;
 }
 
 /* ---- 指标卡网格 ---- */

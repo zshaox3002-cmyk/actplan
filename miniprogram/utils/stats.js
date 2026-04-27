@@ -2,7 +2,7 @@
  * stats.js — Dashboard 统计计算
  * 所有函数为纯函数，输入 snapshot → 输出结果
  * snapshot 由 getStatsSnapshot() 一次性加载
- * 仅保留"本周"维度，不再区分周/月
+ * 支持多周期维度：本周 / 本月 / 季度 / 年度
  */
 
 var dateUtil = require('./date');
@@ -25,20 +25,27 @@ function getStatsSnapshot() {
 }
 
 /**
- * 获取本周起止日期字符串 [周一, 周日]，格式 'YYYY-MM-DD'
+ * 根据周期类型获取日期范围 [startISO, endISO]
+ * @param {string} period - 周期类型：'week'|'month'|'quarter'|'year'
  * @returns {[string, string]}
  */
-function getWeekRange() {
-  return dateUtil.getWeekRange();
+function getRangeByPeriod(period) {
+  switch (period) {
+    case 'month': return dateUtil.getMonthRange();
+    case 'quarter': return dateUtil.getQuarterRange();
+    case 'year': return dateUtil.getYearRange();
+    default: return dateUtil.getWeekRange();
+  }
 }
 
 /**
- * 获取 Dashboard 4 个指标（仅本周维度）
+ * 获取 Dashboard 4 个指标
  * @param {Object} snapshot - getStatsSnapshot() 返回值
+ * @param {string} [period='week'] - 周期类型：'week'|'month'|'quarter'|'year'
  * @returns {Object} { totalCustomers, newCustomers, visitCount, appointmentCount }
  */
-function getDashboardMetrics(snapshot) {
-  var range = getWeekRange();
+function getDashboardMetrics(snapshot, period) {
+  var range = getRangeByPeriod(period || 'week');
   var startISO = range[0];
   var endISO = range[1];
 

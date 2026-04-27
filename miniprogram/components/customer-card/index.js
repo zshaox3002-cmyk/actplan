@@ -1,7 +1,7 @@
 /**
  * customer-card 组件
  * 左侧色条 + 底色区分苹果等级
- * 三行布局：姓名+阶段 / 电话·拜访·最近 / 信息标签
+ * 三行布局：姓名+阶段 / 拜访·最近 / 信息标签
  * 支持左滑露出删除按钮
  */
 Component({
@@ -16,7 +16,6 @@ Component({
     appleRankClass: 'yellow',
     displayStage: '',
     stageClass: 'need',
-    maskedPhone: '',
     visitLabel: '',
     lastVisitLabel: '',
     infoTags: [],
@@ -30,7 +29,7 @@ Component({
   },
 
   observers: {
-    'customer.apple_grade,customer.stage,customer.phone,customer.visit_count,customer.last_visit,customer.occupation,customer.age_range,customer.income,customer.marital': function (apple_grade, stage, phone, visit_count, last_visit, occupation, age_range, income, marital) {
+    'customer.apple_grade,customer.stage,customer.visit_count,customer.last_visit,customer.occupation,customer.age_range,customer.income,customer.marital': function (apple_grade, stage, visit_count, last_visit, occupation, age_range, income, marital) {
       // ---- 苹果等级 → CSS class ----
       var RANK_MAP = {
         'red': 'red',
@@ -75,16 +74,13 @@ Component({
       var displayStage = STAGE_DISPLAY[stageStr] || stageStr || '需求沟通';
       var stageClass = STAGE_CLASS[stageStr] || 'need';
 
-      // ---- 电话脱敏 ----
-      var maskedPhone = this._maskPhone(phone);
-
       // ---- 拜访次数标签 ----
       var visitLabel = '';
       if (visit_count > 0) {
         if (visit_count === 1) {
           visitLabel = '首次拜访';
         } else {
-          visitLabel = '二次拜访（累计' + visit_count + '次）';
+          visitLabel = '多次拜访（' + visit_count + '次）';
         }
       } else {
         visitLabel = '暂未拜访';
@@ -118,7 +114,6 @@ Component({
         appleRankClass: appleRankClass,
         displayStage: displayStage,
         stageClass: stageClass,
-        maskedPhone: maskedPhone,
         visitLabel: visitLabel,
         lastVisitLabel: lastVisitLabel,
         infoTags: infoTags
@@ -127,14 +122,6 @@ Component({
   },
 
   methods: {
-    /**
-     * 电话脱敏：138****1234
-     */
-    _maskPhone: function (phone) {
-      if (!phone || phone.length < 7) return phone || '未填写';
-      return phone.slice(0, 3) + '****' + phone.slice(-4);
-    },
-
     /**
      * 计算距离今天多少天
      */

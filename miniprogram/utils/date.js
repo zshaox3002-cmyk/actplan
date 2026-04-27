@@ -42,6 +42,34 @@ function getMonthRange(anchorDate) {
 }
 
 /**
+ * 获取 anchorDate 所在季度的起止日期
+ * @param {Date|string} [anchorDate] - 锚点日期，默认今天
+ * @returns {[string, string]} [季初日期, 季末日期]，格式 'YYYY-MM-DD'
+ */
+function getQuarterRange(anchorDate) {
+  var d = anchorDate ? new Date(anchorDate) : new Date();
+  var quarter = Math.floor(d.getMonth() / 3); // 0,1,2,3
+  var firstDay = new Date(d.getFullYear(), quarter * 3, 1);
+  var lastDay = new Date(d.getFullYear(), quarter * 3 + 3, 0);
+
+  return [formatDate(firstDay, 'YYYY-MM-DD'), formatDate(lastDay, 'YYYY-MM-DD')];
+}
+
+/**
+ * 获取 anchorDate 所在年度的起止日期
+ * @param {Date|string} [anchorDate] - 锚点日期，默认今天
+ * @returns {[string, string]} [年初日期, 年末日期]，格式 'YYYY-MM-DD'
+ */
+function getYearRange(anchorDate) {
+  var d = anchorDate ? new Date(anchorDate) : new Date();
+  var y = d.getFullYear();
+  var firstDay = new Date(y, 0, 1);
+  var lastDay = new Date(y, 11, 31);
+
+  return [formatDate(firstDay, 'YYYY-MM-DD'), formatDate(lastDay, 'YYYY-MM-DD')];
+}
+
+/**
  * 格式化日期
  * @param {Date|string} date - 日期对象或日期字符串
  * @param {string} [pattern] - 格式模式，默认 'YYYY-MM-DD'
@@ -147,6 +175,8 @@ function nowISO() {
 module.exports = {
   getWeekRange: getWeekRange,
   getMonthRange: getMonthRange,
+  getQuarterRange: getQuarterRange,
+  getYearRange: getYearRange,
   formatDate: formatDate,
   getWeekDays: getWeekDays,
   shiftWeek: shiftWeek,

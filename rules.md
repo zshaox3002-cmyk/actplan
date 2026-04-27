@@ -34,6 +34,7 @@
 | ✅ 事务操作使用 `storage.transaction()` | 拜访记录创建、异议备注追加等涉及多表更新的场景必须使用事务 |
 | ✅ 页面 `onLoad`/`onShow` 开头调用 `storage.waitReady()` | 确保存储初始化完成（异步） |
 | ✅ 修改数据结构前查阅 `DATA_RELATIONSHIP.md` | 确认影响面，同步更新关系表文档 |
+| ✅ 运行时标记用页面实例属性，不放 `data` | 如 `this._justCreatedIds = []`（不经过 `setData`，不受序列化影响）；`data` 只放渲染相关数据 |
 | ~~`record-new/index.js` 存在非事务多表写入~~ ✅ 已修复 | onSave() 外层已包 `storage.transaction()`，4 步操作原子化 |
 
 ---
@@ -90,6 +91,8 @@ _本文件由 Dev 维护，如有调整须同步更新。_
 | 8 | **组件 observers 不支持监听深层属性** | `objection.xxx` 变化不触发 observer | 使用 `'objection.xxx'` 单独监听，或在 JS 层手动触发 |
 | 9 | **`wx.getSystemInfoSync` 等同步 API 消耗性能** | 频繁调用影响帧率 | 缓存结果（如 `screenWidth`），attached 时获取一次即可 |
 | 10 | **小程序无 `window`/`document`/`XMLHttpRequest`** | 浏览器端代码无法直接复用 | 使用 `wx.request` 替代 XHR，Canvas 2D API 绘图 |
+| 11 | **`setData` 深拷贝数据，丢弃 `_` 前缀属性** | `this.setData({ _flag: true })` 后 `this.data._flag` 为 `undefined`；嵌套对象中的 `_` 前缀属性同样被剥离 | 运行时标记（如"是否刚创建"）**禁止放入 `data`**，改用页面实例属性（`this._flag = true`，不经过 `setData`）|
+| 12 | **EventChannel 传对象时，嵌套的 `_` 前缀属性也会被序列化剥离** | 跨页通信传 `{ id: 1, _justCreated: true }` → 接收方拿到 `{ id: 1 }` | 跨页传递运行时标记用**独立字段**（如 `{ items, justCreatedIds }`），不要嵌在对象属性里 |
 
 ### Skill 使用规则
 

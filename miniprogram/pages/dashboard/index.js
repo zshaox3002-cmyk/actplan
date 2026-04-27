@@ -2,21 +2,32 @@
  * dashboard/index.js — 数据概览页
  *
  * 布局：
- * - 顶部 周标识栏（本周数据 + 日期范围）
+ * - 顶部 周期选择栏（本周/本月/季度/年度 下拉切换）
  * - 2×2 指标卡：客户总量 / 本期新增 / 本期拜访 / 本期预约
  * - 苹果分布饼图
  * - 异议分布柱状图
  */
 
 var stats = require('../../utils/stats');
+var dateUtil = require('../../utils/date');
 var storage = require('../../utils/storage');
 var toast = require('../../utils/toast');
 
+/** 周期配置 */
+var PERIOD_CONFIG = {
+  week:    { label: '本周数据', rangeFn: dateUtil.getWeekRange },
+  month:   { label: '本月数据', rangeFn: dateUtil.getMonthRange },
+  quarter: { label: '季度数据', rangeFn: dateUtil.getQuarterRange },
+  year:    { label: '年度数据', rangeFn: dateUtil.getYearRange }
+};
+
 Page({
   data: {
-    // 周标识
-    weekRange: '',
-    weekNo: 0,
+    // 周期选择
+    currentPeriod: 'week',
+    periodLabel: '本周数据',
+    periodRange: '',
+    showPeriodDropdown: false,
 
     // 指标
     metrics: {
@@ -43,12 +54,12 @@ Page({
   },
 
   onLoad: function () {
-    this.computeWeekInfo();
+    this._updatePeriodDisplay();
     this._safeRefresh();
   },
 
   onShow: function () {
-    this.computeWeekInfo();
+    this._updatePeriodDisplay();
     this._safeRefresh();
   },
 
@@ -64,29 +75,25 @@ Page({
     }
   },
 
-  /** 计算当前周信息 */
-  computeWeekInfo: function () {
-    var now = new Date();
-    var day = now.getDay() || 7; // 周一为 1，周日为 7
-    var monday = new Date(now);
-    monday.setDate(now.getDate() - day + 1);
-    var sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+  /** 根据当前周期更新显示文案和日期范围 */
+  _updatePeriodDisplay: function () {
+    var period = this.data.currentPeriod;
+    var config = PERIOD_CONFIG[period];
+    var range = config.rangeFn();
 
-    var fmtMonth = monday.getMonth() + 1;
-    var fmtDay1 = monday.getDate() < 10 ? '0' + monday.getDate() : '' + monday.getDate();
-    var fmtDay2 = sunday.getDate() < 10 ? '0' + sunday.getDate() : '' + sunday.getDate();
+    var startParts = range[0].split('-');
+    var endParts = range[1].split('-');
+    var periodRange = (parseInt(startParts[1])) + '.' + (parseInt(startParts[2])) +
+      ' - ' + (parseInt(endParts[1])) + '.' + (parseInt(endParts[2]));
 
-    var weekRange = fmtMonth + '.' + fmtDay1 + ' - ' + (sunday.getMonth() + 1) + '.' + fmtDay2;
-
-    // 计算第几周（ISO 8601 近似）
-    var startOfYear = new Date(now.getFullYear(), 0, 1);
-    var dayOfYear = Math.floor((now - startOfYear) / 86400000) + 1;
-    var weekNo = Math.ceil((dayOfYear + startOfYear.getDay()) / 7);
+    // 年度显示年份
+    if (period === 'year') {
+      periodRange = startParts[0] + '年';
+    }
 
     this.setData({
-      weekRange: weekRange,
-      weekNo: weekNo
+      periodLabel: config.label,
+      periodRange: periodRange
     });
   },
 
@@ -94,9 +101,10 @@ Page({
   _refresh: function () {
     try {
       var snapshot = stats.getStatsSnapshot();
+      var period = this.data.currentPeriod;
 
-      // 指标（仅本周）
-      var metrics = stats.getDashboardMetrics(snapshot);
+      // 指标（按周期过滤）
+      var metrics = stats.getDashboardMetrics(snapshot, period);
 
       // 苹果分布
       var appleData = stats.getAppleDistribution(snapshot);
@@ -133,6 +141,31 @@ Page({
   /** 空态引导：创建拜访计划 */
   onGoAddPlan: function () {
     wx.switchTab({ url: '/pages/plan/index' });
+  },
+
+  /** 打开周期下拉 */
+  onPeriodTap: function () {
+    this.setData({ showPeriodDropdown: !this.data.showPeriodDropdown });
+  },
+
+  /** 选择周期 */
+  onPeriodSelect: function (e) {
+    var period = e.currentTarget.dataset.period;
+    if (period === this.data.currentPeriod) {
+      this.setData({ showPeriodDropdown: false });
+      return;
+    }
+    this.setData({
+      currentPeriod: period,
+      showPeriodDropdown: false
+    });
+    this._updatePeriodDisplay();
+    this._refresh();
+  },
+
+  /** 点击遮罩关闭下拉 */
+  onDropdownMaskTap: function () {
+    this.setData({ showPeriodDropdown: false });
   }
 
   /* DISABLED: import-export - 暂时禁用，保留备用

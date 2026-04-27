@@ -6,12 +6,39 @@
   </view>
   -->
 
-  <!-- 周标识栏 -->
-  <view class="week-banner">
-    <view class="week-badge">
-      <text class="week-label">本周数据</text>
+  <!-- 周期选择栏 -->
+  <view class="period-banner">
+    <view class="period-selector" bindtap="onPeriodTap">
+      <text class="period-label">{{periodLabel}}</text>
+      <image class="period-arrow" src="/assets/icons/chevron-down.svg" mode="aspectFit" />
     </view>
-    <text class="week-range">{{weekRange}}</text>
+    <text class="period-range">{{periodRange}}</text>
+  </view>
+
+  <!-- 周期下拉选项 -->
+  <view class="period-dropdown" wx:if="{{showPeriodDropdown}}" catchtap="onDropdownMaskTap">
+    <view class="period-dropdown-inner" catchtap="">
+      <view class="period-option {{currentPeriod === 'week' ? 'active' : ''}}"
+        catchtap="onPeriodSelect" data-period="week">
+        <text>本周</text>
+        <text class="period-check" wx:if="{{currentPeriod === 'week'}}">✓</text>
+      </view>
+      <view class="period-option {{currentPeriod === 'month' ? 'active' : ''}}"
+        catchtap="onPeriodSelect" data-period="month">
+        <text>本月</text>
+        <text class="period-check" wx:if="{{currentPeriod === 'month'}}">✓</text>
+      </view>
+      <view class="period-option {{currentPeriod === 'quarter' ? 'active' : ''}}"
+        catchtap="onPeriodSelect" data-period="quarter">
+        <text>季度</text>
+        <text class="period-check" wx:if="{{currentPeriod === 'quarter'}}">✓</text>
+      </view>
+      <view class="period-option {{currentPeriod === 'year' ? 'active' : ''}}"
+        catchtap="onPeriodSelect" data-period="year">
+        <text>年度</text>
+        <text class="period-check" wx:if="{{currentPeriod === 'year'}}">✓</text>
+      </view>
+    </view>
   </view>
 
   <!-- 2×2 指标卡 -->

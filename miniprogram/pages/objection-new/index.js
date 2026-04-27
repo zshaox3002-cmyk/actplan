@@ -294,8 +294,7 @@ Page({
             id: newObjection.id,
             content: form.content,
             category: form.category,
-            solution: form.solution,
-            _justCreated: true   // 标记：本次流程内新建，create 时已设 count=1
+            solution: form.solution
           });
         }
 

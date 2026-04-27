@@ -5,7 +5,6 @@
  */
 
 var objectionRepo = require('../../../utils/repository/objection.repo');
-var storage = require('../../../utils/storage');
 
 /** 分类列表（与 PRESET_OBJECTIONS 的 category 字段一致） */
 var CATEGORIES = ['价格', '时机', '必要性', '产品对比', '信任'];
@@ -126,6 +125,8 @@ Page({
       events: {
         onObjectionCreated: function (obj) {
           // 新建完成后自动追加并选中
+          console.warn('[ObjectionSelect] onObjectionCreated: id=' + obj.id + ' type=' + typeof obj.id);
+
           var all = that.data.allObjections.slice();
           var newObj = Object.assign({}, obj, {
             tagCls: TAG_CLS[obj.category] || 'tag-gray',
@@ -138,6 +139,7 @@ Page({
 
           // 用实例属性记录"本次新建"的 ID（不走 setData，不受序列化影响）
           if (obj.id != null) { that._justCreatedIds.push(obj.id); }
+          console.warn('[ObjectionSelect] _justCreatedIds after push:', JSON.stringify(that._justCreatedIds));
 
           that.setData({
             allObjections: all,
@@ -157,14 +159,13 @@ Page({
       return this.data.selectedIds.indexOf(o.id) >= 0;
     }.bind(this));
 
-    // 预置异议计数 +1
-    for (var i = 0; i < selected.length; i++) {
-      if (selected[i].isPreset) {
-        try { objectionRepo.incrementCount(selected[i].id); } catch (e) {}
-      }
-    }
+    // 诊断日志
+    console.warn('[ObjectionSelect] onConfirm: selectedIds=' + JSON.stringify(this.data.selectedIds));
+    console.warn('[ObjectionSelect] onConfirm: _justCreatedIds=' + JSON.stringify(this._justCreatedIds));
+    console.warn('[ObjectionSelect] onConfirm: selected items id list=' + JSON.stringify(selected.map(function(o) { return o.id; })));
 
     // 回传：把 justCreatedIds 作为独立字段传出去（不依赖对象属性）
+    // 注意：计数修改统一在 record-new onSave 中处理，选择确认不修改任何数据
     if (this._channel && this._channel.emit) {
       this._channel.emit('onSelected', {
         items: selected,

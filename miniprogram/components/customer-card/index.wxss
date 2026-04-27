@@ -113,7 +113,7 @@
   color: #E74C3C;
 }
 
-/* ---- 第二行：电话 · 拜访 · 最近 ---- */
+/* ---- 第二行：拜访 · 最近 ---- */
 .card-row-2 {
   display: flex;
   align-items: center;

@@ -110,6 +110,10 @@ Page({
           var selected = result.items || result;
           var justCreatedIds = result.justCreatedIds || [];
 
+          // 诊断日志
+          console.warn('[RecordNew] onSelected: justCreatedIds=' + JSON.stringify(justCreatedIds));
+          console.warn('[RecordNew] onSelected: selected items=' + JSON.stringify(selected.map(function(o) { return o.id; })));
+
           // 用实例属性存 justCreatedIds（不走 setData，不受序列化影响）
           that._justCreatedIds = justCreatedIds;
 
@@ -154,6 +158,14 @@ Page({
       // 捕获页面实例引用，供事务回调内使用
       var justCreatedIds = this._justCreatedIds;
 
+      // 【诊断日志】验证 justCreatedIds 传递链路
+      console.warn('[RecordNew] onSave justCreatedIds:', JSON.stringify(justCreatedIds));
+      for (var di = 0; di < d.objections.length; di++) {
+        var dObj = d.objections[di];
+        console.warn('[RecordNew] objection #' + di, 'id=' + dObj.id, 'type=' + typeof dObj.id,
+          'inJustCreated=' + (justCreatedIds && justCreatedIds.indexOf(dObj.id) >= 0));
+      }
+
       // 外层事务：保证多步操作原子性，任一失败全部回滚
       storage.transaction(function () {
         // 1. 先处理异议：新建的创建入库收集 id，已有的追加 note 自动 count+1
@@ -175,10 +187,12 @@ Page({
             } else if (justCreatedIds && justCreatedIds.indexOf(obj.id) >= 0) {
               // 本次流程刚从 objection-new 新建并入库的异议：
               // create 时已设 customer_id 和 count=1，无需再计数、无需再写 note
+              console.warn('[RecordNew] 跳过 appendNote (justCreated): id=' + obj.id);
               objectionIds.push(obj.id);
             } else {
               // 真正的"复用"：用户从异议选择页勾选了一条已存在的历史异议，
               // 此时应写一条追加备注（内部自动 count+1 或写 objection_links）
+              console.warn('[RecordNew] 执行 appendNote (existing): id=' + obj.id);
               var autoNote = '在本次拜访中再次遇到该异议'
                 + (summary ? '；沟通摘要：' + summary.slice(0, 40)
                    + (summary.length > 40 ? '…' : '') : '');
