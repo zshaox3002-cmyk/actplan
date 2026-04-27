@@ -1,0 +1,65 @@
+/**
+ * app.wxss — 全局样式
+ * 只放全局工具类和变量引入，页面特有样式写在各自 index.wxss
+ */
+
+@import "styles/variables.wxss";
+
+/* ---- 布局工具类 ---- */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+
+/* ---- 文字工具类 ---- */
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-placeholder { color: var(--color-text-placeholder); }
+.text-accent { color: var(--color-primary); }
+.text-success { color: var(--color-success); }
+.text-danger { color: var(--color-danger); }
+
+/* ---- 背景工具类 ---- */
+.bg-page { background-color: var(--color-bg-page); }
+.bg-card { background-color: var(--color-bg-card); }
+
+/* ---- 卡片通用 ---- */
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-card);
+}
+
+/* ---- 按钮通用 ---- */
+.btn-primary {
+  height: var(--height-button);
+  border-radius: var(--radius-button);
+  background-color: var(--color-primary);
+  color: var(--color-bg-card);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary:active {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-primary[disabled] {
+  background-color: var(--color-disabled);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 页面通用容器 ---- */
+.page-container {
+  min-height: 100vh;
+  background-color: var(--color-bg-page);
+  padding: var(--spacing-page);
+  padding-bottom: calc(var(--height-tabbar) + env(safe-area-inset-bottom) + var(--spacing-page));
+}

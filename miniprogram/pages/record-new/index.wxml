@@ -1,0 +1,83 @@
+<!-- pages/record-new/index.wxml -->
+<view class="page-wrap">
+
+  <!-- 只读信息区 -->
+  <view class="readonly-section">
+    <view class="readonly-row">
+      <text class="readonly-label">客户</text>
+      <text class="readonly-value">{{customerName}}</text>
+    </view>
+    <view class="readonly-row" wx:if="{{planInfo}}">
+      <text class="readonly-label">关联计划</text>
+      <text class="readonly-value plan-value">{{planInfo}}</text>
+    </view>
+  </view>
+
+  <!-- 沟通摘要（必填） -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">沟通摘要</text>
+      <text class="required-dot">*</text>
+    </view>
+    <textarea class="summary-input"
+              value="{{summary}}"
+              bindinput="onSummaryInput"
+              placeholder="记录本次拜访的沟通内容和客户反应..."
+              maxlength="500"
+              auto-height/>
+  </view>
+
+  <!-- 跟进阶段（必填，复用 inline-picker） -->
+  <view class="section-card">
+    <inline-picker
+      label="跟进阶段"
+      options="{{stageOptions}}"
+      value="{{stageIndex}}"
+      bindchange="onStageChange">
+    </inline-picker>
+    <text class="field-hint">保存后将同步更新客户详情页的跟进阶段</text>
+  </view>
+
+  <!-- 下次跟进日期（选填，填写后自动创建计划） -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">下次跟进日期</text>
+      <text class="field-label-sub">选填 · 填写后自动创建拜访计划</text>
+    </view>
+    <picker mode="date"
+            value="{{nextDate}}"
+            start="2026-01-01"
+            end="2030-12-31"
+            bindchange="onNextDateChange">
+      <view class="date-picker-row">
+        <text class="{{nextDate ? 'selected' : 'placeholder'}}">{{nextDate ? nextDate : nextDateDisplay}}</text>
+        <image class="chevron-icon" src="/assets/icons/chevron-down.svg"/>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 新增异议（选填） -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">异议记录</text>
+      <text class="field-label-sub">选填</text>
+    </view>
+    <!-- 已录入的异议列表 -->
+    <view class="objection-item"
+          wx:for="{{objections}}"
+          wx:key="index">
+      <text class="obj-content">{{item.content}}</text>
+      <view class="obj-delete" data-index="{{index}}" bindtap="onDeleteObjection">×</view>
+    </view>
+    <!-- 新增异议入口 -->
+    <view class="add-objection-btn" bindtap="onAddObjection">
+      <text>+ 新增异议</text>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="save-bar">
+    <button class="save-btn" bindtap="onSave">保存记录</button>
+  </view>
+
+</view>

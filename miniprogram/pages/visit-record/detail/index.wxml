@@ -1,0 +1,75 @@
+<view class="page-wrap">
+
+  <!-- ① 顶部客户信息条 -->
+  <view class="customer-bar" bindtap="onViewCustomer">
+    <view class="customer-bar-left">
+      <view class="apple-dot" style="background:{{appleColor}}"></view>
+      <view class="customer-info">
+        <text class="customer-name">{{customer.name}}</text>
+      </view>
+    </view>
+    <view class="customer-bar-right">
+      <text class="view-customer-text">查看客户</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <!-- ② 本次拜访信息卡 -->
+  <view class="section-card">
+    <text class="section-title">本次拜访</text>
+    <view class="info-row">
+      <text class="info-label">拜访日期</text>
+      <text class="info-value">{{record.visit_date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">拜访方式</text>
+      <text class="info-value">{{record.visit_way}}</text>
+    </view>
+    <view class="info-row summary-row">
+      <text class="info-label">沟通摘要</text>
+    </view>
+    <text class="summary-text">{{record.summary}}</text>
+  </view>
+
+  <!-- ③ 跟进进展卡 -->
+  <view class="section-card">
+    <text class="section-title">跟进进展</text>
+    <view class="info-row">
+      <text class="info-label">本次推进至</text>
+      <view class="stage-badge-lg {{stageCls}}"><text>{{record.stage}}</text></view>
+    </view>
+    <view class="info-row" wx:if="{{record.next_follow_date}}">
+      <text class="info-label">下次跟进</text>
+      <text class="info-value next-date">{{record.next_follow_date}}</text>
+    </view>
+    <!-- 已自动创建计划时显示 -->
+    <view class="plan-link" wx:if="{{relatedPlan}}" bindtap="onViewPlan">
+      <text class="plan-link-icon">📅</text>
+      <text class="plan-link-text">已自动创建计划：{{relatedPlan.plan_date}}</text>
+      <text class="plan-link-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- ④ 客户异议（从异议池拉取，点击跳转详情） -->
+  <view class="section-card">
+    <text class="section-title">客户异议</text>
+    <view class="objection-item"
+          wx:for="{{objections}}"
+          wx:key="index"
+          data-id="{{item.id}}"
+          bindtap="onViewObjection">
+      <view class="obj-left">
+        <text class="obj-content">{{item.content}}</text>
+      </view>
+      <view class="obj-tag {{item.tagCls}}">{{item.category}}</view>
+    </view>
+    <!-- 空态提示 -->
+    <view class="obj-empty" wx:if="{{!hasObjections}}">
+      <text class="obj-empty-text">暂无异议记录</text>
+    </view>
+  </view>
+
+  <!-- 记录时间（页面底部） -->
+  <text class="record-time">记录于 {{formattedTime}}</text>
+
+</view>

@@ -1,0 +1,8 @@
+<!-- components/chart-bar/index.wxml -->
+<view class="chart-container">
+  <canvas
+    type="2d"
+    id="barCanvas"
+    class="chart-canvas"
+  ></canvas>
+</view>

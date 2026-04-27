@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "新建拜访记录",
+  "usingComponents": {
+    "inline-picker": "/components/inline-picker/index"
+  }
+}

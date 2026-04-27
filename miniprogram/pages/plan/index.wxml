@@ -1,0 +1,48 @@
+<!-- pages/plan/index.wxml -->
+<view class="page-container">
+  <!-- 周视图日历 + 加号按钮 -->
+  <view class="calendar-row">
+    <week-calendar
+      selectedDate="{{selectedDate}}"
+      markedDates="{{markedDates}}"
+      bind:select="onDateSelect"
+    />
+    <view class="add-plan-btn" bindtap="onFabTap">
+      <text class="add-plan-icon">+</text>
+    </view>
+  </view>
+
+  <!-- 当日计划列表 -->
+  <view class="plan-section">
+    <view class="section-header">
+      <text class="section-title">{{selectedDate}} 的计划</text>
+      <text class="plan-count">{{plans.length}} 项</text>
+    </view>
+
+    <!-- 加载态 -->
+    <skeleton wx:if="{{pageState === 'loading'}}" rows="{{3}}" />
+
+    <!-- 计划卡片列表 -->
+    <view class="plan-list" wx:elif="{{pageState === 'data'}}">
+      <plan-card
+        wx:for="{{plans}}"
+        wx:key="id"
+        plan="{{item}}"
+        customerName="{{customerMap[item.customer_id]}}"
+        bind:execute="onExecutePlan"
+        bind:delete="onDeletePlan"
+        bind:detail="onViewRecord"
+      />
+    </view>
+
+    <!-- 空状态 -->
+    <empty-state
+      wx:elif="{{pageState === 'empty'}}"
+      icon="📋"
+      text="当日暂无拜访计划"
+      subText="点击右上角按钮添加计划"
+      actionLabel="添加计划"
+      bind:action="onEmptyAction"
+    />
+  </view>
+</view>

@@ -1,0 +1,41 @@
+/* components/tag-selector/index.wxss */
+
+.tag-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-item {
+  padding: 8px 16px;
+  border-radius: var(--radius-badge);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s;
+}
+
+.tag-unselected {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border);
+}
+
+.tag-unselected .tag-text {
+  color: var(--color-text-secondary);
+}
+
+.tag-selected {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.tag-selected .tag-text {
+  color: #FFFFFF;
+}
+
+.tag-item:active {
+  opacity: 0.8;
+}
+
+.tag-text {
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-medium);
+}

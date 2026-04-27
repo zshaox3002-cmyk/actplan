@@ -1,0 +1,62 @@
+<view class="page-wrap">
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <input class="search-input"
+           placeholder="搜索异议关键词"
+           value="{{keyword}}"
+           bindinput="onSearch" />
+  </view>
+
+  <!-- 分类横向标签 -->
+  <scroll-view class="chip-scroll" scroll-x show-scrollbar="{{false}}">
+    <view class="chip-list">
+      <view class="chip-item {{currentCat === 'all' ? 'active' : ''}}"
+            data-cat="all" bindtap="onSelectCat">
+        <text>全部</text>
+      </view>
+      <view class="chip-item {{currentCat === item ? 'active' : ''}}"
+            wx:for="{{categories}}" wx:key="index"
+            data-cat="{{item}}" bindtap="onSelectCat">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 异议列表 -->
+  <view class="objection-list">
+    <view class="obj-select-item {{item.isSelected ? 'selected' : ''}}"
+          wx:for="{{filteredList}}" wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onToggleSelect">
+      <view class="obj-select-left">
+        <view class="obj-tag {{item.tagCls || 'tag-gray'}}">{{item.category}}</view>
+        <text class="obj-title">{{item.title || item.content}}</text>
+        <view class="obj-official" wx:if="{{item.isOfficial}}">
+          <text class="official-text">官方</text>
+        </view>
+      </view>
+      <view class="obj-check {{item.isSelected ? 'checked' : ''}}">
+        <text class="check-icon" wx:if="{{item.isSelected}}">✓</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-hint" wx:if="{{filteredList.length === 0}}">
+    <text>没有匹配的异议，试试其他关键词或分类</text>
+  </view>
+
+  <!-- 新增异议入口 -->
+  <view class="add-new-btn" bindtap="onAddNew">
+    <text>+ 客户提出了新的异议</text>
+  </view>
+
+  <!-- 底部确认 -->
+  <view class="confirm-bar">
+    <view class="confirm-btn {{selectedIds.length > 0 ? '' : 'disabled'}}"
+          bindtap="onConfirm">
+      <text wx:if="{{selectedIds.length > 0}}">确认记录（{{selectedIds.length}}件）</text>
+      <text wx:else>请选择异议</text>
+    </view>
+  </view>
+</view>

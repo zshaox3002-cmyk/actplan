@@ -1,0 +1,44 @@
+<!-- components/objection-card/index.wxml -->
+<view class="swipe-wrap">
+  <!-- 卡片内容（可左滑） -->
+    <view class="swipe-content {{showDelete ? 'opened' : ''}}"
+        style="{{showDelete ? 'transform:translateX(-140rpx)' : ''}}"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd">
+    <view class="objection-card card {{objection.isPreset ? 'preset' : ''}}" bindtap="onTap" catchtap="onTapCard">
+      <!-- 顶部：标题 + 分类徽章 + 官方标识 -->
+      <view class="card-top">
+        <view class="card-title-row">
+          <text class="card-summary">{{objection.title || objection.content}}</text>
+          <view class="official-badge" wx:if="{{objection.isOfficial}}">
+            <text class="official-badge-text">官方</text>
+          </view>
+        </view>
+        <view class="category-badge badge-{{categoryClass}}">
+          <text class="badge-text">{{objection.category}}</text>
+        </view>
+      </view>
+
+      <!-- 话术预览（预置用 script.step3_response，自建用 solution） -->
+      <view class="card-solution" wx:if="{{objection.script && objjection.script.step3_response}}">
+        <text class="solution-label">话术：</text>
+        <text class="solution-preview">{{objection.script.step3_response}}</text>
+      </view>
+      <view class="card-solution" wx:elif="{{objection.solution}}">
+        <text class="solution-label">话术：</text>
+        <text class="solution-preview">{{objection.solution}}</text>
+      </view>
+
+      <!-- 底部：出现次数（预置用 occurrenceCount，自建用 count） -->
+      <view class="card-footer">
+        <text class="count-text">出现 {{objection.occurrenceCount || objection.count || 0}} 次</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 右侧删除按钮（滑出时显示） -->
+  <view class="delete-btn" wx:if="{{showDelete}}" bindtap="onDeleteTap">
+    <text class="delete-btn-text">删除</text>
+  </view>
+</view>

@@ -1,0 +1,34 @@
+<!-- components/record-card/index.wxml -->
+<view class="record-card card" bindtap="onTap">
+  <view class="record-header">
+    <text class="customer-name">{{customerName || '未知客户'}}</text>
+    <view class="deal-badge {{record.is_deal === '签单成交' ? 'badge-deal' : 'badge-no-deal'}}">
+      <text class="deal-text">{{record.is_deal}}</text>
+    </view>
+  </view>
+
+  <view class="record-info">
+    <view class="info-row">
+      <text class="info-icon">📅</text>
+      <text class="info-text">{{record.visit_date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-icon">💬</text>
+      <text class="info-text">{{record.visit_way}}</text>
+    </view>
+    <view class="info-row" wx:if="{{record.duration}}">
+      <text class="info-icon">⏱</text>
+      <text class="info-text">{{record.duration}} 分钟</text>
+    </view>
+  </view>
+
+  <view class="record-summary" wx:if="{{record.summary}}">
+    <text class="summary-text">{{record.summary}}</text>
+  </view>
+
+  <view class="record-footer">
+    <view class="objection-tag" wx:if="{{record.has_objection}}">
+      <text class="tag-text">异议</text>
+    </view>
+  </view>
+</view>

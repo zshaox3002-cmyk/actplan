@@ -1,0 +1,175 @@
+/* pages/objection-detail/index.wxss */
+
+/* ---- 顶部信息 ---- */
+.detail-header {
+  padding: var(--spacing-card);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  margin-bottom: var(--spacing-section);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.category-badge {
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-helper);
+  line-height: var(--line-height-helper);
+}
+
+.badge-text {
+  color: inherit;
+}
+
+/* 分类颜色映射 */
+/* WXSS 不支持中文类名，统一用英文 .badge-{英文名} */
+.badge-price {
+  background: #FEE2E2;
+  color: #E74C3C;
+}
+
+.badge-necessity {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.badge-timing {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.badge-compare {
+  background: #E0E7FF;
+  color: #4F46E5;
+}
+
+.badge-trust {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.badge-other {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.count-text {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.created-text {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 内容区 ---- */
+.detail-section {
+  margin-bottom: var(--spacing-section);
+}
+
+.section-title {
+  font-size: var(--font-size-module);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.section-body {
+  padding: var(--spacing-card);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.body-text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-body);
+  white-space: pre-wrap;
+}
+
+.solution-body {
+  background: var(--color-primary-light);
+  border-left: 4px solid var(--color-primary);
+}
+
+/* ---- 四步话术结构 ---- */
+.script-section { padding: 24rpx; }
+.script-step-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1A6FD4;
+  margin: 28rpx 0 8rpx;
+  letter-spacing: 1rpx;
+}
+.script-step-title:first-child {
+  margin-top: 0;
+}
+.script-step-content {
+  display: block;
+  font-size: 28rpx;
+  color: #374151;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  padding-left: 16rpx;
+  border-left: 3rpx solid #DBEAFE;
+}
+
+/* ---- 追加历史 ---- */
+.note-list {
+  /* 列表容器 */
+}
+
+.note-item {
+  padding: var(--spacing-card);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.note-customer {
+  font-size: var(--font-size-secondary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.note-time {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+}
+
+.note-content {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-body);
+  white-space: pre-wrap;
+}
+
+.empty-notes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.empty-text {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-placeholder);
+}

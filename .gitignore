@@ -1,0 +1,32 @@
+# 微信开发者工具
+miniprogram/project.private.config.json
+
+# AI 工具配置
+.workbuddy/
+claude.md
+
+# 备份文件
+*.bak
+
+# 生成物
+generated-images/
+
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 产品文档（私有）
+保险代理人活动管理小程序_PRD_v1.1.md
+
+# 临时文件
+*.log
+*.tmp
+_transform.js

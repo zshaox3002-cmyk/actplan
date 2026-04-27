@@ -1,0 +1,35 @@
+<view class="inline-picker-wrap">
+  <!-- 字段行 -->
+  <view class="picker-row {{noTopBorder ? 'no-top-border' : ''}}" bindtap="onToggle">
+    <text class="picker-label">{{label}}</text>
+    <view class="picker-value-area">
+      <!-- 苹果等级彩色圆点 -->
+      <view wx:if="{{showDot && value >= 0}}" class="apple-dot"
+            style="background:{{options[value].color || '#F39C12'}}"></view>
+      <!-- 显示文字 -->
+      <text class="picker-text {{value >= 0 ? 'selected' : 'placeholder'}}"
+            style="{{showDot && value >= 0 ? 'color:' + options[value].color : ''}}">
+        {{value >= 0 ? (showDot ? options[value].label : options[value]) : (disabled ? '-' : '请选择')}}
+      </text>
+      <!-- 编辑态 chevron 箭头 -->
+      <image wx:if="{{!disabled}}"
+             class="chevron-icon {{expanded ? 'chevron-up' : ''}}"
+             src="/assets/icons/chevron-down.svg"/>
+    </view>
+  </view>
+
+  <!-- 展开的选项列表（仅编辑态渲染） -->
+  <view wx:if="{{!disabled}}" class="options-wrap {{expanded ? 'expanded' : 'collapsed'}}">
+    <view class="options-list">
+      <view class="option-item {{value === index ? 'active' : ''}}"
+            wx:for="{{options}}" wx:key="index"
+            data-index="{{index}}" bindtap="onSelect">
+        <view wx:if="{{showDot}}" class="apple-dot-sm"
+              style="background:{{item.color || '#F39C12'}}"></view>
+        <text>{{showDot ? item.label : item}}</text>
+        <image wx:if="{{value === index}}" class="check-icon"
+               src="/assets/icons/check.svg"/>
+      </view>
+    </view>
+  </view>
+</view>

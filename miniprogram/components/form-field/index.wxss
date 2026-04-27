@@ -1,0 +1,78 @@
+/* components/form-field/index.wxss */
+
+.form-field {
+  margin-bottom: var(--spacing-form-row);
+}
+
+.field-label {
+  margin-bottom: var(--spacing-field-label);
+  display: flex;
+  align-items: center;
+}
+
+.label-text {
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.label-required {
+  color: var(--color-danger);
+  font-size: var(--font-size-body);
+  margin-left: 2px;
+}
+
+.field-input,
+.field-textarea {
+  height: var(--height-input);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-input);
+  padding: 0 12px;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.field-textarea {
+  min-height: var(--height-input);
+  padding: 12px;
+  line-height: 1.5;
+}
+
+.field-picker {
+  height: var(--height-input);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-input);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.picker-value {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+.picker-placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.picker-arrow {
+  font-size: 14px;
+  color: var(--color-text-placeholder);
+}
+
+/* disabled 态 */
+.field-disabled .field-input,
+.field-disabled .field-textarea,
+.field-disabled .field-picker {
+  background-color: var(--color-border);
+  color: var(--color-text-placeholder);
+}
+
+.field-disabled .picker-value {
+  color: var(--color-text-placeholder);
+}

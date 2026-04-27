@@ -1,0 +1,52 @@
+<!-- filter-bar 组件 — 内联展开下拉菜单 -->
+<view class="filter-bar">
+  <!-- 等级筛选 -->
+  <view class="filter-wrapper">
+    <view class="filter-select" catchtap="toggleAppleDropdown">
+      <text class="filter-label">等级</text>
+      <text class="filter-value">{{appleFilterLabel}}</text>
+      <view class="filter-arrow {{showAppleDropdown ? 'arrow-up' : ''}}"></view>
+    </view>
+    <view class="dropdown-menu {{showAppleDropdown ? 'dropdown-show' : ''}}">
+      <view
+        class="dropdown-item {{appleFilter === item.value ? 'dropdown-item-active' : ''}}"
+        wx:for="{{appleOptions}}"
+        wx:key="value"
+        catchtap="onAppleSelect"
+        data-value="{{item.value}}"
+        data-label="{{item.label}}"
+      >
+        <text>{{item.label}}</text>
+        <text class="dropdown-check" wx:if="{{appleFilter === item.value}}">✓</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 阶段筛选 -->
+  <view class="filter-wrapper">
+    <view class="filter-select" catchtap="toggleStageDropdown">
+      <text class="filter-label">阶段</text>
+      <text class="filter-value">{{stageFilterLabel}}</text>
+      <view class="filter-arrow {{showStageDropdown ? 'arrow-up' : ''}}"></view>
+    </view>
+    <view class="dropdown-menu {{showStageDropdown ? 'dropdown-show' : ''}}">
+      <view
+        class="dropdown-item {{stageFilter === item.value ? 'dropdown-item-active' : ''}}"
+        wx:for="{{stageOptions}}"
+        wx:key="value"
+        catchtap="onStageSelect"
+        data-value="{{item.value}}"
+        data-label="{{item.label}}"
+      >
+        <text>{{item.label}}</text>
+        <text class="dropdown-check" wx:if="{{stageFilter === item.value}}">✓</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 全屏透明遮罩（点击关闭下拉） -->
+  <view
+    class="dropdown-overlay {{showAppleDropdown || showStageDropdown ? 'overlay-show' : ''}}"
+    catchtap="closeDropdowns"
+  ></view>
+</view>

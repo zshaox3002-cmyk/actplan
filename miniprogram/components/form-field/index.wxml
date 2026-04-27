@@ -1,0 +1,58 @@
+<!-- components/form-field/index.wxml -->
+<view class="form-field {{disabled ? 'field-disabled' : ''}}">
+  <view class="field-label">
+    <text class="label-text">{{label}}</text>
+    <text class="label-required" wx:if="{{required}}">*</text>
+  </view>
+
+  <!-- text / number -->
+  <input
+    wx:if="{{type === 'text' || type === 'number'}}"
+    class="field-input"
+    type="{{type === 'number' ? 'digit' : 'text'}}"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    disabled="{{disabled}}"
+    bindinput="onInput"
+  />
+
+  <!-- textarea -->
+  <textarea
+    wx:if="{{type === 'textarea'}}"
+    class="field-textarea"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    disabled="{{disabled}}"
+    bindinput="onInput"
+    auto-height
+    maxlength="-1"
+  />
+
+  <!-- date -->
+  <picker
+    wx:if="{{type === 'date'}}"
+    mode="date"
+    value="{{value}}"
+    disabled="{{disabled}}"
+    bindchange="onInput"
+  >
+    <view class="field-picker">
+      <text class="picker-value {{value ? '' : 'picker-placeholder'}}">{{value || placeholder}}</text>
+      <text class="picker-arrow">▾</text>
+    </view>
+  </picker>
+
+  <!-- picker -->
+  <picker
+    wx:if="{{type === 'picker'}}"
+    mode="selector"
+    range="{{options}}"
+    disabled="{{disabled}}"
+    bindchange="onPickerChange"
+  >
+    <view class="field-picker">
+      <text class="picker-value {{value ? '' : 'picker-placeholder'}}">{{value || placeholder}}</text>
+      <text class="picker-arrow">▾</text>
+    </view>
+  </picker>
+</view>

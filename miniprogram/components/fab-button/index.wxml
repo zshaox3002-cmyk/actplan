@@ -1,0 +1,4 @@
+<!-- components/fab-button/index.wxml -->
+<view class="fab" bindtap="onTap">
+  <text class="fab-icon">+</text>
+</view>

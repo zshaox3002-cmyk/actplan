@@ -1,0 +1,39 @@
+/* pages/record/index.wxss */
+
+/* ---- 异议池入口 banner ---- */
+.objection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px var(--spacing-card);
+  background: linear-gradient(135deg, var(--color-primary-light), #F0F7FF);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  margin-bottom: var(--spacing-section);
+}
+
+.objection-banner:active {
+  background: var(--color-primary-light);
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.banner-icon {
+  font-size: 20px;
+}
+
+.banner-text {
+  font-size: var(--font-size-body);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.banner-arrow {
+  font-size: 20px;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}

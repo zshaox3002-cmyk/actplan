@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "拜访记录",
+  "usingComponents": {
+    "record-card": "/components/record-card/index",
+    "fab-button": "/components/fab-button/index",
+    "empty-state": "/components/empty-state/index",
+    "skeleton": "/components/skeleton/index"
+  }
+}

@@ -1,0 +1,78 @@
+/* pages/plan/index.wxss */
+
+.plan-section {
+  margin-top: var(--spacing-section);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.section-title {
+  font-size: var(--font-size-module);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.plan-count {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 空状态 ---- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.empty-hint {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 日历行 + 加号按钮 ---- */
+.calendar-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.calendar-row week-calendar {
+  flex: 1;
+}
+
+.add-plan-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #1A6FD4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+  margin-top: 16rpx;
+}
+
+.add-plan-icon {
+  font-size: 36rpx;
+  color: #fff;
+  line-height: 1;
+  margin-top: -2rpx;
+}

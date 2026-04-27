@@ -1,0 +1,47 @@
+/* search-bar 组件样式 — 白底卡片圆角 + 微阴影 */
+.search-bar {
+  margin-bottom: 16rpx;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  height: 72rpx;
+  background: #FFFFFF;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  gap: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.search-icon {
+  color: #9CA3AF;
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1A1A2E;
+  height: 72rpx;
+}
+
+.search-placeholder {
+  color: #9CA3AF;
+  font-size: 28rpx;
+}
+
+.search-clear {
+  flex-shrink: 0;
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-icon {
+  font-size: 24rpx;
+  color: #9CA3AF;
+}

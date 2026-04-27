@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "新建异议",
+  "usingComponents": {
+    "form-field": "/components/form-field/index",
+    "tag-selector": "/components/tag-selector/index",
+    "step-indicator": "/components/step-indicator/index",
+    "objection-card": "/components/objection-card/index"
+  }
+}

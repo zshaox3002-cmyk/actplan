@@ -1,0 +1,120 @@
+/* ============================================================
+* variables.wxss — UI_SPEC v1.0 完整映射
+* 所有颜色、字号、间距、圆角、阴影均在此定义
+* 页面和组件禁止写死数值，必须引用 var(--xxx)
+* ============================================================ */
+
+page {
+  /* ---- 主色 ---- */
+  --color-primary: #1A6FD4;
+  --color-primary-light: #E8F1FC;
+  --color-primary-dark: #155BB5;
+
+  /* ---- 辅助色 ---- */
+  --color-success: #27AE60;
+  --color-warning: #F39C12;
+  --color-danger: #E74C3C;
+
+  /* ---- 中性色 ---- */
+  --color-bg-page: #F5F6FA;
+  --color-bg-card: #FFFFFF;
+  --color-text-primary: #1A1A2E;
+  --color-text-secondary: #6B7280;
+  --color-text-placeholder: #9CA3AF;
+  --color-border: #E5E7EB;
+  --color-disabled: #D1D5DB;
+
+  /* ---- 苹果等级 ---- */
+  --color-apple-red: #E74C3C;
+  --color-apple-green: #27AE60;
+  --color-apple-gray: #6B7280;
+  --color-apple-pending: #F39C12;
+
+  /* ---- 图表 ---- */
+  --color-chart-actual: #1A6FD4;
+  --color-chart-plan: #D1D5DB;
+
+  /* ---- 指标卡圆点 ---- */
+  --color-metric-dot-total: #1A6FD4;
+  --color-metric-dot-new: #27AE60;
+  --color-metric-dot-visit: #F39C12;
+  --color-metric-dot-deal: #E74C3C;
+
+  /* ---- 跟进阶段徽章 ---- */
+  --color-badge-need-bg: #E8F1FC;
+  --color-badge-need-text: #1A6FD4;
+  --color-badge-deal-bg: #DCFCE7;
+  --color-badge-deal-text: #27AE60;
+  --color-badge-reject-bg: #FEE2E2;
+  --color-badge-reject-text: #E74C3C;
+
+  /* ---- Tab 切换 ---- */
+  --color-tab-bg: #F0F4F8;
+  --color-tab-active-bg: #FFFFFF;
+  --color-tab-active-text: #1A6FD4;
+  --color-tab-inactive-text: #9CA3AF;
+
+  /* ---- 字号 ---- */
+  --font-size-title: 24px;
+  --font-size-page-title: 20px;
+  --font-size-module: 18px;
+  --font-size-body: 15px;
+  --font-size-secondary: 13px;
+  --font-size-helper: 12px;
+  --font-size-data: 32px;
+  --font-size-data-label: 11px;
+  --font-size-section-title: 17px;
+
+  /* ---- 字重 ---- */
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-medium: 500;
+  --font-weight-regular: 400;
+
+  /* ---- 行高 ---- */
+  --line-height-title: 32px;
+  --line-height-module: 26px;
+  --line-height-body: 22px;
+  --line-height-secondary: 20px;
+  --line-height-helper: 18px;
+  --line-height-data: 40px;
+  --line-height-data-label: 16px;
+
+  /* ---- 间距 ---- */
+  --spacing-page: 16px;
+  --spacing-card: 16px;
+  --spacing-card-gap: 12px;
+  --spacing-section: 24px;
+  --spacing-form-row: 20px;
+  --spacing-icon-text: 8px;
+  --spacing-badge-px: 8px;
+  --spacing-badge-py: 4px;
+  --spacing-field-label: 6px;
+
+  /* ---- 圆角 ---- */
+  --radius-card: 16px;
+  --radius-badge: 20px;
+  --radius-input: 10px;
+  --radius-button: 12px;
+  --radius-tab: 12rpx;
+  --radius-tab-item: 10rpx;
+
+  /* ---- 阴影 ---- */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card-elevated: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  --shadow-tab-active: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  --shadow-fab: 0 4px 16px rgba(26, 111, 212, 0.35);
+
+  /* ---- 尺寸 ---- */
+  --height-button: 48px;
+  --height-input: 48px;
+  --height-tabbar: 56px;
+  --size-fab: 56px;
+  --size-icon-tab: 24px;
+  --size-icon-card: 20px;
+  --size-icon-form: 18px;
+  --size-icon-apple: 20px;
+  --size-badge-dot: 4px;
+  --size-metric-dot: 20rpx;
+  --min-touch: 44px;
+}

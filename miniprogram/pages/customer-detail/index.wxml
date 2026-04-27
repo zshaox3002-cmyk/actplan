@@ -1,0 +1,264 @@
+<view class="page-container detail-page">
+  <!-- 加载态 -->
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text class="text-placeholder">加载中...</text>
+  </view>
+
+  <!-- 内容区域 -->
+  <block wx:else>
+
+    <view class="detail-actions">
+      <view wx:if="{{!isEdit}}" class="action-btn edit-btn" bindtap="onEditTap">
+        <text class="action-text text-accent">编辑</text>
+      </view>
+      <view wx:if="{{!isEdit && !isNew}}" class="action-btn delete-btn" bindtap="onDeleteTap">
+        <text class="action-text text-danger">删除</text>
+      </view>
+    </view>
+
+    <!-- A. 基础信息区块 -->
+    <view class="section">
+      <view class="section-title">
+        <text class="section-title-text">基础信息</text>
+      </view>
+
+      <!-- 客户姓名 -->
+      <view class="field-row">
+        <text class="field-label">客户姓名</text>
+        <input
+          wx:if="{{isEdit}}"
+          class="field-input"
+          value="{{form.name}}"
+          placeholder="请输入姓名"
+          data-field="name"
+          bindinput="onFieldChange"
+        />
+        <text wx:else class="field-value text-primary">{{form.name}}</text>
+      </view>
+
+      <!-- 性别 -->
+      <inline-picker
+        label="性别"
+        options="{{genderOptions}}"
+        value="{{genderIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onGenderChange">
+      </inline-picker>
+
+      <!-- 关系 -->
+      <inline-picker
+        label="关系"
+        options="{{relationOptions}}"
+        value="{{relationIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onRelationChange">
+      </inline-picker>
+
+      <!-- 收入 -->
+      <inline-picker
+        label="收入"
+        options="{{incomeOptions}}"
+        value="{{incomeIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onIncomeChange">
+      </inline-picker>
+
+      <!-- 年龄范围 -->
+      <inline-picker
+        label="年龄范围"
+        options="{{ageRangeOptions}}"
+        value="{{ageRangeIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onAgeRangeChange">
+      </inline-picker>
+
+      <!-- 职业 -->
+      <inline-picker
+        label="职业"
+        options="{{occupationOptions}}"
+        value="{{occupationIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onOccupationChange">
+      </inline-picker>
+
+      <!-- 居住类型 -->
+      <inline-picker
+        label="居住类型"
+        options="{{residenceOptions}}"
+        value="{{residenceIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onResidenceChange">
+      </inline-picker>
+
+      <!-- 婚姻状况 -->
+      <inline-picker
+        label="婚姻状况"
+        options="{{maritalOptions}}"
+        value="{{maritalIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onMaritalChange">
+      </inline-picker>
+
+      <!-- 交情 -->
+      <inline-picker
+        label="交情"
+        options="{{intimacyOptions}}"
+        value="{{intimacyIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onIntimacyChange">
+      </inline-picker>
+
+      <!-- 苹果等级 -->
+      <inline-picker
+        label="苹果等级"
+        options="{{appleGradeOptions}}"
+        value="{{appleGradeIndex}}"
+        disabled="{{!isEdit}}"
+        show-dot="{{true}}"
+        bindchange="onAppleGradeChange">
+      </inline-picker>
+
+      <!-- 跟进阶段 -->
+      <inline-picker
+        label="跟进阶段"
+        options="{{stageOptions}}"
+        value="{{stageIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onStageChange">
+      </inline-picker>
+
+      <!-- DISABLED: field-removed - 暂时禁用，保留备用
+      <view class="field-row">
+        <text class="field-label">跟进时间</text>
+        <picker wx:if="{{isEdit}}" mode="date" value="{{form.follow_date}}" data-field="follow_date" bindchange="onDateChange">
+          <text class="field-value {{form.follow_date ? '' : 'text-placeholder'}}">{{form.follow_date || '请选择'}}</text>
+        </picker>
+        <text wx:else class="field-value">{{form.follow_date}}</text>
+      </view>
+
+      <view class="field-row field-row--full">
+        <text class="field-label">代办任务</text>
+        <textarea
+          wx:if="{{isEdit}}"
+          class="field-textarea"
+          value="{{form.todo_task}}"
+          placeholder="请输入"
+          data-field="todo_task"
+          bindinput="onFieldChange"
+          auto-height
+        ></textarea>
+        <text wx:else class="field-value">{{form.todo_task}}</text>
+      </view>
+
+      <view class="field-row field-row--full">
+        <text class="field-label">异议记录</text>
+        <textarea
+          wx:if="{{isEdit}}"
+          class="field-textarea"
+          value="{{form.objection_legacy}}"
+          placeholder="飞书遗留字段"
+          data-field="objection_legacy"
+          bindinput="onFieldChange"
+          auto-height
+        ></textarea>
+        <text wx:else class="field-value">{{form.objection_legacy}}</text>
+      </view>
+      -->
+    </view>
+
+    <!-- B. 苹果分级（已简化为一行 picker，合并到基础信息区块） -->
+    <!-- DISABLED: apple-auto-grade - 独立卡片已移除，三维度字段已移至扩展信息区
+    <view class="section">
+      ...
+    </view>
+    -->
+
+    <!-- C. 扩展字段区块 -->
+    <view class="section">
+      <view class="section-title">
+        <text class="section-title-text">扩展信息</text>
+      </view>
+
+      <!-- 家庭成员 -->
+      <inline-picker
+        label="家庭成员"
+        options="{{familyOptions}}"
+        value="{{familyIndex}}"
+        disabled="{{!isEdit}}"
+        no-top-border="{{true}}"
+        bindchange="onFamilyChange">
+      </inline-picker>
+
+      <!-- 是否有真实需求 -->
+      <inline-picker
+        label="是否有真实需求"
+        options="{{hasNeedOptions}}"
+        value="{{hasNeedIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onHasNeedChange">
+      </inline-picker>
+
+      <!-- 是否有购买能力 -->
+      <inline-picker
+        label="是否有购买能力"
+        options="{{hasAbilityOptions}}"
+        value="{{hasAbilityIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onHasAbilityChange">
+      </inline-picker>
+
+      <!-- 是否是决策人 -->
+      <inline-picker
+        label="是否是决策人"
+        options="{{isDeciderOptions}}"
+        value="{{isDeciderIndex}}"
+        disabled="{{!isEdit}}"
+        bindchange="onIsDeciderChange">
+      </inline-picker>
+
+      <!-- DISABLED: field-removed - 已有保障概览字段已删除
+      <view class="field-row">
+        <text class="field-label">已有保障概览</text>
+        <picker wx:if="{{isEdit}}" mode="multiSelector" range="{{['医疗险','重疾险','寿险','年金险','意外险','无']}}" bindchange="onCoverageChange">
+          <text class="field-value {{form.coverage.length ? '' : 'text-placeholder'}}">{{form.coverage.length ? form.coverage.join('、') : '请选择'}}</text>
+        </picker>
+        <text wx:else class="field-value">{{form.coverage.length ? form.coverage.join('、') : '-'}}</text>
+      </view>
+      -->
+
+      <!-- 保障缺口说明（保留 textarea，不改为下拉） -->
+      <view class="field-row field-row--full">
+        <text class="field-label">保障缺口说明</text>
+        <textarea
+          wx:if="{{isEdit}}"
+          class="field-textarea"
+          value="{{form.coverage_gap}}"
+          placeholder="请输入保障缺口说明"
+          data-field="coverage_gap"
+          bindinput="onFieldChange"
+          auto-height
+        ></textarea>
+        <text wx:else class="field-value">{{form.coverage_gap || '-'}}</text>
+      </view>
+
+      <!-- 最近拜访日期（自动写入，置灰） -->
+      <view class="field-row">
+        <text class="field-label">最近拜访日期</text>
+        <text class="field-value field-auto">{{form.last_visit || '-'}}</text>
+      </view>
+
+      <!-- 累计拜访次数（自动写入，置灰） -->
+      <view class="field-row">
+        <text class="field-label">累计拜访次数</text>
+        <text class="field-value field-auto">{{form.visit_count || 0}}</text>
+      </view>
+    </view>
+
+    <view class="save-wrap" wx:if="{{isEdit}}">
+      <view class="save-btn" bindtap="onSaveTap">
+        <text>保存</text>
+      </view>
+    </view>
+
+  </block>
+</view>

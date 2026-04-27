@@ -1,0 +1,14 @@
+<!-- components/step-indicator/index.wxml -->
+<view class="step-indicator">
+  <view class="step-item" wx:for="{{steps}}" wx:key="index">
+    <!-- 圆点 -->
+    <view class="step-dot {{index < current ? 'dot-completed' : ''}} {{index === current ? 'dot-current' : ''}} {{index > current ? 'dot-pending' : ''}}">
+      <text class="dot-check" wx:if="{{index < current}}">✓</text>
+      <text class="dot-number" wx:else>{{index + 1}}</text>
+    </view>
+    <!-- 标签 -->
+    <text class="step-label {{index <= current ? 'label-active' : 'label-inactive'}}">{{item}}</text>
+    <!-- 连线 -->
+    <view class="step-line {{index < current ? 'line-completed' : 'line-pending'}}" wx:if="{{index < steps.length - 1}}"></view>
+  </view>
+</view>

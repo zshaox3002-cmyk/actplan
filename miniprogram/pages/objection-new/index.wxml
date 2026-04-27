@@ -1,0 +1,177 @@
+<!-- pages/objection-new/index.wxml -->
+<view class="page-container">
+  <!-- 步骤指示器 -->
+  <step-indicator steps="{{steps}}" current="{{currentStep}}" />
+
+  <!-- Step 0: 选择客户 -->
+  <view class="step-content" wx:if="{{currentStep === 0}}">
+    <view class="section-title">选择关联客户</view>
+
+    <!-- 搜索 -->
+    <view class="search-bar">
+      <input
+        class="search-input"
+        placeholder="搜索客户姓名"
+        value="{{customerKeyword}}"
+        bindinput="onCustomerSearch"
+      />
+    </view>
+
+    <!-- 客户列表 -->
+    <view class="customer-list">
+      <view
+        class="customer-item card {{item.id === form.customer_id ? 'item-selected' : ''}}"
+        wx:for="{{customers}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        data-name="{{item.name}}"
+        bindtap="onCustomerSelect"
+      >
+        <text class="item-name">{{item.name}}</text>
+        <text class="item-rank">{{item.apple_rank_label || item.apple_rank || '待定'}}</text>
+      </view>
+
+      <view class="empty-tip" wx:if="{{customers.length === 0}}">
+        <text class="tip-text">暂无客户，请先添加</text>
+      </view>
+    </view>
+
+    <view class="step-actions">
+      <view class="btn-primary action-full" bindtap="onNextStep">
+        <text class="btn-text-white">下一步</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 1: 填写异议内容 + 选择分类 -->
+  <view class="step-content" wx:if="{{currentStep === 1}}">
+    <!-- 客户（只读） -->
+    <view class="customer-locked">
+      <text class="locked-label">客户</text>
+      <text class="locked-value">{{form.customer_name}}</text>
+    </view>
+
+    <!-- 异议内容 -->
+    <form-field
+      label="异议内容"
+      type="textarea"
+      value="{{form.content}}"
+      placeholder="请描述客户提出的异议"
+      required="{{true}}"
+      bind:change="onContentChange"
+    />
+
+    <!-- 异议分类 -->
+    <view class="form-field">
+      <view class="field-label">
+        <text class="label-text">异议分类</text>
+        <text class="label-required">*</text>
+      </view>
+      <tag-selector
+        options="{{categoryOptions}}"
+        value="{{form.category}}"
+        bind:change="onCategoryChange"
+      />
+    </view>
+
+    <view class="step-actions">
+      <view class="btn-secondary" bindtap="onPrevStep">
+        <text class="btn-text-gray">上一步</text>
+      </view>
+      <view class="btn-primary action-flex" bindtap="onNextStep">
+        <text class="btn-text-white">下一步</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 2: 同类合并判断 -->
+  <view class="step-content" wx:if="{{currentStep === 2}}">
+    <view class="section-title">同类异议记录</view>
+    <view class="merge-hint">
+      <text class="hint-text">以下是与"{{form.category}}"分类相同的已有异议，请判断是否为同类：</text>
+    </view>
+
+    <!-- 同类列表 -->
+    <view class="same-list">
+      <view
+        class="same-item card"
+        wx:for="{{sameCategoryList}}"
+        wx:key="id"
+      >
+        <view class="same-top">
+          <text class="same-content">{{item.content}}</text>
+        </view>
+        <view class="same-footer">
+          <text class="same-count">出现 {{item.count}} 次</text>
+          <view
+            class="btn-append"
+            data-id="{{item.id}}"
+            bindtap="onAppendSelect"
+          >
+            <text class="btn-append-text">追加到此条</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 新建独立记录 -->
+    <view class="create-new-btn" bindtap="onCreateNew">
+      <text class="create-new-text">以上都不是，新建独立记录</text>
+    </view>
+  </view>
+
+  <!-- Step 3: 追加模式 or 新建模式 -->
+  <view class="step-content" wx:if="{{currentStep === 3}}">
+    <!-- 追加模式 -->
+    <block wx:if="{{submitMode === 'append'}}">
+      <view class="section-title">追加备注</view>
+      <view class="mode-hint">
+        <text class="hint-text">您正在为已有异议追加新的备注</text>
+      </view>
+
+      <form-field
+        label="追加备注"
+        type="textarea"
+        value="{{form.note}}"
+        placeholder="请输入本次追加的备注内容"
+        required="{{true}}"
+        bind:change="onNoteChange"
+      />
+    </block>
+
+    <!-- 新建模式 -->
+    <block wx:else>
+      <view class="section-title">填写应对话术</view>
+
+      <!-- 异议摘要（只读回顾） -->
+      <view class="review-section">
+        <view class="review-row">
+          <text class="review-label">异议内容</text>
+          <text class="review-value">{{form.content}}</text>
+        </view>
+        <view class="review-row">
+          <text class="review-label">分类</text>
+          <text class="review-value">{{form.category}}</text>
+        </view>
+      </view>
+
+      <form-field
+        label="应对话术"
+        type="textarea"
+        value="{{form.solution}}"
+        placeholder="请输入应对该异议的话术"
+        required="{{true}}"
+        bind:change="onSolutionChange"
+      />
+    </block>
+
+    <view class="step-actions">
+      <view class="btn-secondary" bindtap="onPrevStep">
+        <text class="btn-text-gray">上一步</text>
+      </view>
+      <view class="btn-primary action-flex" bindtap="onSubmit">
+        <text class="btn-text-white">确认提交</text>
+      </view>
+    </view>
+  </view>
+</view>

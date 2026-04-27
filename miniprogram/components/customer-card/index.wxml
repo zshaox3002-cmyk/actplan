@@ -1,0 +1,44 @@
+<view class="swipe-container customer-card-component"
+  bindtouchstart="onTouchStart"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd">
+
+  <!-- 删除按钮（固定在右侧，被卡片遮住） -->
+  <view class="delete-btn" catchtap="onDeleteTap" data-id="{{customer.id}}">
+    <text class="delete-text">删除</text>
+  </view>
+
+  <!-- 卡片主体（可左滑） -->
+  <view class="customer-card rank-{{appleRankClass}}"
+    style="transform: translateX({{offsetX}}rpx);"
+    catchtap="onCardTap"
+    data-id="{{customer.id}}">
+    <!-- 左侧等级色条 -->
+    <view class="rank-bar"></view>
+    <!-- 右侧内容区 -->
+    <view class="card-content">
+      <!-- 第一行：姓名 + 阶段徽章 -->
+      <view class="card-row-1">
+        <text class="customer-name">{{customer.name}}</text>
+        <view class="stage-badge stage-{{stageClass}}">
+          <text>{{displayStage}}</text>
+        </view>
+      </view>
+      <!-- 第二行：电话 · 拜访 · 最近 -->
+      <view class="card-row-2">
+        <text class="card-meta">📞 {{maskedPhone}}</text>
+        <text class="card-dot"> · </text>
+        <text class="card-meta">{{visitLabel}}</text>
+        <text class="card-dot"> · </text>
+        <text class="card-meta">{{lastVisitLabel}}</text>
+      </view>
+      <!-- 第三行：信息标签 -->
+      <view class="card-row-3" wx:if="{{infoTags.length > 0}}">
+        <view class="info-tag" wx:for="{{infoTags}}" wx:key="index">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+</view>

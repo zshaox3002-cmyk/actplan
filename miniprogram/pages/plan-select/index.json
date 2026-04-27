@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "添加拜访计划",
+  "usingComponents": {
+    "customer-card": "/components/customer-card/index"
+  }
+}

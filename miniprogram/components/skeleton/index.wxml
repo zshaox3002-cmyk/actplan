@@ -1,0 +1,9 @@
+<view class="skeleton-list">
+  <view class="skeleton-item" wx:for="{{items}}" wx:key="*this">
+    <view class="skeleton-avatar"></view>
+    <view class="skeleton-lines">
+      <view class="skeleton-line long"></view>
+      <view class="skeleton-line short"></view>
+    </view>
+  </view>
+</view>

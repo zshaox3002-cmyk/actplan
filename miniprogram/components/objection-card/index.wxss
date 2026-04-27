@@ -1,0 +1,157 @@
+/* components/objection-card/index.wxss */
+
+/* ---- 左滑容器 ---- */
+.swipe-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.swipe-content {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.25s ease-out;
+}
+
+.objection-card {
+  padding: var(--spacing-card);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 官方标识 */
+.official-badge { flex-shrink: 0; }
+.official-badge-text {
+  font-size: 18rpx;
+  color: #1A6FD4;
+  background: #DBEAFE;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  white-space: nowrap;
+}
+
+.card-summary {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-body);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* ---- 分类徽章 ---- */
+.category-badge {
+  flex-shrink: 0;
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-helper);
+  line-height: var(--line-height-helper);
+}
+
+.badge-text {
+  color: inherit;
+}
+
+/* 分类颜色映射 */
+/* WXSS 不支持中文类名，统一用英文 .badge-{英文名} */
+.badge-price {
+  background: #FEE2E2;
+  color: #E74C3C;
+}
+
+.badge-necessity {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.badge-timing {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.badge-compare {
+  background: #E0E7FF;
+  color: #4F46E5;
+}
+
+.badge-trust {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.badge-other {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+/* ---- 话术预览 ---- */
+.card-solution {
+  margin-top: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.solution-label {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-placeholder);
+  flex-shrink: 0;
+}
+
+.solution-preview {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+/* ---- 底部 ---- */
+.card-footer {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.count-text {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 右侧删除按钮（左滑露出） ---- */
+.delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 140rpx;
+  background: #E74C3C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+}

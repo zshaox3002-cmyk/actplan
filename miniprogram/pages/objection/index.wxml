@@ -1,0 +1,70 @@
+<!-- pages/objection/index.wxml -->
+<view class="page-container">
+  <!-- DISABLED: duplicate-title
+  <view class="page-header">
+    <text class="page-title">异议池</text>
+  </view>
+  -->
+
+  <!-- 顶部：横向统计与筛选标签 -->
+  <view class="chip-scroll-wrap">
+    <scroll-view class="chip-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="chip-list">
+        <view class="chip-item {{currentCategory === '' ? 'active' : ''}}" 
+              data-cat="" bindtap="onSelectCategory">
+          <text>全部</text>
+          <text class="chip-num">{{objectionTotal || 0}}</text>
+        </view>
+        <view class="chip-item {{currentCategory === item.key ? 'active' : ''}}"
+              wx:for="{{categoryStats}}" wx:key="key"
+              data-cat="{{item.key}}" bindtap="onSelectCategory">
+          <text>{{item.label}}</text>
+          <text class="chip-num">{{item.count}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 列表头部：标题与排序 -->
+  <view class="list-header">
+    <text class="list-title">话术列表</text>
+    <view class="sort-btn" bindtap="onToggleSort">
+      <text>{{sortBy === 'recent' ? '最近创建' : '出现频次'}}</text>
+      <text class="sort-icon">⇅</text>
+    </view>
+  </view>
+
+  <!-- 加载态 -->
+  <skeleton wx:if="{{pageState === 'loading'}}" rows="{{5}}" />
+
+  <!-- 异议列表 -->
+  <view class="objection-list" wx:elif="{{pageState === 'data'}}">
+    <objection-card
+      wx:for="{{objections}}"
+      wx:key="id"
+      objection="{{item}}"
+      binddelete="onObjectionDelete"
+    />
+  </view>
+
+  <!-- 空状态 -->
+  <empty-state
+    wx:elif="{{pageState === 'empty'}}"
+    icon="💡"
+    text="暂无异议记录"
+    subText="点击右下角按钮新建异议"
+    actionLabel="新建异议"
+    bind:action="onEmptyAction"
+  />
+
+  <!-- 错误状态 -->
+  <empty-state
+    wx:elif="{{pageState === 'error'}}"
+    icon="⚠️"
+    text="加载失败"
+    subText="请稍后重试"
+  />
+
+  <!-- FAB -->
+  <fab-button bind:tap="onFabTap" />
+</view>

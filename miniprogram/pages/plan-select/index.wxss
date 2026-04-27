@@ -1,0 +1,151 @@
+/* pages/plan-select/index.wxss */
+
+/* ---- 日期提示 ---- */
+.date-hint {
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.hint-text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+/* ---- 搜索栏 ---- */
+.search-bar {
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.search-input {
+  height: 40px;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-input);
+  padding: 0 12px;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---- 客户列表 ---- */
+/* DISABLED: simplified-customer-item — 已改用 customer-card 组件，样式由组件自带
+.customer-list { margin-top: 4px; }
+.customer-item { padding: 12px var(--spacing-card); margin-bottom: 8px; display: flex; flex-direction: column; }
+.item-muted { opacity: 0.6; }
+.item-selected { border: 2px solid var(--color-primary); }
+.item-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.item-name { font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
+.item-badge { font-size: var(--font-size-helper); color: var(--color-warning); background: #FEF3C7; padding: 2px 8px; border-radius: var(--radius-badge); }
+.item-meta { display: flex; gap: 12px; }
+.item-rank, .item-stage { font-size: var(--font-size-helper); color: var(--color-text-placeholder); }
+*/
+.customer-list {
+  margin-top: 4px;
+}
+
+/* ---- 空状态 ---- */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.empty-text {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 确认面板 ---- */
+.confirm-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.confirm-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.confirm-content {
+  position: relative;
+  width: 100%;
+  padding: 20px var(--spacing-card);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  z-index: 1;
+}
+
+.confirm-title {
+  font-size: var(--font-size-module);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.confirm-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.confirm-label {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+}
+
+.confirm-value {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.picker-value {
+  color: var(--color-primary);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.action-btn {
+  flex: 1;
+  height: var(--height-button);
+  border-radius: var(--radius-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cancel {
+  background-color: var(--color-bg-page);
+  border: 1px solid var(--color-border);
+}
+
+.btn-cancel .btn-text {
+  color: var(--color-text-secondary);
+}
+
+.btn-confirm {
+  background-color: var(--color-primary);
+}
+
+.btn-confirm .btn-text {
+  color: #FFFFFF;
+  font-weight: var(--font-weight-semibold);
+}
+
+.btn-text {
+  font-size: var(--font-size-body);
+}

@@ -1,0 +1,6 @@
+<!-- components/metric-card/index.wxml -->
+<view class="metric-card">
+  <view class="metric-dot" style="background: {{dotColor || 'var(--color-primary)'}}"></view>
+  <text class="metric-value">{{value}}</text>
+  <text class="metric-label">{{label}}</text>
+</view>

@@ -1,0 +1,53 @@
+<view class="page-container" bindtap="onPageTap">
+  <!-- 搜索栏 -->
+  <search-bar
+    value="{{keyword}}"
+    placeholder="搜索客户姓名"
+    bind:input="onSearchInput"
+    bind:clear="onSearchClear"
+  ></search-bar>
+
+  <!-- 筛选栏 -->
+  <filter-bar
+    apple-rank="{{appleRank}}"
+    stage="{{stage}}"
+    bind:change="onFilterChange"
+  ></filter-bar>
+
+  <!-- 加载态 -->
+  <skeleton wx:if="{{pageState === 'loading'}}" rows="{{5}}" />
+
+  <!-- 数据列表 -->
+  <view class="customer-list" wx:elif="{{pageState === 'data'}}">
+    <customer-card
+      wx:for="{{customers}}"
+      wx:key="id"
+      customer="{{item}}"
+      bind:tap="onCustomerTap"
+      bind:delete="onCustomerDelete"
+    ></customer-card>
+  </view>
+
+  <!-- 空状态 -->
+  <empty-state
+    wx:elif="{{pageState === 'empty'}}"
+    icon="👥"
+    text="暂无客户记录"
+    subText="点击右下角按钮添加客户"
+    actionLabel="添加客户"
+    bind:action="onEmptyAction"
+  />
+
+  <!-- 错误状态 -->
+  <empty-state
+    wx:elif="{{pageState === 'error'}}"
+    icon="⚠️"
+    text="加载失败"
+    subText="请稍后重试"
+  />
+
+  <!-- FAB 新建按钮 -->
+  <view class="fab" bindtap="onFabTap">
+    <text class="fab-icon">+</text>
+  </view>
+</view>

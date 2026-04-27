@@ -1,0 +1,179 @@
+/* customer-detail/index.wxss */
+
+/* 整页背景 */
+.detail-page {
+  background-color: #F5F7FA;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 160rpx);
+}
+
+/* ==================== 顶部操作区 ==================== */
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+  padding-bottom: 20rpx;
+}
+
+.action-btn {
+  padding: 8rpx 16rpx;
+}
+
+.action-text {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* ==================== 区块卡片 ==================== */
+.section {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 0 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 区块标题 */
+.section-title {
+  padding: 28rpx 0 16rpx;
+  border-bottom: 1rpx solid #E5E7EB;
+  margin-bottom: 8rpx;
+}
+
+.section-title-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.4;
+}
+
+/* ==================== 字段行 ==================== */
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 96rpx;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  border-top: 1rpx solid #F3F4F6;
+}
+
+/* section 标题后的第一个字段行不需要顶部边框 */
+.section-title + .field-row {
+  border-top: none;
+}
+
+/* label 区域 */
+.field-label {
+  width: 200rpx;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 28rpx;
+  color: #6B7280;
+  line-height: 96rpx;
+}
+
+/* value 区域（只读态） */
+.field-value {
+  font-size: 30rpx;
+  color: #111827;
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 96rpx;
+}
+
+/* ==================== 编辑态文字输入框 ==================== */
+.field-input {
+  flex: 1;
+  min-width: 0;
+  height: 72rpx;
+  background-color: #F9FAFB;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 30rpx;
+  color: #111827;
+  text-align: right;
+  line-height: 72rpx;
+  box-sizing: border-box;
+}
+
+/* ==================== 编辑态 textarea ==================== */
+.field-row--full {
+  flex-direction: column;
+  align-items: flex-start;
+  height: auto;
+  min-height: 96rpx;
+  padding: 20rpx 0;
+}
+
+.field-row--full .field-label {
+  width: auto;
+  line-height: 1.4;
+  margin-bottom: 12rpx;
+}
+
+.field-row--full .field-value {
+  text-align: left;
+  white-space: normal;
+  line-height: 1.6;
+}
+
+.field-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  background-color: #F9FAFB;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+  color: #111827;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+/* ==================== 自动写入字段（只读，置灰） ==================== */
+.field-auto {
+  color: #9CA3AF;
+  font-size: 28rpx;
+}
+
+/* ==================== 底部保存按钮 ==================== */
+.save-wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  padding: 16rpx 32rpx 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  z-index: 50;
+  border-top: 1rpx solid #E5E7EB;
+}
+
+.save-btn {
+  width: 100%;
+  height: 96rpx;
+  border-radius: 16rpx;
+  background-color: #1A6FD4;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-btn:active {
+  background-color: #155BB5;
+}
+
+/* 加载态 */
+.loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}

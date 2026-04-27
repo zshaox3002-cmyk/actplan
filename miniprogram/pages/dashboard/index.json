@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "数据概览",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "metric-card": "/components/metric-card/index",
+    "chart-pie": "/components/chart-pie/index",
+    "chart-bar": "/components/chart-bar/index"
+  }
+}

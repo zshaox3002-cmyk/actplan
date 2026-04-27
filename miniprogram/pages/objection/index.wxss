@@ -1,0 +1,131 @@
+/* pages/objection/index.wxss */
+
+.page-header {
+  padding-bottom: var(--spacing-section);
+}
+
+.page-title {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-title);
+}
+
+/* ---- 空状态 ---- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.empty-hint {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 分类统计条 ---- */
+/* DISABLED: category-bar — 已替换为圆环图+图例
+.category-bar { ... }
+*/
+
+/* 横向统计标签 */
+.chip-scroll-wrap {
+  position: relative;
+  width: 100%;
+}
+
+/* 右侧渐变遮罩暗示可滑动 (假设页面背景色为 #F5F7FA) */
+.chip-scroll-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60rpx;
+  height: 100%;
+  background: linear-gradient(to right, rgba(245,247,250,0), rgba(245,247,250,1));
+  pointer-events: none; /* 穿透点击，不影响滑动 */
+}
+
+/* 隐藏横向滚动条 */
+.chip-scroll ::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+
+.chip-scroll {
+  width: 100%;
+  padding: 24rpx 0;
+  white-space: nowrap;
+}
+.chip-list {
+  display: inline-flex;
+  padding: 0 48rpx 0 24rpx;
+  gap: 16rpx;
+}
+.chip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  color: #4B5563;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+  transition: all 0.2s;
+}
+.chip-num {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #9CA3AF;
+}
+/* 标签选中态 */
+.chip-item.active {
+  background: #1A6FD4;
+  color: #FFFFFF;
+}
+.chip-item.active .chip-num {
+  color: #BFDBFE;
+}
+
+/* 列表头部 */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 32rpx 24rpx;
+}
+.list-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+}
+.sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 20rpx;
+  background: #F3F4F6;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #4B5563;
+}
+.sort-icon {
+  font-size: 24rpx;
+  color: #9CA3AF;
+}

@@ -1,0 +1,84 @@
+/* components/step-indicator/index.wxss */
+
+.step-indicator {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 0;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+/* 圆点 */
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  z-index: 1;
+}
+
+.dot-completed {
+  background-color: var(--color-success);
+}
+
+.dot-current {
+  background-color: var(--color-primary);
+}
+
+.dot-pending {
+  background-color: var(--color-disabled);
+}
+
+.dot-check {
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+}
+
+.dot-number {
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* 标签 */
+.step-label {
+  font-size: var(--font-size-helper);
+  text-align: center;
+}
+
+.label-active {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.label-inactive {
+  color: var(--color-text-placeholder);
+}
+
+/* 连线 */
+.step-line {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  z-index: 0;
+}
+
+.line-completed {
+  background-color: var(--color-success);
+}
+
+.line-pending {
+  background-color: var(--color-disabled);
+}

@@ -1,0 +1,12 @@
+<!-- components/tag-selector/index.wxml -->
+<view class="tag-selector">
+  <view
+    class="tag-item {{item === value ? 'tag-selected' : 'tag-unselected'}}"
+    wx:for="{{options}}"
+    wx:key="*this"
+    data-val="{{item}}"
+    bindtap="onTagTap"
+  >
+    <text class="tag-text">{{item}}</text>
+  </view>
+</view>

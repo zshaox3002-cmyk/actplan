@@ -1,0 +1,113 @@
+/* components/week-calendar/index.wxss */
+
+.week-calendar {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 12px 8px;
+}
+
+/* ---- 导航栏 ---- */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  margin-bottom: 12px;
+}
+
+.week-nav-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-arrow {
+  font-size: 22px;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.week-label {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* ---- 星期头 ---- */
+.week-header {
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.week-header-cell {
+  flex: 1;
+  text-align: center;
+}
+
+.header-text {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ---- 日期行 ---- */
+.week-body {
+  display: flex;
+}
+
+.day-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 12px;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.day-cell:active {
+  background-color: var(--color-primary-light);
+}
+
+.day-number {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+}
+
+.day-selected {
+  background-color: var(--color-primary);
+}
+
+.day-selected .day-number {
+  color: #FFFFFF;
+  font-weight: var(--font-weight-semibold);
+}
+
+.day-today .day-number {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.day-selected.day-today .day-number {
+  color: #FFFFFF;
+}
+
+/* ---- 日期下方圆点（有计划的日期标记） ---- */
+.day-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  margin-top: 2px;
+}
+
+.day-selected .day-dot {
+  background-color: #FFFFFF;
+}

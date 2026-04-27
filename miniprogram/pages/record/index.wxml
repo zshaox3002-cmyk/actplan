@@ -1,0 +1,46 @@
+<!-- pages/record/index.wxml -->
+<view class="page-container">
+  <!-- 异议池入口 banner -->
+  <view class="objection-banner" bindtap="onObjectionTap">
+    <view class="banner-left">
+      <text class="banner-icon">💡</text>
+      <text class="banner-text">异议池 — 客户异议话术管理</text>
+    </view>
+    <text class="banner-arrow">›</text>
+  </view>
+
+  <!-- 加载态 -->
+  <skeleton wx:if="{{pageState === 'loading'}}" rows="{{5}}" />
+
+  <!-- 记录列表 -->
+  <view class="record-list" wx:elif="{{pageState === 'data'}}">
+    <record-card
+      wx:for="{{records}}"
+      wx:key="id"
+      record="{{item}}"
+      customerName="{{customerMap[item.customer_id]}}"
+      bind:tap="onRecordTap"
+    />
+  </view>
+
+  <!-- 空状态 -->
+  <empty-state
+    wx:elif="{{pageState === 'empty'}}"
+    icon="📝"
+    text="暂无拜访记录"
+    subText="点击右下角按钮新建记录"
+    actionLabel="新建记录"
+    bind:action="onEmptyAction"
+  />
+
+  <!-- 错误状态 -->
+  <empty-state
+    wx:elif="{{pageState === 'error'}}"
+    icon="⚠️"
+    text="加载失败"
+    subText="请稍后重试"
+  />
+
+  <!-- FAB -->
+  <fab-button bind:tap="onFabTap" />
+</view>

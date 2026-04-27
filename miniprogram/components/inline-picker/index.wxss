@@ -1,0 +1,136 @@
+/* inline-picker 组件样式 */
+
+.inline-picker-wrap {
+  position: relative;
+}
+
+/* 字段行 */
+.picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 96rpx;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  border-top: 1rpx solid #F3F4F6;
+}
+
+/* 紧跟 section-title 后的首行不需要顶部分割线 */
+.picker-row.no-top-border {
+  border-top: none;
+}
+
+/* label 区域 */
+.picker-label {
+  width: 200rpx;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 28rpx;
+  color: #6B7280;
+  line-height: 96rpx;
+}
+
+/* value 区域 */
+.picker-value-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+/* 文字样式 */
+.picker-text {
+  font-size: 30rpx;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-text.placeholder {
+  color: #9CA3AF;
+}
+
+.picker-text.selected {
+  color: #111827;
+}
+
+/* 苹果等级圆点 */
+.apple-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.apple-dot-sm {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* chevron 箭头 */
+.chevron-icon {
+  width: 28rpx;
+  height: 28rpx;
+  opacity: 0.45;
+  transition: transform 0.2s ease;
+}
+
+.chevron-icon.chevron-up {
+  transform: rotate(180deg);
+}
+
+/* ==================== 选项列表 ==================== */
+.options-wrap {
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+  background: #FFFFFF;
+  border-radius: 0 0 16rpx 16rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  margin: 0 -32rpx;
+  padding: 0 32rpx;
+}
+
+.options-wrap.collapsed {
+  max-height: 0 !important;
+  box-shadow: none;
+}
+
+.options-wrap.expanded {
+  max-height: 600rpx;
+}
+
+.options-list {
+  /* 内部列表容器 */
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  height: 88rpx;
+  border-bottom: 1rpx solid #F3F4F6;
+  font-size: 30rpx;
+  color: #374151;
+}
+
+.option-item:last-child {
+  border-bottom: none;
+}
+
+.option-item.active {
+  color: #1A6FD4;
+  font-weight: 500;
+}
+
+/* 选中勾号 */
+.check-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-left: auto;
+}

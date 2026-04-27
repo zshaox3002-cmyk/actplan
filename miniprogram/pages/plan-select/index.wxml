@@ -1,0 +1,66 @@
+<!-- pages/plan-select/index.wxml -->
+<view class="page-container">
+  <!-- 日期提示 -->
+  <view class="date-hint">
+    <text class="hint-text">添加 {{planDate}} 的拜访计划</text>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索客户姓名"
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 客户列表 -->
+  <view class="customer-list">
+    <customer-card
+      wx:for="{{customers}}"
+      wx:key="id"
+      customer="{{item}}"
+      bind:tap="onCustomerTap"
+    />
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{customers.length === 0}}">
+      <text class="empty-text">暂无客户，请先添加客户</text>
+    </view>
+  </view>
+
+  <!-- 确认添加面板 -->
+  <view class="confirm-panel" wx:if="{{showConfirm}}">
+    <view class="confirm-mask" bindtap="onCancelSelect"></view>
+    <view class="confirm-content card">
+      <text class="confirm-title">确认添加拜访计划</text>
+
+      <view class="confirm-info">
+        <text class="confirm-label">客户</text>
+        <text class="confirm-value">{{selectedCustomerName}}</text>
+      </view>
+
+      <view class="confirm-info">
+        <text class="confirm-label">日期</text>
+        <text class="confirm-value">{{planDate}}</text>
+      </view>
+
+      <view class="confirm-info">
+        <text class="confirm-label">拜访方式</text>
+        <picker mode="selector" range="{{visitWayOptions}}" bindchange="onVisitWayChange">
+          <text class="confirm-value picker-value">{{selectedVisitWay}} ▾</text>
+        </picker>
+      </view>
+
+      <view class="confirm-actions">
+        <view class="action-btn btn-cancel" bindtap="onCancelSelect">
+          <text class="btn-text">取消</text>
+        </view>
+        <view class="action-btn btn-confirm" bindtap="onConfirmAdd">
+          <text class="btn-text">确认添加</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

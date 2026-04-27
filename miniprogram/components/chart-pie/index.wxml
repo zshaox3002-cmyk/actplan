@@ -1,0 +1,8 @@
+<!-- components/chart-pie/index.wxml -->
+<view class="chart-container">
+  <canvas
+    type="2d"
+    id="pieCanvas"
+    class="chart-canvas"
+  ></canvas>
+</view>
