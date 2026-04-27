@@ -96,8 +96,8 @@ Page({
     });
   },
 
-  /** FAB 新建 */
-  onFabTap: function () {
+  /** FAB 新建异议 */
+  onAddObjection: function () {
     wx.navigateTo({
       url: '/pages/objection-new/index'
     });

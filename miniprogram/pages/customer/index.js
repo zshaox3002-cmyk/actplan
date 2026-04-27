@@ -120,7 +120,7 @@ Page({
   },
 
   /** FAB 新建客户 */
-  onFabTap: function () {
+  onAddCustomer: function () {
     wx.navigateTo({
       url: '/pages/customer-detail/index'
     });

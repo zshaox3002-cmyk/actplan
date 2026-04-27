@@ -131,7 +131,7 @@ Page({
   },
 
   /** FAB 新建计划 → 跳转客户选择页 */
-  onFabTap: function () {
+  onAddPlan: function () {
     wx.navigateTo({
       url: '/pages/plan-select/index?date=' + this.data.selectedDate
     });

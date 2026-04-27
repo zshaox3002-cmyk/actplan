@@ -66,5 +66,5 @@
   />
 
   <!-- FAB -->
-  <fab-button bind:tap="onFabTap" />
+  <fab-button bindtap="onAddObjection" />
 </view>

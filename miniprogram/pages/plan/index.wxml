@@ -1,15 +1,12 @@
 <!-- pages/plan/index.wxml -->
 <view class="page-container">
-  <!-- 周视图日历 + 加号按钮 -->
+  <!-- 周视图日历 -->
   <view class="calendar-row">
     <week-calendar
       selectedDate="{{selectedDate}}"
       markedDates="{{markedDates}}"
       bind:select="onDateSelect"
     />
-    <view class="add-plan-btn" bindtap="onFabTap">
-      <text class="add-plan-icon">+</text>
-    </view>
   </view>
 
   <!-- 当日计划列表 -->
@@ -45,4 +42,7 @@
       bind:action="onEmptyAction"
     />
   </view>
+
+  <!-- FAB 新建计划 -->
+  <fab-button bindtap="onAddPlan" />
 </view>
