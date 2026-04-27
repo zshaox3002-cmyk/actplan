@@ -27,12 +27,18 @@ Page({
     selectedIds: [],
     currentCat: 'all',
     keyword: '',
-    categories: CATEGORIES,
-    _channel: null,
-    _justCreatedIds: []   // 记录本次流程内新建的异议 ID（防止 setData 序列化丢失 _justCreated）
+    categories: CATEGORIES
   },
 
+  // 页面实例属性（不经过 setData，不受序列化影响）
+  _channel: null,
+  _justCreatedIds: null,
+
   onLoad: function (options) {
+    // 初始化实例属性
+    this._channel = this.getOpenerEventChannel && this.getOpenerEventChannel();
+    this._justCreatedIds = [];
+
     // 接收已选 ids（编辑场景，从 URL 参数传入）
     var selected = [];
     if (options.selected) {
@@ -53,10 +59,6 @@ Page({
     }
 
     this.setData({ allObjections: all, filteredList: [], selectedIds: selected });
-
-    // 获取 EventChannel
-    var channel = this.getOpenerEventChannel && this.getOpenerEventChannel();
-    this.data._channel = channel;
 
     // 首次筛选（计算 isSelected）
     this._filter();
@@ -134,14 +136,12 @@ Page({
           var newIds = that.data.selectedIds.slice();
           newIds.push(obj.id);
 
-          // 记录"本次流程内新建"的异议 ID（用独立数组存，不依赖对象属性）
-          var justCreated = that.data._justCreatedIds.slice();
-          if (obj.id != null) { justCreated.push(obj.id); }
+          // 用实例属性记录"本次新建"的 ID（不走 setData，不受序列化影响）
+          if (obj.id != null) { that._justCreatedIds.push(obj.id); }
 
           that.setData({
             allObjections: all,
-            selectedIds: newIds,
-            _justCreatedIds: justCreated
+            selectedIds: newIds
           });
           that._filter(); // 重新筛选
         }
@@ -164,22 +164,12 @@ Page({
       }
     }
 
-    // 对"本次流程内新建"的异议，显式恢复 _justCreated 标记
-    // （防止经过 setData 序列化后运行时字段丢失）
-    var justCreatedMap = {};
-    var jcIds = this.data._justCreatedIds || [];
-    for (var j = 0; j < jcIds.length; j++) {
-      justCreatedMap[jcIds[j]] = true;
-    }
-    for (var k = 0; k < selected.length; k++) {
-      if (justCreatedMap[selected[k].id]) {
-        selected[k]._justCreated = true;
-      }
-    }
-
-    // 回传
-    if (this.data._channel && this.data._channel.emit) {
-      this.data._channel.emit('onSelected', selected);
+    // 回传：把 justCreatedIds 作为独立字段传出去（不依赖对象属性）
+    if (this._channel && this._channel.emit) {
+      this._channel.emit('onSelected', {
+        items: selected,
+        justCreatedIds: this._justCreatedIds.slice()
+      });
     }
 
     wx.navigateBack();

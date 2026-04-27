@@ -39,7 +39,13 @@ Page({
     objections: [],      // 已录入异议列表 [{ content, category }]
   },
 
+  // 页面实例属性（不经过 setData，不受序列化影响）
+  _justCreatedIds: null,
+
   onLoad: function (options) {
+    // 初始化实例属性
+    this._justCreatedIds = [];
+
     var customerId = options.customer_id ? parseInt(options.customer_id) : '';
     var customerName = options.customer_name || '';
     var planId = options.plan_id ? parseInt(options.plan_id) : '';
@@ -99,7 +105,14 @@ Page({
     wx.navigateTo({
       url: '/pages/objection/select/index?selected=' + selectedParam,
       events: {
-        onSelected: function (selected) {
+        onSelected: function (result) {
+          // 兼容两种格式：{ items, justCreatedIds } 或 纯数组
+          var selected = result.items || result;
+          var justCreatedIds = result.justCreatedIds || [];
+
+          // 用实例属性存 justCreatedIds（不走 setData，不受序列化影响）
+          that._justCreatedIds = justCreatedIds;
+
           var objections = that.data.objections.slice();
           // 合并选中结果
           for (var i = 0; i < selected.length; i++) {
@@ -138,6 +151,9 @@ Page({
     var selectedStage = d.stageOptions[d.stageIndex];
 
     try {
+      // 捕获页面实例引用，供事务回调内使用
+      var justCreatedIds = this._justCreatedIds;
+
       // 外层事务：保证多步操作原子性，任一失败全部回滚
       storage.transaction(function () {
         // 1. 先处理异议：新建的创建入库收集 id，已有的追加 note 自动 count+1
@@ -156,7 +172,7 @@ Page({
               if (created && created.id != null) {
                 objectionIds.push(created.id);
               }
-            } else if (obj._justCreated) {
+            } else if (justCreatedIds && justCreatedIds.indexOf(obj.id) >= 0) {
               // 本次流程刚从 objection-new 新建并入库的异议：
               // create 时已设 customer_id 和 count=1，无需再计数、无需再写 note
               objectionIds.push(obj.id);
