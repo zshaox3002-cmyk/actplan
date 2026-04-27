@@ -93,6 +93,7 @@ function create(data) {
       is_deal: data.is_deal || constants.DEAL_STATUS.NO_DEAL,
       next_follow_date: data.next_follow_date || null,
       has_objection: data.has_objection || 0,
+      objection_ids: data.objection_ids || [],
       created_at: now
     });
 

@@ -256,7 +256,7 @@ Page({
       }
 
       try {
-        var newObjId = objectionRepo.create({
+        var newObjection = objectionRepo.create({
           customer_id: form.customer_id,
           content: form.content,
           category: form.category,
@@ -268,7 +268,7 @@ Page({
         var eventChannel = this.getOpenerEventChannel();
         if (eventChannel && eventChannel.emit) {
           eventChannel.emit('onObjectionCreated', {
-            id: newObjId,
+            id: newObjection.id,
             content: form.content,
             category: form.category,
             solution: form.solution

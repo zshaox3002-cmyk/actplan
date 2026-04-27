@@ -78,24 +78,39 @@ Page({
       }
     }
 
-    // 查找关联异议（按 customer_id 从异议池拉取，不依赖 record.has_objection）
+    // 查找本次拜访关联的异议（按 record.objection_ids 精确匹配）
     var objections = [];
-    var targetCustomerId = record.customer_id;
-    // 兼容类型不一致：统一转为数字比较（防止 string vs number 不匹配）
-    if (targetCustomerId != null) {
-      targetCustomerId = Number(targetCustomerId);
+    var ids = record.objection_ids || [];
+    if (ids.length > 0) {
+      for (var j = 0; j < ids.length; j++) {
+        var obj = objectionRepo.get(ids[j]);
+        if (obj) {
+          objections.push({
+            id: obj.id,
+            content: obj.content,
+            category: obj.category,
+            tagCls: OBJ_TAG_CLS[obj.category] || 'tag-gray'
+          });
+        }
+      }
     }
-    var allObjections = objectionRepo.list({ category: '全部', sortBy: 'created_at' });
-    for (var j = 0; j < allObjections.length; j++) {
-      var obj = allObjections[j];
-      var objCustId = obj.customer_id != null ? Number(obj.customer_id) : null;
-      if (objCustId === targetCustomerId) {
-        objections.push({
-          id: obj.id,
-          content: obj.content,
-          category: obj.category,
-          tagCls: OBJ_TAG_CLS[obj.category] || 'tag-gray'
-        });
+
+    // 旧数据兼容：若无 objection_ids 但 has_objection=1，fallback 按 customer_id 取自建异议
+    if (objections.length === 0 && record.has_objection && record.customer_id) {
+      var allObjections = objectionRepo.list({ category: '全部', sortBy: 'created_at' });
+      var targetCustomerId = Number(record.customer_id);
+      for (var k = 0; k < allObjections.length; k++) {
+        var o = allObjections[k];
+        if (o.isPreset) continue;
+        var oCid = o.customer_id != null ? Number(o.customer_id) : null;
+        if (oCid === targetCustomerId) {
+          objections.push({
+            id: o.id,
+            content: o.content,
+            category: o.category,
+            tagCls: OBJ_TAG_CLS[o.category] || 'tag-gray'
+          });
+        }
       }
     }
 

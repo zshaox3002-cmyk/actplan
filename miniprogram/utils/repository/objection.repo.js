@@ -107,7 +107,7 @@ function listByCategory(category) {
  * @param {string} data.content - 异议内容（必填）
  * @param {string} data.category - 异议分类（必填）
  * @param {string} data.solution - 应对话术（必填）
- * @returns {number} 新异议 ID
+ * @returns {Object} 新建异议对象（含 id）
  */
 function create(data) {
   var all = storage.getTable('objection');
@@ -127,7 +127,7 @@ function create(data) {
   all.push(objection);
   storage.setTable('objection', all);
 
-  return newId;
+  return objection;
 }
 
 /**

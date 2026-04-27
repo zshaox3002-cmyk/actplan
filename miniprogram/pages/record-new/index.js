@@ -138,9 +138,36 @@ Page({
     var selectedStage = d.stageOptions[d.stageIndex];
 
     try {
-      // 外层事务：保证 4 步操作原子性，任一失败全部回滚
+      // 外层事务：保证多步操作原子性，任一失败全部回滚
       storage.transaction(function () {
-        // 1. 保存拜访记录（内部走 storage.transaction，嵌套事务可正确回滚）
+        // 1. 先处理异议：新建的创建入库收集 id，已有的追加 note 自动 count+1
+        var objectionIds = [];
+        if (d.objections.length > 0) {
+          for (var i = 0; i < d.objections.length; i++) {
+            var obj = d.objections[i];
+            if (!obj.id) {
+              // 新建异议
+              var created = objectionRepo.create({
+                customer_id: d.customerId,
+                content: obj.content || '',
+                category: obj.category || '其他',
+                solution: obj.solution || ''
+              });
+              if (created && created.id != null) {
+                objectionIds.push(created.id);
+              }
+            } else {
+              // 已有异议：写入一条追加备注（内部同时 count+1 或写 objection_links）
+              var autoNote = '在本次拜访中再次遇到该异议'
+                + (summary ? '；沟通摘要：' + summary.slice(0, 40)
+                   + (summary.length > 40 ? '…' : '') : '');
+              objectionRepo.appendNote(obj.id, d.customerId, autoNote);
+              objectionIds.push(obj.id);
+            }
+          }
+        }
+
+        // 2. 保存拜访记录（带上 objection_ids）
         recordRepo.create({
           customer_id: d.customerId,
           plan_id: d.planId || null,
@@ -150,14 +177,15 @@ Page({
           stage: selectedStage,
           is_deal: selectedStage === '已成交' ? '签单成交' : '暂未成交',
           next_follow_date: d.nextDate || null,
-          has_objection: d.objections.length > 0 ? 1 : 0,
+          has_objection: objectionIds.length > 0 ? 1 : 0,
+          objection_ids: objectionIds,
           updated_fields: ['stage']
         });
 
-        // 2. 同步更新客户跟进阶段（recordRepo.create 内部只处理成交状态，这里补充阶段同步）
+        // 3. 同步更新客户跟进阶段（recordRepo.create 内部只处理成交状态，这里补充阶段同步）
         customerRepo.update(d.customerId, { stage: selectedStage });
 
-        // 3. 若填写了下次跟进日期，自动创建拜访计划
+        // 4. 若填写了下次跟进日期，自动创建拜访计划
         if (d.nextDate) {
           planRepo.create({
             customer_id: d.customerId,
@@ -165,22 +193,6 @@ Page({
             visit_way: '面对面',
             note: '由拜访记录自动创建'
           });
-        }
-
-        // 4. 若有异议，仅对未入库的（无 id）写入异议池
-        //    已从 objection-new 回传的有 id，跳过避免重复创建
-        if (d.objections.length > 0) {
-          for (var i = 0; i < d.objections.length; i++) {
-            var obj = d.objections[i];
-            if (!obj.id) {
-              objectionRepo.create({
-                customer_id: d.customerId,
-                content: obj.content || '',
-                category: obj.category || '其他',
-                solution: obj.solution || ''
-              });
-            }
-          }
         }
       });
 

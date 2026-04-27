@@ -195,14 +195,14 @@ function run() {
   var objectionIds = [];
   for (var o = 0; o < OBJECTIONS.length; o++) {
     var obj = OBJECTIONS[o];
-    var oid = objectionRepo.create({
+    var created = objectionRepo.create({
       customer_id: customerIds[obj.customer_idx],
       category: obj.category,
       content: obj.content,
       solution: obj.solution,
       count: 1 + Math.floor(Math.random() * 3) // 1-3次
     });
-    objectionIds.push(oid);
+    objectionIds.push(created.id);
 
     // 追加 1-2 条备注
     var noteCount = Math.floor(Math.random() * 2) + 1;
