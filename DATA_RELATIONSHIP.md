@@ -74,6 +74,7 @@
 | `is_deal` | string | `'暂未成交'` | 成交状态 |
 | `next_follow_date` | string\|null | `null` | 下次跟进日期 |
 | `has_objection` | number | `0` | 是否关联异议 |
+| `objection_ids` | Array\<number\|string\> | `[]` | 本次拜访关联的异议 ID 列表 |
 | `created_at` | string | nowISO() | 创建时间 |
 
 ### 2.3 plan
@@ -185,7 +186,7 @@ objection ──1:N──→ objection_note  (objection.id = objection_note.obje
 | `pages/dashboard/index` | customer, visit_record, plan, objection, objection_note, objection_links (均通过 stats.js R) | 无 | stats.js 一次性快照 |
 | `pages/plan/index` | plan (R), customer (R), visit_record (R) | plan (D) | — |
 | `pages/plan-select/index` | customer (R), plan (R) | plan (C) | — |
-| `pages/record-new/index` | customer (R/W), plan (R/W), record (C), objection (C) | 多表 | ⚠️ 非事务多表写入 |
+| `pages/record-new/index` | customer (R/W), plan (R/W), record (C), objection (C/R) | 多表 | 事务写入（storage.transaction），含 objection_ids |
 | `pages/record/index` | visit_record (R), customer (R) | 无 | — |
 | `pages/objection/index` | objection (R), objection_links (R) | objection (D) | — |
 | `pages/objection-new/index` | customer (R), objection (R/C) | objection (C), objection_note (C via appendNote) | — |
@@ -272,8 +273,8 @@ objection ──1:N──→ objection_note  (objection.id = objection_note.obje
 
 | # | 风险 | 位置 | 说明 |
 |---|------|------|------|
-| 1 | ~~绕过 repo 直接操作 storage~~ ✅ 已修复 | `pages/visit-record/detail/index.js:72` | 改为 `planRepo.list(date)` + filter，已移除 storage require |
-| 2 | ~~非事务多表写入~~ ✅ 已修复 | `pages/record-new/index.js:142` | 外层包 `storage.transaction()`，4 步操作原子化 |
+| 1 | ~~绕过 repo 直接操作 storage~~ ✅ 已修复 | `pages/visit-record/detail/index.js:81` | 改为 `planRepo.list(date)` + filter + objectionRepo.get(ids) |
+| 2 | ~~非事务多表写入~~ ✅ 已修复 | `pages/record-new/index.js:142` | 外层包 `storage.transaction()`，异议处理+记录创建+客户更新+计划创建原子化 |
 | 3 | **枚举值分散定义** | customer-detail/index.js | 各 picker 的选项数组硬编码在页面 data 中，未统一使用 constants.js |
 | 4 | **apple_grade 旧格式兼容** | customer.repo.js, stats.js, objection-new/index.js | 多处存在 `apple_rank`(中文) ↔ `apple_grade`(value) 兼容代码 |
 | 5 | **stage 旧格式兼容** | customer-card/index.js | STAGE_DISPLAY 映射包含 need/touch/deal/1/2/3 等旧值 |
