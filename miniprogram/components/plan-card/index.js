@@ -33,6 +33,11 @@ Component({
       this.triggerEvent('execute', { plan: this.data.plan });
     },
 
+    /** 修改计划 */
+    onEdit: function () {
+      this.triggerEvent('edit', { id: this.data.plan.id });
+    },
+
     /** 删除计划 */
     onDelete: function () {
       var that = this;

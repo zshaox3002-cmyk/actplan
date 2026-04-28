@@ -55,22 +55,23 @@ Page({
 
   onLoad: function () {
     this._updatePeriodDisplay();
-    this._safeRefresh();
+    this._safeRefresh(this.data.currentPeriod);
   },
 
   onShow: function () {
     this._updatePeriodDisplay();
-    this._safeRefresh();
+    this._safeRefresh(this.data.currentPeriod);
   },
 
   /** 等待 Storage 就绪后再刷新，防止竞态 */
-  _safeRefresh: function () {
+  _safeRefresh: function (period) {
     var that = this;
+    var p = period || this.data.currentPeriod;
     if (storage.isReady()) {
-      that._refresh();
+      that._refresh(p);
     } else {
       storage.waitReady().then(function () {
-        that._refresh();
+        that._refresh(p);
       });
     }
   },
@@ -98,13 +99,12 @@ Page({
   },
 
   /** 刷新所有数据 */
-  _refresh: function () {
+  _refresh: function (period) {
     try {
       var snapshot = stats.getStatsSnapshot();
-      var period = this.data.currentPeriod;
-
+      var activePeriod = period || this.data.currentPeriod;
       // 指标（按周期过滤）
-      var metrics = stats.getDashboardMetrics(snapshot, period);
+      var metrics = stats.getDashboardMetrics(snapshot, activePeriod);
 
       // 苹果分布
       var appleData = stats.getAppleDistribution(snapshot);
@@ -160,7 +160,7 @@ Page({
       showPeriodDropdown: false
     });
     this._updatePeriodDisplay();
-    this._refresh();
+    this._refresh(period);
   },
 
   /** 点击遮罩关闭下拉 */

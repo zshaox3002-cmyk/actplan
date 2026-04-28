@@ -30,10 +30,42 @@
   font-weight: var(--font-weight-bold);
 }
 
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .week-label {
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
+}
+
+.view-toggle-group {
+  display: flex;
+  background: var(--color-primary-light);
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.view-toggle-item {
+  padding: 4rpx 20rpx;
+}
+
+.view-toggle-item--active {
+  background: var(--color-primary);
+  border-radius: 8rpx;
+}
+
+.view-toggle-item-text {
+  font-size: var(--font-size-helper);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.view-toggle-item--active .view-toggle-item-text {
+  color: #FFFFFF;
 }
 
 /* ---- 星期头 ---- */
@@ -53,7 +85,7 @@
   font-weight: var(--font-weight-medium);
 }
 
-/* ---- 日期行 ---- */
+/* ---- 周视图：日期行 ---- */
 .week-body {
   display: flex;
 }
@@ -111,3 +143,33 @@
 .day-selected .day-dot {
   background-color: #FFFFFF;
 }
+
+/* ---- 月视图：日期网格 ---- */
+.month-body {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.month-cell {
+  width: calc(100% / 7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.month-cell:active {
+  background-color: var(--color-primary-light);
+}
+
+.month-cell--faded .day-number {
+  color: var(--color-text-placeholder);
+}
+
+.month-cell--faded .day-dot {
+  background-color: var(--color-text-placeholder);
+}
+

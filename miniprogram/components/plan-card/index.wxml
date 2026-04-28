@@ -25,6 +25,9 @@
     <view class="action-btn btn-execute" bindtap="onExecute">
       <text class="action-text">执行</text>
     </view>
+    <view class="action-btn btn-edit" bindtap="onEdit">
+      <text class="action-text">修改</text>
+    </view>
     <view class="action-btn btn-delete" bindtap="onDelete">
       <text class="action-text">删除</text>
     </view>

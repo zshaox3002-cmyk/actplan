@@ -19,10 +19,28 @@ Page({
     selectedCustomerName: '',
     selectedVisitWay: '面对面',
     planTime: '',
-    showConfirm: false
+    showConfirm: false,
+    isEditMode: false,
+    editPlanId: null
   },
 
   onLoad: function (options) {
+    if (options.planId) {
+      var plan = planRepo.get(parseInt(options.planId));
+      var customer = customerRepo.get(plan.customer_id);
+      this.setData({
+        planDate: plan.plan_date,
+        selectedCustomerId: plan.customer_id,
+        selectedCustomerName: customer ? customer.name : '(未知客户)',
+        selectedVisitWay: plan.visit_way,
+        planTime: plan.plan_time || '',
+        showConfirm: true,
+        isEditMode: true,
+        editPlanId: plan.id,
+        visitWayOptions: constants.VISIT_WAY_OPTIONS
+      });
+      return;
+    }
     var date = options.date || '';
     this.setData({
       planDate: date,
@@ -127,18 +145,30 @@ Page({
       toast.fail('请选择客户');
       return;
     }
+    if (!this.data.planTime) {
+      toast.fail('请选择计划时间');
+      return;
+    }
 
-    var result = planRepo.create({
-      customer_id: this.data.selectedCustomerId,
-      plan_date: this.data.planDate,
-      plan_time: this.data.planTime || null,
-      visit_way: this.data.selectedVisitWay
-    });
-
-    if (result.conflict) {
-      toast.fail('该客户当日已有计划');
+    if (this.data.isEditMode) {
+      planRepo.update(this.data.editPlanId, {
+        plan_time: this.data.planTime,
+        visit_way: this.data.selectedVisitWay
+      });
+      toast.success('修改成功');
     } else {
-      toast.success('添加成功');
+      var result = planRepo.create({
+        customer_id: this.data.selectedCustomerId,
+        plan_date: this.data.planDate,
+        plan_time: this.data.planTime,
+        visit_way: this.data.selectedVisitWay
+      });
+
+      if (result.conflict) {
+        toast.fail('该客户当日已有计划');
+      } else {
+        toast.success('添加成功');
+      }
     }
 
     // 延迟返回，让 Toast 显示完
@@ -149,6 +179,10 @@ Page({
 
   /** 取消选择 */
   onCancelSelect: function () {
+    if (this.data.isEditMode) {
+      wx.navigateBack();
+      return;
+    }
     this.setData({
       selectedCustomerId: null,
       selectedCustomerName: '',

@@ -151,6 +151,64 @@ function shiftWeek(currentDate, offset) {
 }
 
 /**
+ * 切换到上一月/下一月的锚点日期（保持同月同日，超出月末则取月末）
+ * @param {string} currentDate - 当前锚点日期 'YYYY-MM-DD'
+ * @param {number} offset - 月偏移量（-1 上一月，+1 下一月）
+ * @returns {string} 新锚点日期
+ */
+function shiftMonth(currentDate, offset) {
+  var d = new Date(currentDate);
+  var targetMonth = d.getMonth() + offset;
+  var targetYear = d.getFullYear();
+  // 处理跨年
+  targetYear += Math.floor(targetMonth / 12);
+  targetMonth = ((targetMonth % 12) + 12) % 12;
+  var lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+  var day = Math.min(d.getDate(), lastDay);
+  return formatDate(new Date(targetYear, targetMonth, day), 'YYYY-MM-DD');
+}
+
+/**
+ * 获取某月的日历格子（含前后月补位，周一起始，35 或 42 格）
+ * @param {Date|string} [anchorDate] - 锚点日期，默认今天
+ * @returns {Array<{date: string, day: number, isCurrentMonth: boolean, isToday: boolean}>}
+ */
+function getMonthDays(anchorDate) {
+  var d = anchorDate ? new Date(anchorDate) : new Date();
+  var year = d.getFullYear();
+  var month = d.getMonth();
+
+  var firstDay = new Date(year, month, 1);
+  var lastDay = new Date(year, month + 1, 0);
+  var firstDateStr = formatDate(firstDay, 'YYYY-MM-DD');
+  var lastDateStr = formatDate(lastDay, 'YYYY-MM-DD');
+
+  // 周一起始：计算第一行起始日（firstDay 所在周的周一）
+  var startOffset = firstDay.getDay() === 0 ? -6 : 1 - firstDay.getDay();
+  var startDate = new Date(firstDay);
+  startDate.setDate(firstDay.getDate() + startOffset);
+
+  var today = formatDate(new Date(), 'YYYY-MM-DD');
+  var cells = [];
+
+  for (var i = 0; i < 42; i++) {
+    var current = new Date(startDate);
+    current.setDate(startDate.getDate() + i);
+    var dateStr = formatDate(current, 'YYYY-MM-DD');
+    // 最少 35 格，满 35 且已超出当月则停止
+    if (i >= 35 && dateStr > lastDateStr) break;
+    cells.push({
+      date: dateStr,
+      day: current.getDate(),
+      isCurrentMonth: dateStr >= firstDateStr && dateStr <= lastDateStr,
+      isToday: dateStr === today
+    });
+  }
+
+  return cells;
+}
+
+/**
  * 生成当前 ISO 时间字符串（用于 created_at 等字段）
  * @returns {string} 格式 'YYYY-MM-DD HH:mm:ss'
  */
@@ -179,6 +237,8 @@ module.exports = {
   getYearRange: getYearRange,
   formatDate: formatDate,
   getWeekDays: getWeekDays,
+  getMonthDays: getMonthDays,
   shiftWeek: shiftWeek,
+  shiftMonth: shiftMonth,
   nowISO: nowISO
 };

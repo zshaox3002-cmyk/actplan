@@ -61,7 +61,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "appid": "wx0000000000000000",
+  "appid": "wxf0000000000000000",
   "projectname": "aia-agent-activity",
   "libVersion": "3.3.4",
   "condition": {},

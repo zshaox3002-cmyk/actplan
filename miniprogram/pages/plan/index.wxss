@@ -73,6 +73,12 @@
   box-shadow: var(--shadow-card);
 }
 
+/* 展开时底部圆角去掉，与列表无缝衔接 */
+.overdue-card--open {
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  margin-bottom: 0;
+}
+
 .overdue-icon {
   font-size: 32rpx;
   margin-right: 12rpx;
@@ -88,6 +94,48 @@
 .overdue-arrow {
   color: var(--color-danger);
   font-size: 32rpx;
+}
+
+/* 逾期展开列表 */
+.overdue-list {
+  background: var(--color-bg-card);
+  border-left: 6rpx solid var(--color-danger);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  box-shadow: var(--shadow-card);
+  margin-bottom: var(--spacing-card-gap);
+}
+
+.overdue-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx var(--spacing-card);
+  border-top: 1rpx solid var(--color-border);
+}
+
+.overdue-item:active {
+  background: var(--color-bg-page);
+}
+
+.overdue-item-date {
+  font-size: var(--font-size-secondary);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-medium);
+  min-width: 160rpx;
+}
+
+.overdue-item-name {
+  flex: 1;
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overdue-item-way {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  margin-left: 12rpx;
 }
 
 /* ---- 即将到期卡片 ---- */
@@ -120,6 +168,11 @@
   font-size: var(--font-size-helper);
   color: var(--color-text-placeholder);
   margin-left: 8rpx;
+}
+
+/* max-height 限制约3条可见，超出时滚动查看 */
+.upcoming-list {
+  max-height: 480rpx;
 }
 
 .upcoming-item {

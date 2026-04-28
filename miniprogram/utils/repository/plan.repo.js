@@ -110,6 +110,27 @@ function create(data) {
 }
 
 /**
+ * 更新计划的可编辑字段（plan_time, visit_way）
+ * @param {number} planId
+ * @param {{ plan_time?: string|null, visit_way?: string }} fields
+ * @returns {boolean}
+ */
+function update(planId, fields) {
+  var all = storage.getTable('plan');
+  var found = false;
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].id === planId) {
+      if (fields.plan_time !== undefined) all[i].plan_time = fields.plan_time;
+      if (fields.visit_way !== undefined) all[i].visit_way = fields.visit_way;
+      found = true;
+      break;
+    }
+  }
+  if (found) storage.setTable('plan', all);
+  return found;
+}
+
+/**
  * 标记计划为已完成
  * @param {number} planId - 计划 ID
  * @returns {boolean} 是否成功
@@ -159,11 +180,21 @@ function get(planId) {
   return null;
 }
 
+/**
+ * 获取全量计划（不按日期过滤，按 plan_date + plan_time 排序）
+ * @returns {Array<Object>}
+ */
+function listAll() {
+  return _sortByDateTime(storage.getTable('plan').slice());
+}
+
 module.exports = {
   list: list,
+  listAll: listAll,
   listWeek: listWeek,
   listCustomerIdsInWeek: listCustomerIdsInWeek,
   create: create,
+  update: update,
   complete: complete,
   delete: deletePlan,
   get: get

@@ -34,7 +34,7 @@
   <view class="confirm-panel" wx:if="{{showConfirm}}">
     <view class="confirm-mask" bindtap="onCancelSelect"></view>
     <view class="confirm-content card">
-      <text class="confirm-title">确认添加拜访计划</text>
+      <text class="confirm-title">{{isEditMode ? '修改拜访计划' : '确认添加拜访计划'}}</text>
 
       <view class="confirm-info">
         <text class="confirm-label">客户</text>
@@ -56,7 +56,6 @@
       <view class="confirm-info">
         <view class="confirm-label-row">
           <text class="confirm-label">计划时间</text>
-          <text class="label-optional">（选填）</text>
         </view>
         <view class="confirm-value-row">
           <picker mode="time" value="{{planTime}}" start="06:00" end="23:30" bindchange="onPlanTimeChange">
@@ -73,7 +72,7 @@
           <text class="btn-text">取消</text>
         </view>
         <view class="action-btn btn-confirm" bindtap="onConfirmAdd">
-          <text class="btn-text">确认添加</text>
+          <text class="btn-text">{{isEditMode ? '确认修改' : '确认添加'}}</text>
         </view>
       </view>
     </view>

@@ -108,6 +108,19 @@
   background-color: var(--color-border);
 }
 
+.btn-edit {
+  background-color: var(--color-primary-light);
+}
+
+.btn-edit .action-text {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.btn-edit:active {
+  background-color: var(--color-border);
+}
+
 .action-text {
   font-size: var(--font-size-secondary);
 }

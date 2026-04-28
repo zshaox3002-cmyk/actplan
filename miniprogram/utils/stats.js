@@ -72,13 +72,12 @@ function getDashboardMetrics(snapshot, period) {
     }
   }
 
-  // 本期预约：本周内 created_at 在范围内的计划数
-  // （创建日期在本周内，代表本周新建了多少拜访计划）
+  // 本期预约：plan_date 在范围内的计划数
   var appointmentCount = 0;
   for (var k = 0; k < snapshot.plan.length; k++) {
     var p = snapshot.plan[k];
-    var planCreatedAt = (p.created_at || '').substring(0, 10);
-    if (planCreatedAt >= startISO && planCreatedAt <= endISO) {
+    var planDate = p.plan_date || '';
+    if (planDate >= startISO && planDate <= endISO) {
       appointmentCount++;
     }
   }
