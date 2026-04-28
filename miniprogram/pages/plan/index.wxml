@@ -1,5 +1,33 @@
 <!-- pages/plan/index.wxml -->
 <view class="page-container">
+  <!-- 逾期提醒（仅当有逾期时显示） -->
+  <view class="overdue-card" wx:if="{{overdueCount > 0}}" bindtap="onViewOverdue">
+    <text class="overdue-icon">⚠️</text>
+    <text class="overdue-text">有 {{overdueCount}} 条计划已逾期未完成</text>
+    <text class="overdue-arrow">›</text>
+  </view>
+
+  <!-- 即将到期（仅当有即将到期时显示） -->
+  <view class="upcoming-card" wx:if="{{upcomingTotal > 0}}">
+    <view class="upcoming-header">
+      <text class="upcoming-icon">📌</text>
+      <text class="upcoming-title">即将到期</text>
+      <text class="upcoming-count">（{{upcomingTotal}} 条）</text>
+    </view>
+    <view class="upcoming-list">
+      <view class="upcoming-item"
+            wx:for="{{upcomingPreview}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+            bindtap="onTapUpcomingItem">
+        <text class="upcoming-date">{{item.humanDate}}</text>
+        <text class="upcoming-time" wx:if="{{item.plan_time}}">{{item.plan_time}}</text>
+        <text class="upcoming-name">{{item.customer_name}}</text>
+        <text class="upcoming-way">{{item.visit_way}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 周视图日历 -->
   <view class="calendar-row">
     <week-calendar

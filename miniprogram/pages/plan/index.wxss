@@ -60,3 +60,109 @@
 .calendar-row week-calendar {
   flex: 1;
 }
+
+/* ---- 逾期卡片 ---- */
+.overdue-card {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-card);
+  margin-bottom: var(--spacing-card-gap);
+  background: var(--color-bg-card);
+  border-left: 6rpx solid var(--color-danger);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.overdue-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.overdue-text {
+  flex: 1;
+  font-size: var(--font-size-body);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-medium);
+}
+
+.overdue-arrow {
+  color: var(--color-danger);
+  font-size: 32rpx;
+}
+
+/* ---- 即将到期卡片 ---- */
+.upcoming-card {
+  padding: var(--spacing-card);
+  margin-bottom: var(--spacing-card-gap);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.upcoming-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.upcoming-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.upcoming-title {
+  font-size: var(--font-size-module);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.upcoming-count {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  margin-left: 8rpx;
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+
+.upcoming-item:last-child {
+  border-bottom: none;
+}
+
+.upcoming-item:active {
+  background: var(--color-bg-page);
+}
+
+.upcoming-date {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  min-width: 140rpx;
+}
+
+.upcoming-time {
+  font-size: var(--font-size-secondary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  margin-left: 12rpx;
+}
+
+.upcoming-name {
+  flex: 1;
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-primary);
+  margin-left: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upcoming-way {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  margin-left: 12rpx;
+}
