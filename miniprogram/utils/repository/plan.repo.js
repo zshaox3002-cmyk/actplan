@@ -9,15 +9,34 @@ var dateUtil = require('../date');
 var constants = require('../constants');
 
 /**
+ * 按 plan_date 升序，同日内按 plan_time 升序（null 沉底），最后按 created_at 升序
+ * @param {Array} plans
+ * @returns {Array}
+ */
+function _sortByDateTime(plans) {
+  return plans.sort(function (a, b) {
+    if (a.plan_date !== b.plan_date) {
+      return a.plan_date < b.plan_date ? -1 : 1;
+    }
+    var aHasTime = !!a.plan_time;
+    var bHasTime = !!b.plan_time;
+    if (aHasTime && !bHasTime) return -1;
+    if (!aHasTime && bHasTime) return 1;
+    if (aHasTime && bHasTime && a.plan_time !== b.plan_time) {
+      return a.plan_time < b.plan_time ? -1 : 1;
+    }
+    return (a.created_at || '').localeCompare(b.created_at || '');
+  });
+}
+
+/**
  * 查询指定日期的计划列表
  * @param {string} date - 日期 'YYYY-MM-DD'
- * @returns {Array<Object>} 计划列表（按创建时间排序）
+ * @returns {Array<Object>} 计划列表（按时间升序排序）
  */
 function list(date) {
   var all = storage.getTable('plan');
-  return all
-    .filter(function (p) { return p.plan_date === date; })
-    .sort(function (a, b) { return (a.created_at || '').localeCompare(b.created_at || ''); });
+  return _sortByDateTime(all.filter(function (p) { return p.plan_date === date; }));
 }
 
 /**
@@ -28,9 +47,7 @@ function list(date) {
 function listWeek(anchorDate) {
   var range = dateUtil.getWeekRange(anchorDate);
   var all = storage.getTable('plan');
-  return all
-    .filter(function (p) { return p.plan_date >= range[0] && p.plan_date <= range[1]; })
-    .sort(function (a, b) { return (a.plan_date || '').localeCompare(b.plan_date || ''); });
+  return _sortByDateTime(all.filter(function (p) { return p.plan_date >= range[0] && p.plan_date <= range[1]; }));
 }
 
 /**
@@ -80,6 +97,7 @@ function create(data) {
     id: newId,
     customer_id: data.customer_id,
     plan_date: data.plan_date,
+    plan_time: data.plan_time || null,
     visit_way: data.visit_way || constants.VISIT_WAY.FACE,
     status: constants.PLAN_STATUS.PENDING,
     created_at: now

@@ -85,6 +85,7 @@ function create(data) {
       customer_id: data.customer_id,
       plan_id: data.plan_id || null,
       visit_date: data.visit_date,
+      visit_time: data.visit_time || null,
       visit_way: data.visit_way || constants.VISIT_WAY.FACE,
       duration: data.duration || null,
       summary: data.summary || '',

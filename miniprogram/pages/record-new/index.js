@@ -26,6 +26,7 @@ Page({
     customerName: '',
     planId: '',
     planInfo: '',        // 关联计划展示文字："2026-04-25 面对面"
+    planTime: '',        // 由 plan 传入的 plan_time
 
     summary: '',         // 沟通摘要
 
@@ -50,6 +51,7 @@ Page({
     var customerName = options.customer_name || '';
     var planId = options.plan_id ? parseInt(options.plan_id) : '';
     var planDate = options.plan_date || '';
+    var planTime = options.plan_time || '';
     var planType = options.plan_type || '';
     var planInfo = planDate && planType ? planDate + ' ' + planType : '';
 
@@ -72,6 +74,7 @@ Page({
       customerName: customerName,
       planId: planId,
       planInfo: planInfo,
+      planTime: planTime,
       stageIndex: stageIndex,
     });
   },
@@ -207,6 +210,7 @@ Page({
           customer_id: d.customerId,
           plan_id: d.planId || null,
           visit_date: new Date().toISOString().slice(0, 10),
+          visit_time: d.planTime || null,
           visit_way: '面对面',
           summary: summary,
           stage: selectedStage,

@@ -53,6 +53,21 @@
         </picker>
       </view>
 
+      <view class="confirm-info">
+        <view class="confirm-label-row">
+          <text class="confirm-label">计划时间</text>
+          <text class="label-optional">（选填）</text>
+        </view>
+        <view class="confirm-value-row">
+          <picker mode="time" value="{{planTime}}" start="06:00" end="23:30" bindchange="onPlanTimeChange">
+            <text class="confirm-value {{planTime ? '' : 'placeholder'}}">{{planTime || '请选择时间'}}</text>
+          </picker>
+          <view class="time-clear" wx:if="{{planTime}}" bindtap="onClearPlanTime">
+            <text>清除</text>
+          </view>
+        </view>
+      </view>
+
       <view class="confirm-actions">
         <view class="action-btn btn-cancel" bindtap="onCancelSelect">
           <text class="btn-text">取消</text>

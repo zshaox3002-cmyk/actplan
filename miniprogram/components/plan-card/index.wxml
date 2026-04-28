@@ -12,7 +12,7 @@
   <view class="plan-info">
     <view class="info-row">
       <text class="info-icon">📅</text>
-      <text class="info-text">{{plan.plan_date}}</text>
+      <text class="info-text">{{plan.plan_date}}<block wx:if="{{plan.plan_time}}"> · {{plan.plan_time}}</block></text>
     </view>
     <view class="info-row">
       <text class="info-icon">💬</text>

@@ -18,6 +18,7 @@ Page({
     selectedCustomerId: null,
     selectedCustomerName: '',
     selectedVisitWay: '面对面',
+    planTime: '',
     showConfirm: false
   },
 
@@ -110,6 +111,16 @@ Page({
     });
   },
 
+  /** 时间 picker 变化 */
+  onPlanTimeChange: function (e) {
+    this.setData({ planTime: e.detail.value });
+  },
+
+  /** 清除已选时间 */
+  onClearPlanTime: function () {
+    this.setData({ planTime: '' });
+  },
+
   /** 确认添加计划 */
   onConfirmAdd: function () {
     if (!this.data.selectedCustomerId) {
@@ -120,6 +131,7 @@ Page({
     var result = planRepo.create({
       customer_id: this.data.selectedCustomerId,
       plan_date: this.data.planDate,
+      plan_time: this.data.planTime || null,
       visit_way: this.data.selectedVisitWay
     });
 
@@ -140,6 +152,7 @@ Page({
     this.setData({
       selectedCustomerId: null,
       selectedCustomerName: '',
+      planTime: '',
       showConfirm: false
     });
   }

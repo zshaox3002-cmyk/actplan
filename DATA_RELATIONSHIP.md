@@ -66,6 +66,7 @@
 | `customer_id` | number | — | 关联客户 ID |
 | `plan_id` | number\|null | `null` | 关联计划 ID |
 | `visit_date` | string | — | 拜访日期 YYYY-MM-DD |
+| `visit_time` | string\|null | `null` | 拜访时间 HH:mm，由 plan.plan_time 继承 |
 | `visit_way` | string | `'面对面'` | 拜访方式 |
 | `duration` | number\|null | `null` | 拜访时长（分钟） |
 | `summary` | string | `''` | 沟通摘要 |
@@ -84,6 +85,7 @@
 | `id` | number | id.nextId() | 主键 |
 | `customer_id` | number | — | 关联客户 ID |
 | `plan_date` | string | — | 计划日期 YYYY-MM-DD |
+| `plan_time` | string\|null | `null` | 计划时间 HH:mm，空表示未指定时间/全天计划 |
 | `visit_way` | string | `'面对面'` | 拜访方式 |
 | `status` | string | `'待执行'` | 计划状态：`待执行`/`已完成` |
 | `created_at` | string | nowISO() | 创建时间 |

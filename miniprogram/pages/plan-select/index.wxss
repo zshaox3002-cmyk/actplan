@@ -149,3 +149,37 @@
 .btn-text {
   font-size: var(--font-size-body);
 }
+
+/* ---- 时间选择 ---- */
+.confirm-label-row {
+  display: flex;
+  align-items: center;
+}
+
+.label-optional {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  margin-left: 8rpx;
+}
+
+.confirm-value-row {
+  display: flex;
+  align-items: center;
+}
+
+.confirm-value.placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.time-clear {
+  margin-left: 16rpx;
+  padding: 4rpx 16rpx;
+  font-size: var(--font-size-helper);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-badge);
+}
+
+.time-clear:active {
+  background: var(--color-border);
+}
