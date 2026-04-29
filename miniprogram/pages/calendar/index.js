@@ -17,7 +17,6 @@ Page({
     selectedDate: '',           // 选中的日期
     weekDays: [],               // 周视图数据
     monthDays: [],              // 月视图数据
-    markedDates: new Set(),     // 有事件的日期集合
     events: [],                 // 选中日期的事件列表
     loading: true
   },
@@ -75,9 +74,9 @@ Page({
     this._allPlans = allPlans;
     this._allRecords = allRecords;
     this._customerMap = customerMap;
+    this._markedDates = markedDates;
 
     this.setData({
-      markedDates: markedDates,
       loading: false
     });
 
@@ -110,7 +109,7 @@ Page({
    * @returns {Array}
    */
   _buildDaysWithMarks: function (days) {
-    var markedDates = this.data.markedDates;
+    var markedDates = this._markedDates || new Set();
     var selectedDate = this.data.selectedDate;
     var today = dateUtil.today();
 
