@@ -56,7 +56,7 @@ Page({
     // 全量加载计划和记录
     var allPlans = planRepo.listAll();
     var allRecords = recordRepo.list();
-    var allCustomers = customerRepo.listAll();
+    var allCustomers = customerRepo.list();  // 不传参数获取全量客户
 
     // 构建客户 ID → 客户对象的映射
     var customerMap = {};
