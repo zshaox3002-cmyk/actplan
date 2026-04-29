@@ -36,11 +36,14 @@ Page({
    */
   _initCalendar: function () {
     var today = dateUtil.today();
+    var self = this;
     this.setData({
       anchorDate: today,
       selectedDate: today
+    }, function () {
+      // setData 完成后再加载数据
+      self._loadData();
     });
-    this._loadData();
   },
 
   /**
@@ -94,7 +97,9 @@ Page({
 
     if (viewMode === 'week') {
       var weekDays = dateUtil.getWeekDays(anchorDate);
+      console.log('[calendar] getWeekDays result:', weekDays);
       weekDays = this._buildDaysWithMarks(weekDays);
+      console.log('[calendar] after buildDaysWithMarks:', weekDays);
       this.setData({ weekDays: weekDays });
     } else {
       var monthDays = dateUtil.getMonthDays(anchorDate);
