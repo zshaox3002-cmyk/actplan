@@ -88,33 +88,42 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx;
-  border-radius: var(--radius-badge);
-  background-color: var(--color-bg-page);
+  border-radius: 50%;
+  background-color: transparent;
   transition: all 0.2s ease;
-}
-
-.day-cell.today {
-  border-bottom: 3rpx solid var(--color-primary);
+  position: relative;
 }
 
 .day-cell.selected {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-primary);
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.day-label {
-  font-size: 20rpx;
-  color: var(--color-text-secondary);
+.day-cell.selected .day-number {
+  color: #FFFFFF;
 }
 
-.day-date {
+.day-cell.today {
+  border: 2rpx solid var(--color-primary);
+}
+
+.day-number {
   font-size: 24rpx;
   font-weight: 500;
   color: var(--color-text-primary);
 }
 
 .day-mark {
-  font-size: 16rpx;
-  color: var(--color-primary);
+  width: 4rpx;
+  height: 4rpx;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  position: absolute;
+  bottom: 4rpx;
 }
 
 /* 月视图 */
@@ -150,8 +159,8 @@
   align-items: center;
   justify-content: center;
   gap: 4rpx;
-  border-radius: var(--radius-badge);
-  background-color: var(--color-bg-page);
+  border-radius: 8rpx;
+  background-color: transparent;
   position: relative;
   transition: all 0.2s ease;
 }
@@ -165,7 +174,11 @@
 }
 
 .month-cell.selected {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-primary);
+}
+
+.month-cell.selected .cell-day {
+  color: #FFFFFF;
 }
 
 .cell-day {
@@ -175,8 +188,10 @@
 }
 
 .cell-mark {
-  font-size: 12rpx;
-  color: var(--color-primary);
+  width: 4rpx;
+  height: 4rpx;
+  border-radius: 50%;
+  background-color: var(--color-primary);
 }
 
 /* 事件列表 */
@@ -215,10 +230,10 @@
   justify-content: center;
 }
 
-/* 事件卡片 */
+/* 事件卡片 - 三栏结构 */
 .event-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16rpx;
   padding: 16rpx;
   margin-bottom: 12rpx;
@@ -228,78 +243,121 @@
   transition: all 0.2s ease;
 }
 
+.event-card.completed {
+  opacity: 0.75;
+}
+
 .event-card:active {
   background-color: var(--color-primary-light);
 }
 
+/* 左栏：时间 */
 .event-time {
   min-width: 60rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  text-align: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #475569;
+  text-align: right;
+  flex-shrink: 0;
 }
 
-.event-info {
+/* 中栏：主信息 */
+.event-main {
   flex: 1;
   display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.event-header {
+  display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 8rpx;
+  flex-wrap: wrap;
 }
 
 .event-name {
-  font-size: 28rpx;
-  font-weight: 500;
+  font-size: 32rpx;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
-.event-stage {
+.stage-badge {
   padding: 4rpx 12rpx;
   font-size: 20rpx;
-  border-radius: var(--radius-badge);
-  border: 1rpx solid;
+  border-radius: 6rpx;
+  white-space: nowrap;
 }
 
-.event-stage.stage-meet {
-  border-color: #E5E7EB;
+.stage-badge.stage-meet {
+  background-color: #F3F4F6;
   color: #6B7280;
 }
 
-.event-stage.stage-comm {
-  border-color: #DBEAFE;
+.stage-badge.stage-comm {
+  background-color: #DBEAFE;
   color: #0284C7;
 }
 
-.event-stage.stage-present {
-  border-color: #FEF3C7;
+.stage-badge.stage-present {
+  background-color: #FEF3C7;
   color: #D97706;
 }
 
-.event-stage.stage-closing {
-  border-color: #FED7AA;
+.stage-badge.stage-closing {
+  background-color: #FED7AA;
   color: #EA580C;
 }
 
-.event-stage.stage-deal {
-  border-color: #DCFCE7;
+.stage-badge.stage-deal {
+  background-color: #DCFCE7;
   color: #15803D;
 }
 
-.event-stage.stage-lost {
-  border-color: #FEE2E2;
+.stage-badge.stage-lost {
+  background-color: #FEE2E2;
   color: #DC2626;
 }
 
 .event-way {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: var(--color-text-secondary);
 }
 
-.event-status {
-  padding: 6rpx 16rpx;
-  font-size: 22rpx;
+/* 右栏：状态 */
+.event-status-area {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.status-icon {
+  font-size: 32rpx;
+}
+
+.status-badge {
+  padding: 8rpx 16rpx;
+  font-size: 26rpx;
   font-weight: 500;
-  color: #FFFFFF;
-  border-radius: var(--radius-badge);
+  border-radius: 8rpx;
   white-space: nowrap;
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+}
+
+.status-badge.pending {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.status-badge.overdue {
+  background-color: var(--color-danger);
+  color: #FFFFFF;
+}
+
+.status-badge.adhoc {
+  background-color: #F1F5F9;
+  color: #475569;
 }

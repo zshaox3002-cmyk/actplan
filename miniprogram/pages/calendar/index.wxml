@@ -23,9 +23,8 @@
     <view wx:if="{{viewMode === 'week'}}" class="week-view">
       <view class="week-row">
         <view wx:for="{{weekDays}}" wx:key="date" class="day-cell {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" bindtap="onDateTap" data-date="{{item.date}}">
-          <view class="day-label">{{item.day}}</view>
-          <view class="day-date">{{item.date.substring(5)}}</view>
-          <view wx:if="{{item.isMarked}}" class="day-mark">●</view>
+          <view class="day-number">{{item.date.substring(5)}}</view>
+          <view wx:if="{{item.isMarked}}" class="day-mark"></view>
         </view>
       </view>
     </view>
@@ -44,7 +43,7 @@
       <view class="month-grid">
         <view wx:for="{{monthDays}}" wx:key="date" class="month-cell {{!item.isCurrentMonth ? 'other-month' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" bindtap="onDateTap" data-date="{{item.date}}">
           <view class="cell-day">{{item.day}}</view>
-          <view wx:if="{{item.isMarked}}" class="cell-mark">●</view>
+          <view wx:if="{{item.isMarked}}" class="cell-mark"></view>
         </view>
       </view>
     </view>
@@ -61,14 +60,28 @@
       <empty-state text="暂无计划和记录" />
     </view>
 
-    <view wx:for="{{events}}" wx:key="id" class="event-card" bindtap="onEventTap" data-event-id="{{item.id}}">
+    <view wx:for="{{events}}" wx:key="id" class="event-card {{item.status === 'completed' ? 'completed' : ''}}" bindtap="onEventTap" data-event-id="{{item.id}}">
+      <!-- 左栏：时间 -->
       <view class="event-time">{{item.time}}</view>
-      <view class="event-info">
-        <text class="event-name">{{item.customerName}}</text>
-        <text class="event-stage stage-{{item.stageClass}}">{{item.stage}}</text>
-        <text class="event-way">{{item.visitWay}}</text>
+
+      <!-- 中栏：主信息 -->
+      <view class="event-main">
+        <!-- 第一行：客户名 + 阶段标签 -->
+        <view class="event-header">
+          <text class="event-name">{{item.customerName}}</text>
+          <view class="stage-badge stage-{{item.stageClass}}">{{item.stage}}</view>
+        </view>
+        <!-- 第二行：拜访方式 -->
+        <view class="event-way">{{item.visitWay}}</view>
       </view>
-      <view class="event-status" style="background-color: {{item.statusColor}}">{{item.statusText}}</view>
+
+      <!-- 右栏：状态 -->
+      <view class="event-status-area">
+        <view wx:if="{{item.status === 'completed'}}" class="status-icon">✅</view>
+        <view wx:elif="{{item.status === 'overdue'}}" class="status-badge overdue">逾期</view>
+        <view wx:elif="{{item.status === 'adhoc'}}" class="status-badge adhoc">临时</view>
+        <view wx:else class="status-badge pending">待执行</view>
+      </view>
     </view>
   </view>
 </view>
