@@ -87,7 +87,7 @@
     </view>
 
     <!-- 待跟进 Top -->
-    <view class="section-title">
+    <view id="follow-section" class="section-title">
       <text>待跟进</text>
       <view class="section-link" bindtap="onGoPlanList">
         <text>全部 ›</text>

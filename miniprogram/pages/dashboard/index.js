@@ -215,9 +215,18 @@ Page({
     });
   },
 
-  /** 点击逾期警示条 */
+  /** 点击逾期警示条：滚动到待跟进区域 */
   onOverdueTap: function () {
-    wx.switchTab({ url: '/pages/rhythm/index' });
+    var query = wx.createSelectorQuery();
+    query.selectViewport().scrollOffset();
+    query.select('#follow-section').boundingClientRect();
+    query.exec(function (res) {
+      var scrollTop = res[0] ? res[0].scrollTop : 0;
+      var rect = res[1];
+      if (rect) {
+        wx.pageScrollTo({ scrollTop: scrollTop + rect.top - 16, duration: 300 });
+      }
+    });
   },
 
   /** 点击待跟进客户：跳转客户详情计划 tab */
