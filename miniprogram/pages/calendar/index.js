@@ -97,9 +97,7 @@ Page({
 
     if (viewMode === 'week') {
       var weekDays = dateUtil.getWeekDays(anchorDate);
-      console.log('[calendar] getWeekDays result:', weekDays);
       weekDays = this._buildDaysWithMarks(weekDays);
-      console.log('[calendar] after buildDaysWithMarks:', weekDays);
       this.setData({ weekDays: weekDays });
     } else {
       var monthDays = dateUtil.getMonthDays(anchorDate);
@@ -172,7 +170,7 @@ Page({
         customerName: customer.name,
         stage: customer.stage,
         stageClass: constants.STAGE_CLASS_MAP[customer.stage] || '',
-        visitWay: plan.visit_way,
+        visitWay: plan.visit_way || '',
         status: status,
         statusText: status === 'completed' ? '已完成' : (status === 'overdue' ? '逾期' : '待执行'),
         statusColor: status === 'completed' ? '#10B981' : (status === 'overdue' ? '#EF4444' : '#2563EB')
@@ -195,7 +193,7 @@ Page({
         customerName: customer.name,
         stage: customer.stage,
         stageClass: constants.STAGE_CLASS_MAP[customer.stage] || '',
-        visitWay: record.visit_way,
+        visitWay: record.visit_way || '',
         status: status,
         statusText: status === 'adhoc' ? '临时' : '已完成',
         statusColor: status === 'adhoc' ? '#64748B' : '#10B981'
