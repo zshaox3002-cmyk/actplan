@@ -2,8 +2,10 @@
   "pages": [
     "pages/dashboard/index",
     "pages/customer/index",
+    "pages/calendar/index",
     "pages/customer-detail/index",
-    "pages/plan/index",
+    "pages/rhythm/index",
+    "pages/review/index",
     "pages/plan-select/index",
     "pages/record/index",
     "pages/record-new/index",
@@ -17,12 +19,12 @@
     "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTitleText": "活动管理",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F5F6FA",
+    "backgroundColor": "#F4F7FB",
     "backgroundTextStyle": "light"
   },
   "tabBar": {
     "color": "#9CA3AF",
-    "selectedColor": "#1A6FD4",
+    "selectedColor": "#0EA5A4",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
@@ -39,14 +41,20 @@
         "selectedIconPath": "images/icons/customer-active.png"
       },
       {
-        "pagePath": "pages/plan/index",
-        "text": "计划",
+        "pagePath": "pages/calendar/index",
+        "text": "日历",
+        "iconPath": "images/icons/calendar.png",
+        "selectedIconPath": "images/icons/calendar-active.png"
+      },
+      {
+        "pagePath": "pages/rhythm/index",
+        "text": "节奏",
         "iconPath": "images/icons/plan.png",
         "selectedIconPath": "images/icons/plan-active.png"
       },
       {
-        "pagePath": "pages/objection/index",
-        "text": "异议",
+        "pagePath": "pages/review/index",
+        "text": "复盘",
         "iconPath": "images/icons/record.png",
         "selectedIconPath": "images/icons/record-active.png"
       }

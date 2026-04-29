@@ -1,0 +1,305 @@
+@import '/styles/variables.wxss';
+
+.calendar-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--color-bg-page);
+}
+
+/* 视图切换 */
+.view-toggle {
+  padding: 16rpx 32rpx;
+  background-color: var(--color-bg-card);
+  border-bottom: 1rpx solid var(--color-border);
+}
+
+.toggle-pill {
+  display: flex;
+  gap: 12rpx;
+  background-color: var(--color-tab-bg);
+  border-radius: var(--radius-tab);
+  padding: 4rpx;
+}
+
+.toggle-item {
+  flex: 1;
+  padding: 12rpx 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--color-tab-inactive-text);
+  border-radius: var(--radius-tab-item);
+  transition: all 0.2s ease;
+}
+
+.toggle-item.active {
+  background-color: var(--color-tab-active-bg);
+  color: var(--color-tab-active-text);
+  font-weight: 500;
+}
+
+/* 日历容器 */
+.calendar-container {
+  flex-shrink: 0;
+  background-color: var(--color-bg-card);
+  border-bottom: 1rpx solid var(--color-border);
+  padding: 24rpx 32rpx;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.nav-btn {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.calendar-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* 周视图 */
+.week-view {
+  width: 100%;
+}
+
+.week-row {
+  display: flex;
+  gap: 8rpx;
+  justify-content: space-between;
+}
+
+.day-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx;
+  border-radius: var(--radius-badge);
+  background-color: var(--color-bg-page);
+  transition: all 0.2s ease;
+}
+
+.day-cell.today {
+  border-bottom: 3rpx solid var(--color-primary);
+}
+
+.day-cell.selected {
+  background-color: var(--color-primary-light);
+}
+
+.day-label {
+  font-size: 20rpx;
+  color: var(--color-text-secondary);
+}
+
+.day-date {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.day-mark {
+  font-size: 16rpx;
+  color: var(--color-primary);
+}
+
+/* 月视图 */
+.month-view {
+  width: 100%;
+}
+
+.month-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.weekday-label {
+  text-align: center;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding: 8rpx 0;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8rpx;
+}
+
+.month-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  border-radius: var(--radius-badge);
+  background-color: var(--color-bg-page);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.month-cell.other-month {
+  opacity: 0.4;
+}
+
+.month-cell.today {
+  border: 2rpx solid var(--color-primary);
+}
+
+.month-cell.selected {
+  background-color: var(--color-primary-light);
+}
+
+.cell-day {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.cell-mark {
+  font-size: 12rpx;
+  color: var(--color-primary);
+}
+
+/* 事件列表 */
+.events-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24rpx 32rpx;
+}
+
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid var(--color-border);
+}
+
+.events-date {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.events-count {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+}
+
+.empty-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 事件卡片 */
+.event-card {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx;
+  margin-bottom: 12rpx;
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  border: 1rpx solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.event-card:active {
+  background-color: var(--color-primary-light);
+}
+
+.event-time {
+  min-width: 60rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.event-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.event-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.event-stage {
+  padding: 4rpx 12rpx;
+  font-size: 20rpx;
+  border-radius: var(--radius-badge);
+  border: 1rpx solid;
+}
+
+.event-stage.stage-meet {
+  border-color: #E5E7EB;
+  color: #6B7280;
+}
+
+.event-stage.stage-comm {
+  border-color: #DBEAFE;
+  color: #0284C7;
+}
+
+.event-stage.stage-present {
+  border-color: #FEF3C7;
+  color: #D97706;
+}
+
+.event-stage.stage-closing {
+  border-color: #FED7AA;
+  color: #EA580C;
+}
+
+.event-stage.stage-deal {
+  border-color: #DCFCE7;
+  color: #15803D;
+}
+
+.event-stage.stage-lost {
+  border-color: #FEE2E2;
+  color: #DC2626;
+}
+
+.event-way {
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+}
+
+.event-status {
+  padding: 6rpx 16rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: #FFFFFF;
+  border-radius: var(--radius-badge);
+  white-space: nowrap;
+}
