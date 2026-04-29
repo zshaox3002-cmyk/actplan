@@ -1,16 +1,11 @@
 <!-- pages/dashboard/index.wxml -->
 <view class="page-container">
-  <!-- DISABLED: import-export - 暂时禁用，保留备用
-  <view class="data-menu-btn" bindtap="onDataMenuTap">
-    <text class="data-menu-icon">⋮</text>
-  </view>
-  -->
 
   <!-- 周期选择栏 -->
   <view class="period-banner">
     <view class="period-selector" bindtap="onPeriodTap">
       <text class="period-label">{{periodLabel}}</text>
-      <image class="period-arrow" src="/assets/icons/chevron-down.svg" mode="aspectFit" />
+      <image class="period-arrow {{showPeriodDropdown ? 'open' : ''}}" src="/assets/icons/chevron-down.svg" mode="aspectFit" />
     </view>
     <text class="period-range">{{periodRange}}</text>
   </view>
@@ -18,42 +13,36 @@
   <!-- 周期下拉选项 -->
   <view class="period-dropdown" wx:if="{{showPeriodDropdown}}" catchtap="onDropdownMaskTap">
     <view class="period-dropdown-inner" catchtap="">
-      <view class="period-option {{currentPeriod === 'week' ? 'active' : ''}}"
-        catchtap="onPeriodSelect" data-period="week">
+      <view class="period-option {{currentPeriod === 'week' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="week">
         <text>本周</text>
         <text class="period-check" wx:if="{{currentPeriod === 'week'}}">✓</text>
       </view>
-      <view class="period-option {{currentPeriod === 'month' ? 'active' : ''}}"
-        catchtap="onPeriodSelect" data-period="month">
+      <view class="period-option {{currentPeriod === 'month' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="month">
         <text>本月</text>
         <text class="period-check" wx:if="{{currentPeriod === 'month'}}">✓</text>
       </view>
-      <view class="period-option {{currentPeriod === 'quarter' ? 'active' : ''}}"
-        catchtap="onPeriodSelect" data-period="quarter">
+      <view class="period-option {{currentPeriod === 'quarter' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="quarter">
         <text>季度</text>
         <text class="period-check" wx:if="{{currentPeriod === 'quarter'}}">✓</text>
       </view>
-      <view class="period-option {{currentPeriod === 'year' ? 'active' : ''}}"
-        catchtap="onPeriodSelect" data-period="year">
+      <view class="period-option {{currentPeriod === 'year' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="year">
         <text>年度</text>
         <text class="period-check" wx:if="{{currentPeriod === 'year'}}">✓</text>
       </view>
     </view>
   </view>
 
-  <!-- 2×2 指标卡 -->
-  <view class="metrics-grid" wx:if="{{!isEmpty}}">
-    <metric-card value="{{metrics.totalCustomers}}" label="客户总量" dotColor="#1A6FD4" />
-    <metric-card value="{{metrics.newCustomers}}" label="本期新增" dotColor="#27AE60" />
-    <metric-card value="{{metrics.visitCount}}" label="本期拜访" dotColor="#F39C12" />
-    <metric-card value="{{metrics.appointmentCount}}" label="本期预约" dotColor="#8B5CF6" />
+  <!-- 问候语 -->
+  <view class="greeting-bar">
+    <text class="greeting-text">{{greetingPrefix}}</text>
+    <text wx:if="{{overdueCount > 0}}" class="greeting-overdue-text">{{overdueCount}}条计划已逾期，查看待跟进列表</text>
   </view>
 
   <!-- 空态引导 -->
   <view class="dashboard-empty" wx:if="{{isEmpty}}">
-    <text class="empty-icon-text">📊</text>
+    <text class="empty-icon-text">📋</text>
     <text class="empty-title">开始管理你的客户</text>
-    <text class="empty-desc">添加第一位客户后，这里将展示你的活动数据和业绩概览</text>
+    <text class="empty-desc">添加第一位客户后，这里将展示今日拜访和跟进提醒</text>
     <view class="empty-actions">
       <view class="empty-btn-primary" bindtap="onGoAddCustomer">
         <text>+ 添加第一位客户</text>
@@ -64,52 +53,101 @@
     </view>
   </view>
 
-  <!-- 苹果分布饼图 -->
-  <view class="chart-section" wx:if="{{!isEmpty}}">
+  <block wx:if="{{!isEmpty}}">
+
+    <!-- 今日拜访 -->
     <view class="section-title">
-      <view class="title-bar"></view>
-      <text>苹果分布</text>
-    </view>
-    <chart-pie data="{{appleData}}" />
-  </view>
-
-  <!-- 异议分布柱状图 -->
-  <view class="chart-section" wx:if="{{!isEmpty}}">
-    <view class="section-title">
-      <view class="title-bar"></view>
-      <text>异议分布</text>
-    </view>
-    <chart-bar data="{{objectionData}}" />
-  </view>
-</view>
-
-<!-- DISABLED: import-export - 暂时禁用，保留备用
-<view class="panel-mask" wx:if="{{showDataPanel}}" bindtap="onClosePanel">
-  <view class="panel-content" catchtap="onPreventBubble">
-    <view class="panel-header">
-      <text class="panel-title">数据管理</text>
-      <view class="panel-close" bindtap="onClosePanel">
-        <text>✕</text>
-      </view>
+      <text>今日拜访</text>
+      <text class="section-count">{{todayPlans.length}}</text>
     </view>
 
-    <view class="panel-body">
-      <view class="panel-item" bindtap="onExportData">
-        <view class="panel-item-icon">📤</view>
-        <view class="panel-item-text">
-          <text class="panel-item-title">导出数据</text>
-          <text class="panel-item-desc">将所有数据复制到剪贴板，用于备份或迁移</text>
+    <view class="today-empty" wx:if="{{todayPlans.length === 0}}">
+      <text class="today-empty-text">今天没有安排拜访</text>
+    </view>
+
+    <view class="today-list" wx:else>
+      <view class="today-item" wx:for="{{todayPlans}}" wx:key="id">
+        <view class="today-item-left">
+          <text class="today-time" wx:if="{{item.plan_time}}">{{item.plan_time}}</text>
+          <text class="today-time today-time-empty" wx:else>待定</text>
         </view>
-      </view>
-
-      <view class="panel-item" bindtap="onImportData">
-        <view class="panel-item-icon">📥</view>
-        <view class="panel-item-text">
-          <text class="panel-item-title">导入数据</text>
-          <text class="panel-item-desc">从剪贴板读取数据并覆盖当前数据（不可逆）</text>
+        <view class="today-item-main">
+          <text class="today-customer">{{item.customerName}}</text>
+          <text class="today-meta">{{item.visit_way || '面对面'}} · {{item.customerStage}}</text>
+        </view>
+        <view class="today-exec-btn" catchtap="onExecutePlan" data-id="{{item.id}}">
+          <text>执行</text>
         </view>
       </view>
     </view>
-  </view>
+
+    <!-- 待跟进 Top -->
+    <view class="section-title">
+      <text>待跟进</text>
+      <view class="section-link" bindtap="onGoPlanList">
+        <text>全部 ›</text>
+      </view>
+    </view>
+
+    <view class="follow-list">
+      <view class="follow-item" wx:for="{{pendingFollowUp}}" wx:key="id" bindtap="onFollowUpTap" data-id="{{item.id}}">
+        <view class="follow-priority priority-{{item.priorityLevel}}">
+          <text>{{item.priorityLevel}}</text>
+        </view>
+        <view class="follow-main">
+          <view class="follow-name-row">
+            <text class="follow-name">{{item.name}}</text>
+            <text class="follow-stage stage-{{item.stageClass}}">{{item.stage}}</text>
+          </view>
+          <text class="follow-next {{item.isOverdue ? 'overdue' : ''}}">{{item.nextPlanText}}</text>
+        </view>
+        <text class="follow-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 本周进展 -->
+    <view class="section-title">
+      <text>{{periodLabel}}进展</text>
+    </view>
+
+    <view class="metrics-unified-card">
+      <view class="metrics-grid">
+        <view class="metric-item">
+          <text class="metric-value">{{metrics.newCustomers}}</text>
+          <text class="metric-label">新增客户</text>
+        </view>
+        <view class="metric-item">
+          <text class="metric-value">{{metrics.visitCount}}</text>
+          <text class="metric-label">拜访次数</text>
+        </view>
+        <view class="metric-item">
+          <text class="metric-value">{{metrics.appointmentCount}}</text>
+          <text class="metric-label">预约计划</text>
+        </view>
+        <view class="metric-item">
+          <text class="metric-value">{{metrics.dealCustomers}}</text>
+          <text class="metric-label">本期成交</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 客户阶段漏斗 -->
+    <view class="section-title">
+      <text>客户阶段</text>
+    </view>
+
+    <view class="funnel-list">
+      <view class="funnel-item" wx:for="{{stageFunnel}}" wx:key="stage">
+        <text class="funnel-stage">{{item.stage}}</text>
+        <view class="funnel-bar-wrap">
+          <view class="funnel-bar" wx:if="{{item.count > 0}}" style="width: {{(item.count / funnelMax * 100)}}%; background: {{item.barColor}};"></view>
+        </view>
+        <text class="funnel-count">{{item.count}}</text>
+      </view>
+    </view>
+
+    <view class="page-bottom-pad"></view>
+
+  </block>
+
 </view>
--->
