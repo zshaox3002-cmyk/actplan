@@ -32,10 +32,15 @@
     </view>
   </view>
 
-  <!-- 问候语 -->
-  <view class="greeting-bar">
-    <text class="greeting-text">{{greetingPrefix}}</text>
-    <text wx:if="{{overdueCount > 0}}" class="greeting-overdue-text">{{overdueCount}}条计划已逾期，查看待跟进列表</text>
+  <!-- 问候语 Hero 区域 -->
+  <view class="hero-bar">
+    <text class="hero-greeting">{{greetingPrefix}}</text>
+  </view>
+
+  <!-- 逾期警示 Banner -->
+  <view class="overdue-banner" wx:if="{{overdueCount > 0}}" bindtap="onOverdueTap">
+    <text class="overdue-banner-icon">⚠</text>
+    <text class="overdue-banner-text">{{overdueCount}}条计划已逾期，去处理 ›</text>
   </view>
 
   <!-- 空态引导 -->
@@ -58,7 +63,7 @@
     <!-- 今日拜访 -->
     <view class="section-title">
       <text>今日拜访</text>
-      <text class="section-count">{{todayPlans.length}}</text>
+      <view class="section-badge"><text>{{todayPlans.length}}</text></view>
     </view>
 
     <view class="today-empty" wx:if="{{todayPlans.length === 0}}">
@@ -91,15 +96,20 @@
 
     <view class="follow-list">
       <view class="follow-item" wx:for="{{pendingFollowUp}}" wx:key="id" bindtap="onFollowUpTap" data-id="{{item.id}}">
-        <view class="follow-priority priority-{{item.priorityLevel}}">
-          <text>{{item.priorityLevel}}</text>
+        <view class="follow-left">
+          <view class="follow-priority priority-{{item.priorityLevel}}">
+            <text>{{item.priorityLevel}}</text>
+          </view>
         </view>
         <view class="follow-main">
           <view class="follow-name-row">
             <text class="follow-name">{{item.name}}</text>
             <text class="follow-stage stage-{{item.stageClass}}">{{item.stage}}</text>
           </view>
-          <text class="follow-next {{item.isOverdue ? 'overdue' : ''}}">{{item.nextPlanText}}</text>
+          <view class="follow-next-row">
+            <text wx:if="{{item.isOverdue}}" class="overdue-icon">⏰</text>
+            <text class="follow-next {{item.isOverdue ? 'overdue' : ''}}">{{item.nextPlanText}}</text>
+          </view>
         </view>
         <text class="follow-arrow">›</text>
       </view>
@@ -113,19 +123,19 @@
     <view class="metrics-unified-card">
       <view class="metrics-grid">
         <view class="metric-item">
-          <text class="metric-value">{{metrics.newCustomers}}</text>
+          <text class="metric-value {{metrics.newCustomers === 0 ? 'metric-value-zero' : ''}}">{{metrics.newCustomers}}</text>
           <text class="metric-label">新增客户</text>
         </view>
         <view class="metric-item">
-          <text class="metric-value">{{metrics.visitCount}}</text>
+          <text class="metric-value {{metrics.visitCount === 0 ? 'metric-value-zero' : ''}}">{{metrics.visitCount}}</text>
           <text class="metric-label">拜访次数</text>
         </view>
         <view class="metric-item">
-          <text class="metric-value">{{metrics.appointmentCount}}</text>
+          <text class="metric-value {{metrics.appointmentCount === 0 ? 'metric-value-zero' : ''}}">{{metrics.appointmentCount}}</text>
           <text class="metric-label">预约计划</text>
         </view>
         <view class="metric-item">
-          <text class="metric-value">{{metrics.dealCustomers}}</text>
+          <text class="metric-value {{metrics.dealCustomers === 0 ? 'metric-value-zero' : ''}}">{{metrics.dealCustomers}}</text>
           <text class="metric-label">本期成交</text>
         </view>
       </view>

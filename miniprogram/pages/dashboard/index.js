@@ -1,131 +1,178 @@
 /**
- * dashboard/index.js — 数据概览页
+ * dashboard/index.js — 行动面板
  *
  * 布局：
- * - 顶部 周期选择栏（本周/本月/季度/年度 下拉切换）
- * - 2×2 指标卡：客户总量 / 本期新增 / 本期拜访 / 本期预约
- * - 苹果分布饼图
- * - 异议分布柱状图
+ * - 顶部问候语 + 周期选择
+ * - 逾期警示条
+ * - 今日拜访列表
+ * - 本周进展指标卡
+ * - 客户阶段漏斗
+ * - 待跟进客户 Top
  */
 
 var stats = require('../../utils/stats');
+var planRepo = require('../../utils/repository/plan.repo');
+var customerRepo = require('../../utils/repository/customer.repo');
 var dateUtil = require('../../utils/date');
 var storage = require('../../utils/storage');
 var toast = require('../../utils/toast');
 
-/** 周期配置 */
 var PERIOD_CONFIG = {
-  week:    { label: '本周数据', rangeFn: dateUtil.getWeekRange },
-  month:   { label: '本月数据', rangeFn: dateUtil.getMonthRange },
-  quarter: { label: '季度数据', rangeFn: dateUtil.getQuarterRange },
-  year:    { label: '年度数据', rangeFn: dateUtil.getYearRange }
+  week:    { label: '本周', rangeFn: dateUtil.getWeekRange },
+  month:   { label: '本月', rangeFn: dateUtil.getMonthRange },
+  quarter: { label: '季度', rangeFn: dateUtil.getQuarterRange },
+  year:    { label: '年度', rangeFn: dateUtil.getYearRange }
 };
 
 Page({
   data: {
-    // 周期选择
     currentPeriod: 'week',
-    periodLabel: '本周数据',
+    periodLabel: '本周',
     periodRange: '',
     showPeriodDropdown: false,
 
-    // 指标
-    metrics: {
-      totalCustomers: 0,
-      newCustomers: 0,
-      visitCount: 0,
-      appointmentCount: 0
-    },
+    // 问候语
+    greetingPrefix: '',
 
-    // 苹果分布
-    appleData: [],
+    // 逾期
+    overdueCount: 0,
 
-    // 异议分布
-    objectionData: [],
+    // 今日拜访
+    todayPlans: [],
 
-    // 空态
+    // 本周进展指标
+    metrics: { newCustomers: 0, visitCount: 0, appointmentCount: 0, dealCustomers: 0 },
+
+    // 客户阶段漏斗
+    stageFunnel: [],
+    funnelMax: 1,   // 用于计算进度条宽度比例
+
+    // 待跟进 Top
+    pendingFollowUp: [],
+
     isEmpty: false
-
-    /* DISABLED: import-export - 暂时禁用，保留备用
-    ,
-    // 数据操作面板
-    showDataPanel: false
-    */
   },
 
   onLoad: function () {
     this._updatePeriodDisplay();
-    this._safeRefresh(this.data.currentPeriod);
+    this._safeRefresh();
   },
 
   onShow: function () {
     this._updatePeriodDisplay();
-    this._safeRefresh(this.data.currentPeriod);
+    this._safeRefresh();
   },
 
-  /** 等待 Storage 就绪后再刷新，防止竞态 */
-  _safeRefresh: function (period) {
+  _safeRefresh: function () {
     var that = this;
-    var p = period || this.data.currentPeriod;
     if (storage.isReady()) {
-      that._refresh(p);
+      that._refresh();
     } else {
-      storage.waitReady().then(function () {
-        that._refresh(p);
-      });
+      storage.waitReady().then(function () { that._refresh(); });
     }
   },
 
-  /** 根据当前周期更新显示文案和日期范围 */
   _updatePeriodDisplay: function () {
     var period = this.data.currentPeriod;
     var config = PERIOD_CONFIG[period];
     var range = config.rangeFn();
-
     var startParts = range[0].split('-');
     var endParts = range[1].split('-');
-    var periodRange = (parseInt(startParts[1])) + '.' + (parseInt(startParts[2])) +
-      ' - ' + (parseInt(endParts[1])) + '.' + (parseInt(endParts[2]));
+    var periodRange = parseInt(startParts[1]) + '.' + parseInt(startParts[2]) +
+      ' - ' + parseInt(endParts[1]) + '.' + parseInt(endParts[2]);
+    if (period === 'year') periodRange = startParts[0] + '年';
 
-    // 年度显示年份
-    if (period === 'year') {
-      periodRange = startParts[0] + '年';
-    }
-
-    this.setData({
-      periodLabel: config.label,
-      periodRange: periodRange
-    });
+    this.setData({ periodLabel: config.label, periodRange: periodRange });
   },
 
-  /** 刷新所有数据 */
-  _refresh: function (period) {
+  _refresh: function () {
     try {
-      var snapshot = stats.getStatsSnapshot();
-      var activePeriod = period || this.data.currentPeriod;
-      // 指标（按周期过滤）
-      var metrics = stats.getDashboardMetrics(snapshot, activePeriod);
+      var now = new Date();
+      var todayStr = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
 
-      // 苹果分布
-      var appleData = stats.getAppleDistribution(snapshot);
-      var appleColorMap = {
-        '红苹果': '#E74C3C',
-        '青苹果': '#27AE60',
-        '烂苹果': '#6B7280',
-        '待定': '#F39C12'
-      };
-      for (var i = 0; i < appleData.length; i++) {
-        appleData[i].color = appleColorMap[appleData[i].name] || '#9CA3AF';
+      var snapshot = stats.getStatsSnapshot();
+      var period = this.data.currentPeriod;
+
+      // 指标
+      var metrics = stats.getDashboardMetrics(snapshot, period);
+
+      // 今日拜访（今天的待执行计划）
+      var todayPlans = planRepo.list(todayStr).filter(function (p) {
+        return p.status === '待执行';
+      });
+      // 补充客户名
+      todayPlans = todayPlans.map(function (p) {
+        var c = customerRepo.get(p.customer_id);
+        return Object.assign({}, p, { customerName: c ? c.name : '', customerStage: c ? c.stage : '' });
+      });
+
+      // 逾期计划
+      var allPlans = planRepo.listAll();
+      var overdueCount = 0;
+      for (var i = 0; i < allPlans.length; i++) {
+        if (allPlans[i].status === '待执行' && allPlans[i].plan_date < todayStr) overdueCount++;
       }
 
-      // 异议分布
-      var objectionData = stats.getObjectionDistribution(snapshot);
+      // 问候语
+      var hour = now.getHours();
+      var greetingPrefix = hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
+
+      // 阶段漏斗
+      var stageFunnel = stats.getStageFunnel(snapshot);
+      var funnelMax = 1;
+      for (var j = 0; j < stageFunnel.length; j++) {
+        if (stageFunnel[j].count > funnelMax) funnelMax = stageFunnel[j].count;
+      }
+
+      // 待跟进 Top 3
+      var STAGE_CLASS_MAP = {
+        '初步认识': 'meet',
+        '需求沟通': 'comm',
+        '方案讲解': 'present',
+        '待促成':   'closing',
+        '已成交':   'deal',
+        '已流失':   'lost'
+      };
+      var pendingList = stats.getPendingFollowUp(snapshot, 3);
+      var pendingFollowUp = pendingList.map(function (item) {
+        var nextPlanText = '';
+        if (item.nextPlan) {
+          if (item.nextPlan.plan_date < todayStr) {
+            var diff = Math.round((new Date(todayStr) - new Date(item.nextPlan.plan_date)) / 86400000);
+            nextPlanText = '计划已逾期 ' + diff + ' 天';
+          } else if (item.nextPlan.plan_date === todayStr) {
+            nextPlanText = '今日有拜访';
+          } else {
+            nextPlanText = item.nextPlan.plan_date.slice(5).replace('-', '/') + ' 有拜访';
+          }
+        } else {
+          nextPlanText = '未安排';
+        }
+        var stage = item.customer.stage;
+        return {
+          id: item.customer.id,
+          planId: item.nextPlan ? item.nextPlan.id : null,
+          name: item.customer.name,
+          stage: stage,
+          stageClass: STAGE_CLASS_MAP[stage] || 'comm',
+          priorityLevel: item.priority.level,
+          priorityLabel: item.priority.label,
+          nextPlanText: nextPlanText,
+          isOverdue: item.nextPlan && item.nextPlan.plan_date < todayStr
+        };
+      });
 
       this.setData({
+        greetingPrefix: greetingPrefix,
+        overdueCount: overdueCount,
+        todayPlans: todayPlans,
         metrics: metrics,
-        appleData: appleData,
-        objectionData: objectionData,
-        isEmpty: metrics.totalCustomers === 0
+        stageFunnel: stageFunnel,
+        funnelMax: funnelMax,
+        pendingFollowUp: pendingFollowUp,
+        isEmpty: snapshot.customer.length === 0
       });
     } catch (e) {
       toast.fail('数据加载失败');
@@ -133,132 +180,62 @@ Page({
     }
   },
 
-  /** 空态引导：添加客户 */
-  onGoAddCustomer: function () {
-    wx.switchTab({ url: '/pages/customer/index' });
-  },
-
-  /** 空态引导：创建拜访计划 */
-  onGoAddPlan: function () {
-    wx.switchTab({ url: '/pages/plan/index' });
-  },
-
-  /** 打开周期下拉 */
   onPeriodTap: function () {
     this.setData({ showPeriodDropdown: !this.data.showPeriodDropdown });
   },
 
-  /** 选择周期 */
   onPeriodSelect: function (e) {
     var period = e.currentTarget.dataset.period;
     if (period === this.data.currentPeriod) {
       this.setData({ showPeriodDropdown: false });
       return;
     }
-    this.setData({
-      currentPeriod: period,
-      showPeriodDropdown: false
-    });
+    this.setData({ currentPeriod: period, showPeriodDropdown: false });
     this._updatePeriodDisplay();
-    this._refresh(period);
+    this._refresh();
   },
 
-  /** 点击遮罩关闭下拉 */
   onDropdownMaskTap: function () {
     this.setData({ showPeriodDropdown: false });
+  },
+
+  /** 点击今日拜访「执行」 */
+  onExecutePlan: function (e) {
+    var planId = parseInt(e.currentTarget.dataset.id);
+    var plan = this.data.todayPlans.filter(function(p) { return p.id === planId; })[0];
+    if (!plan) return;
+    wx.navigateTo({
+      url: '/pages/record-new/index?customer_id=' + plan.customer_id +
+           '&customer_name=' + encodeURIComponent(plan.customerName) +
+           '&plan_id=' + plan.id +
+           '&plan_date=' + plan.plan_date +
+           '&plan_time=' + (plan.plan_time || '') +
+           '&visit_way=' + encodeURIComponent(plan.visit_way || '面对面') +
+           '&record_type=planned'
+    });
+  },
+
+  /** 点击逾期警示条 */
+  onOverdueTap: function () {
+    wx.switchTab({ url: '/pages/rhythm/index' });
+  },
+
+  /** 点击待跟进客户：跳转客户详情计划 tab */
+  onFollowUpTap: function (e) {
+    var id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: '/pages/customer-detail/index?id=' + id + '&tab=plan' });
+  },
+
+  /** 点击「全部」跳转节奏 tab */
+  onGoPlanList: function () {
+    wx.switchTab({ url: '/pages/rhythm/index' });
+  },
+
+  onGoAddCustomer: function () {
+    wx.switchTab({ url: '/pages/customer/index' });
+  },
+
+  onGoAddPlan: function () {
+    wx.switchTab({ url: '/pages/customer/index' });
   }
-
-  /* DISABLED: import-export - 暂时禁用，保留备用
-
-  ,
-
-  onDataMenuTap: function () {
-    this.setData({ showDataPanel: true });
-  },
-
-  onClosePanel: function () {
-    this.setData({ showDataPanel: false });
-  },
-
-  onExportData: function () {
-    try {
-      var dump = {
-        customer: storage.getTable('customer'),
-        plan: storage.getTable('plan'),
-        visit_record: storage.getTable('visit_record'),
-        objection: storage.getTable('objection'),
-        objection_note: storage.getTable('objection_note'),
-        operation_log: storage.getTable('operation_log'),
-        exported_at: new Date().toISOString()
-      };
-
-      var jsonStr = JSON.stringify(dump);
-
-      wx.setClipboardData({
-        data: jsonStr,
-        success: function () {
-          toast.success('数据已复制到剪贴板');
-        },
-        fail: function () {
-          toast.fail('复制失败，数据量可能过大');
-        }
-      });
-
-      this.setData({ showDataPanel: false });
-    } catch (e) {
-      toast.fail('导出失败：' + e.message);
-    }
-  },
-
-  onImportData: function () {
-    var that = this;
-    this.setData({ showDataPanel: false });
-
-    wx.showModal({
-      title: '导入数据',
-      content: '请先复制导出的 JSON 数据到剪贴板，点击确定将从剪贴板读取并覆盖当前所有数据。此操作不可逆！',
-      confirmText: '确定导入',
-      confirmColor: '#E74C3C',
-      success: function (res) {
-        if (res.confirm) {
-          that._doImport();
-        }
-      }
-    });
-  },
-
-  _doImport: function () {
-    var that = this;
-    wx.getClipboardData({
-      success: function (res) {
-        try {
-          var data = JSON.parse(res.data);
-
-          if (!data || typeof data !== 'object') {
-            toast.fail('数据格式不正确');
-            return;
-          }
-
-          var tables = ['customer', 'plan', 'visit_record', 'objection', 'objection_note', 'operation_log'];
-          for (var i = 0; i < tables.length; i++) {
-            var t = tables[i];
-            if (data[t] && Array.isArray(data[t])) {
-              storage.setTable(t, data[t]);
-            }
-          }
-
-          toast.success('导入成功');
-          that._refresh();
-        } catch (e) {
-          toast.fail('数据解析失败，请确认复制的是正确的导出数据');
-        }
-      },
-      fail: function () {
-        toast.fail('读取剪贴板失败');
-      }
-    });
-  },
-
-  onPreventBubble: function () {}
-  */
 });
