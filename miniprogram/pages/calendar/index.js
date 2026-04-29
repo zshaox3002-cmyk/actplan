@@ -53,10 +53,14 @@ Page({
     var self = this;
     var today = dateUtil.today();
 
+    console.log('[calendar] _loadData called');
+
     // 全量加载计划和记录
     var allPlans = planRepo.listAll();
     var allRecords = recordRepo.list();
     var allCustomers = customerRepo.list();  // 不传参数获取全量客户
+
+    console.log('[calendar] allPlans:', allPlans.length, 'allRecords:', allRecords.length, 'allCustomers:', allCustomers.length);
 
     // 构建客户 ID → 客户对象的映射
     var customerMap = {};
@@ -72,6 +76,8 @@ Page({
     allRecords.forEach(function (r) {
       markedDates.add(r.visit_date);
     });
+
+    console.log('[calendar] markedDates:', Array.from(markedDates));
 
     // 缓存到页面实例（不放 data，避免序列化）
     this._allPlans = allPlans;
@@ -95,10 +101,16 @@ Page({
     var anchorDate = this.data.anchorDate;
     var viewMode = this.data.viewMode;
 
+    console.log('[calendar] _refreshCalendarView - anchorDate:', anchorDate, 'viewMode:', viewMode);
+
     if (viewMode === 'week') {
       var weekDays = dateUtil.getWeekDays(anchorDate);
+      console.log('[calendar] weekDays from dateUtil:', weekDays);
       weekDays = this._buildDaysWithMarks(weekDays);
-      this.setData({ weekDays: weekDays });
+      console.log('[calendar] weekDays after buildDaysWithMarks:', weekDays);
+      this.setData({ weekDays: weekDays }, function () {
+        console.log('[calendar] setData weekDays complete, data.weekDays:', this.data.weekDays);
+      });
     } else {
       var monthDays = dateUtil.getMonthDays(anchorDate);
       monthDays = this._buildDaysWithMarks(monthDays);
