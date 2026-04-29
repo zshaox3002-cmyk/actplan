@@ -1,0 +1,105 @@
+<view class="page-container">
+  <!-- 周期选择 -->
+  <view class="period-bar">
+    <view class="period-item {{period === 'thisWeek' ? 'period-active' : ''}}" bindtap="onPeriodChange" data-period="thisWeek">本周</view>
+    <view class="period-item {{period === 'lastWeek' ? 'period-active' : ''}}" bindtap="onPeriodChange" data-period="lastWeek">上周</view>
+    <view class="period-item {{period === 'thisMonth' ? 'period-active' : ''}}" bindtap="onPeriodChange" data-period="thisMonth">本月</view>
+  </view>
+
+  <!-- 成就卡片 -->
+  <view class="achievement-card" wx:if="{{insightText}}">
+    <view class="achievement-content">
+      <view class="achievement-text">{{insightText}}</view>
+      <view class="achievement-icon">🏆</view>
+    </view>
+  </view>
+
+  <!-- 活动摘要 -->
+  <view class="section" wx:if="{{metricCards.length > 0}}">
+    <view class="section-title">活动摘要</view>
+    <view class="metrics-grid">
+      <view class="metric-item" wx:for="{{metricCards}}" wx:key="label">
+        <view class="metric-value {{item.value === 0 ? 'metric-value-zero' : ''}}">{{item.value}}</view>
+        <view class="metric-delta-wrapper">
+          <view class="metric-delta {{item.cls}}">{{item.arrow}}{{item.absDelta}}</view>
+        </view>
+        <view class="metric-label">{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 拜访方式对比 -->
+  <view class="section" wx:if="{{methodList.length > 0}}">
+    <view class="section-title">拜访方式对比</view>
+    <view class="method-list">
+      <view class="method-row" wx:for="{{methodList}}" wx:key="way">
+        <text class="method-way">{{item.way}}</text>
+        <text class="method-count">{{item.count}}次</text>
+        <view class="method-rate-bar">
+          <view class="method-rate-fill" style="width: {{item.advanceRate}}%"></view>
+        </view>
+        <text class="method-rate-text">{{item.advanceRate}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 阶段流转 -->
+  <view class="section" wx:if="{{flowList.length > 0}}">
+    <view class="section-title">阶段流转</view>
+    <view class="flow-list">
+      <view class="flow-row" wx:for="{{flowList}}" wx:key="key">
+        <text class="flow-from">{{item.from}}</text>
+        <text class="flow-arrow">→</text>
+        <text class="flow-to">{{item.to}}</text>
+        <text class="flow-count">{{item.count}}人</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 异议回顾 -->
+  <view class="section" wx:if="{{objectionSummary && objectionSummary.total > 0}}">
+    <view class="section-title">异议回顾</view>
+    <view class="objection-stats-row">
+      <view class="objection-stat-item">
+        <view class="objection-stat-label">总数</view>
+        <view class="objection-stat-value">{{objectionSummary.total}}</view>
+      </view>
+      <view class="objection-stat-item">
+        <view class="objection-stat-label">已化解</view>
+        <view class="objection-stat-value">{{objectionSummary.resolvedTotal}}</view>
+      </view>
+      <view class="objection-stat-item">
+        <view class="objection-stat-label">化解率</view>
+        <view class="objection-stat-value">{{objectionSummary.resolveRate}}%</view>
+      </view>
+    </view>
+    <view class="objection-cat-group" wx:for="{{objectionSummary.categories}}" wx:key="name" wx:for-item="cat" wx:for-index="catIdx">
+      <view class="objection-cat-header" bindtap="onToggleCatExpand" data-idx="{{catIdx}}">
+        <text class="objection-cat-name">{{cat.name}}</text>
+        <text class="objection-cat-stat">{{cat.count}}条</text>
+        <view class="objection-cat-resolved-badge" wx:if="{{cat.resolved > 0}}">{{cat.resolved}}条已化解</view>
+        <view class="objection-cat-chevron">{{cat.expanded ? '▼' : '▶'}}</view>
+      </view>
+      <view wx:if="{{cat.expanded}}" class="objection-items-wrapper">
+        <view class="objection-item-card" wx:for="{{cat.visibleItems}}" wx:key="index" wx:for-item="obj">
+          <view class="objection-item-top">
+            <text class="objection-item-content">{{obj.content}}</text>
+            <view class="objection-result-tag result-{{obj.resultClass}}">
+              <text>{{obj.result}}</text>
+            </view>
+          </view>
+          <view class="objection-item-meta">
+            <text class="objection-item-customer">{{obj.customerName}}</text>
+            <text class="objection-item-date">{{obj.date}}</text>
+          </view>
+          <text class="objection-item-solution" wx:if="{{obj.solution}}">话术：{{obj.solution}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && metricCards.length > 0 && metricCards[0].value === 0 && methodList.length === 0}}" class="empty-wrap">
+    <empty-state text="{{periodLabel}}暂无活动数据" />
+  </view>
+</view>

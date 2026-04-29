@@ -1,0 +1,355 @@
+@import '/styles/variables.wxss';
+
+.page-container {
+  padding: var(--spacing-page);
+  padding-bottom: calc(var(--height-tabbar) + 32px);
+  background: var(--color-bg-page);
+}
+
+/* 周期选择 */
+.period-bar {
+  display: flex;
+  background: var(--color-tab-bg);
+  border-radius: var(--radius-tab);
+  padding: 4rpx;
+  margin-bottom: var(--spacing-section);
+}
+
+.period-item {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  font-size: var(--font-size-body);
+  color: var(--color-tab-inactive-text);
+  border-radius: var(--radius-tab-item);
+  transition: all 0.2s;
+}
+
+.period-active {
+  background: var(--color-tab-active-bg);
+  color: var(--color-tab-active-text);
+  font-weight: var(--font-weight-medium);
+  box-shadow: var(--shadow-tab-active);
+}
+
+/* 成就卡片 */
+.achievement-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0FFFE 100%);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-card);
+  margin-bottom: var(--spacing-section);
+  border: 1px solid #E0F2F1;
+}
+
+.achievement-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.achievement-text {
+  flex: 1;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.achievement-icon {
+  font-size: 32px;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+/* 通用 section */
+.section {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-card);
+  margin-bottom: var(--spacing-card-gap);
+  box-shadow: var(--shadow-card);
+}
+
+.section-title {
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-card-gap);
+}
+
+/* 活动摘要 */
+.metrics-grid {
+  display: flex;
+  gap: var(--spacing-card-gap);
+}
+
+.metric-item {
+  flex: 1;
+  text-align: center;
+}
+
+.metric-value {
+  font-size: var(--font-size-data);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  line-height: var(--line-height-data);
+}
+
+.metric-value-zero {
+  color: var(--color-text-placeholder);
+}
+
+.metric-delta-wrapper {
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.metric-delta {
+  font-size: var(--font-size-helper);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.delta-up {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.delta-down {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.metric-label {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+}
+
+/* 拜访方式对比 */
+.method-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.method-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.method-way {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  width: 60px;
+  flex-shrink: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.method-count {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+  width: 45px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.method-rate-bar {
+  flex: 1;
+  height: 6px;
+  background: #F1F5F9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.method-rate-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.method-rate-text {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* 阶段流转 */
+.flow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-body);
+}
+
+.flow-from { color: var(--color-text-secondary); }
+.flow-arrow { color: var(--color-text-placeholder); }
+.flow-to { color: var(--color-text-primary); font-weight: var(--font-weight-medium); }
+.flow-count { color: var(--color-primary); margin-left: auto; }
+
+/* 异议回顾 */
+.objection-stats-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.objection-stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.objection-stat-label {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.objection-stat-value {
+  font-size: 24px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.objection-cat-group {
+  margin-bottom: 16px;
+  border-bottom: 1px solid #F1F5F9;
+  padding-bottom: 16px;
+}
+
+.objection-cat-group:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.objection-cat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.objection-cat-name {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.objection-cat-stat {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+}
+
+.objection-cat-resolved-badge {
+  background: #DCFCE7;
+  color: #16A34A;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: var(--font-weight-medium);
+}
+
+.objection-cat-chevron {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.objection-items-wrapper {
+  margin-top: 12px;
+}
+
+.objection-item-card {
+  background: var(--color-bg-page);
+  border-radius: var(--radius-input);
+  padding: 12px;
+  margin-bottom: 8px;
+  border-left: 3px solid var(--color-primary);
+}
+
+.objection-item-card:last-child {
+  margin-bottom: 0;
+}
+
+.objection-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.objection-item-content {
+  flex: 1;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-body);
+}
+
+.objection-result-tag {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-helper);
+  font-weight: var(--font-weight-medium);
+}
+
+.result-resolved {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.result-pending {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.result-unresolved {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.objection-item-meta {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: var(--font-size-secondary);
+}
+
+.objection-item-customer {
+  color: var(--color-text-secondary);
+}
+
+.objection-item-date {
+  color: var(--color-text-placeholder);
+}
+
+.objection-item-solution {
+  font-size: var(--font-size-secondary);
+  color: var(--color-primary);
+  line-height: var(--line-height-body);
+  display: block;
+}
+
+.empty-wrap {
+  padding-top: 60px;
+}
