@@ -12,10 +12,7 @@
     <!-- 导航栏 -->
     <view class="calendar-header">
       <view class="nav-btn" bindtap="onPrevPage">◀</view>
-      <view class="calendar-title">
-        <text wx:if="{{viewMode === 'week'}}">{{anchorDate.substring(0, 7)}}</text>
-        <text wx:if="{{viewMode === 'month'}}">{{anchorDate.substring(0, 7)}}</text>
-      </view>
+      <view class="calendar-title">{{yearMonth}}</view>
       <view class="nav-btn" bindtap="onNextPage">▶</view>
     </view>
 
@@ -23,7 +20,8 @@
     <view wx:if="{{viewMode === 'week'}}" class="week-view">
       <view class="week-row">
         <view wx:for="{{weekDays}}" wx:key="date" class="day-cell {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" bindtap="onDateTap" data-date="{{item.date}}">
-          <view class="day-number">{{item.date.substring(5)}}</view>
+          <view class="day-label">{{item.weekday}}</view>
+          <view class="day-number">{{item.day}}</view>
           <view wx:if="{{item.isMarked}}" class="day-mark"></view>
         </view>
       </view>
@@ -77,7 +75,7 @@
 
       <!-- 右栏：状态 -->
       <view class="event-status-area">
-        <view wx:if="{{item.status === 'completed'}}" class="status-icon">✅</view>
+        <view wx:if="{{item.status === 'completed'}}" class="status-badge completed">已完成</view>
         <view wx:elif="{{item.status === 'overdue'}}" class="status-badge overdue">逾期</view>
         <view wx:elif="{{item.status === 'adhoc'}}" class="status-badge adhoc">临时</view>
         <view wx:else class="status-badge pending">待执行</view>

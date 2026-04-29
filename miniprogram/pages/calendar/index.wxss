@@ -109,6 +109,12 @@
   border: 2rpx solid var(--color-primary);
 }
 
+.day-label {
+  font-size: 20rpx;
+  color: var(--color-text-secondary);
+  margin-bottom: 4rpx;
+}
+
 .day-number {
   font-size: 24rpx;
   font-weight: 500;
@@ -348,6 +354,11 @@
 .status-badge.pending {
   background-color: var(--color-primary);
   color: #FFFFFF;
+}
+
+.status-badge.completed {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .status-badge.overdue {
