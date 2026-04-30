@@ -114,11 +114,6 @@ Page({
   /** 加载客户列表 */
   _loadCustomers: function () {
     var list = customerRepo.list({ keyword: this.data.customerKeyword });
-    // 苹果等级 value → 中文标签映射
-    var GRADE_LABEL = { 'red': '红苹果', 'green': '青苹果', 'rotten': '烂苹果', 'pending': '待定' };
-    for (var i = 0; i < list.length; i++) {
-      list[i].apple_rank_label = GRADE_LABEL[list[i].apple_grade] || list[i].apple_rank || '待定';
-    }
     this.setData({ customers: list });
   },
 

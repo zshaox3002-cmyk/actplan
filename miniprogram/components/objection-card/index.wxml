@@ -30,9 +30,11 @@
         <text class="solution-preview">{{objection.solution}}</text>
       </view>
 
-      <!-- 底部：出现次数（预置用 occurrenceCount，自建用 count） -->
+      <!-- 底部：出现次数 + 化解率 -->
       <view class="card-footer">
         <text class="count-text">出现 {{objection.occurrenceCount || objection.count || 0}} 次</text>
+        <text class="resolution-text" wx:if="{{objection._resolutionRate !== null && objection._resolutionTotal > 0}}">化解率 {{objection._resolutionRate}}%</text>
+        <text class="resolution-insufficient" wx:elif="{{objection._resolutionTotal > 0}}">样本不足</text>
       </view>
     </view>
   </view>

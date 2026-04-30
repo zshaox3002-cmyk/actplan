@@ -1,12 +1,133 @@
-/* customer/index.wxss — 客户列表页 */
-page {
-  background: #F5F6FA;
-}
+/* customer/index.wxss */
+page { background: var(--color-bg-page); }
 
 .page-container {
   padding: 16rpx 24rpx 192rpx;
 }
 
-.customer-list {
-  /* 列表容器 — 卡片间距由 card 自身 margin-bottom 控制 */
+/* 优先级 Chip 筛选 */
+.chip-scroll {
+  white-space: nowrap;
+  margin: 0 -24rpx;
+  padding: 0 24rpx;
 }
+.chip-list {
+  display: inline-flex;
+  gap: 12rpx;
+  padding: 16rpx 24rpx 16rpx 0;
+}
+.chip-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 24rpx;
+  background: var(--chip-inactive-bg);
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: var(--chip-inactive-text);
+  white-space: nowrap;
+}
+.chip-item.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-weight: 500;
+}
+
+.chip-divider {
+  width: 2rpx;
+  height: 28rpx;
+  background: var(--color-border);
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.customer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+/* ---- 添加计划底部 sheet ---- */
+.plan-sheet {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+.plan-sheet-mask {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+.plan-sheet-content {
+  position: relative;
+  width: 100%;
+  padding: 20px var(--spacing-card);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  z-index: 1;
+}
+.plan-sheet-title {
+  font-size: var(--font-size-module);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: 16px;
+  display: block;
+}
+.plan-sheet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.plan-sheet-label {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+}
+.plan-sheet-value {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.plan-sheet-picker {
+  color: var(--color-primary);
+}
+.plan-sheet-placeholder {
+  color: var(--color-text-placeholder);
+}
+.plan-sheet-time-row {
+  display: flex;
+  align-items: center;
+}
+.plan-sheet-time-clear {
+  margin-left: 16rpx;
+  padding: 4rpx 16rpx;
+  font-size: var(--font-size-helper);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-badge);
+}
+.plan-sheet-time-clear:active { background: var(--color-border); }
+.plan-sheet-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+.plan-sheet-btn {
+  flex: 1;
+  height: var(--height-button);
+  border-radius: var(--radius-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plan-sheet-btn-cancel {
+  background-color: var(--color-bg-page);
+  border: 1px solid var(--color-border);
+}
+.plan-sheet-btn-cancel .plan-sheet-btn-text { color: var(--color-text-secondary); }
+.plan-sheet-btn-confirm { background-color: var(--color-primary); }
+.plan-sheet-btn-confirm .plan-sheet-btn-text {
+  color: var(--color-bg-card);
+  font-weight: var(--font-weight-semibold);
+}
+.plan-sheet-btn-text { font-size: var(--font-size-body); }

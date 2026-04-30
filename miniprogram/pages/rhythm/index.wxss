@@ -1,0 +1,182 @@
+@import '/styles/variables.wxss';
+
+.page-container {
+  padding: var(--spacing-page);
+  padding-bottom: calc(var(--height-tabbar) + 32px);
+  background: var(--color-bg-page);
+}
+
+/* 顶部摘要条 */
+.summary-bar {
+  display: flex;
+  gap: var(--spacing-card-gap);
+  margin-bottom: var(--spacing-section);
+}
+
+.summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-card);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.warming-summary {
+  background: var(--color-rhythm-warming-bg);
+}
+
+.cooling-summary {
+  background: var(--color-rhythm-cooling-bg);
+}
+
+.stuck-summary {
+  background: var(--color-rhythm-stuck-bg);
+}
+
+.summary-icon {
+  font-size: 36rpx;
+  margin-bottom: 4rpx;
+}
+
+.summary-count {
+  font-size: 48rpx;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 56rpx;
+}
+
+.summary-label {
+  font-size: var(--font-size-secondary);
+  color: var(--color-text-secondary);
+  margin-top: 2rpx;
+}
+
+.summary-delta {
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+  margin-top: 4rpx;
+}
+
+/* Tab 切换 */
+.tab-bar {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: 40rpx;
+  padding: 4rpx;
+  margin-bottom: var(--spacing-section);
+  height: 72rpx;
+  align-items: center;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  font-size: var(--font-size-body);
+  color: var(--color-tab-inactive-text);
+  border-radius: 36rpx;
+  transition: all 0.2s;
+}
+
+.tab-active {
+  background: var(--color-tab-active-bg);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  box-shadow: var(--shadow-tab-active);
+}
+
+/* 客户卡片 */
+.rhythm-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-card);
+  margin-bottom: var(--spacing-card-gap);
+  box-shadow: var(--shadow-card);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.card-left-bar {
+  width: 6rpx;
+  height: 32rpx;
+  border-radius: 3rpx;
+  flex-shrink: 0;
+}
+
+.signal-bar-warming {
+  background: var(--color-success);
+}
+
+.signal-bar-cooling {
+  background: var(--color-danger);
+}
+
+.signal-bar-stuck {
+  background: var(--color-warning);
+}
+
+.card-name {
+  font-size: 32rpx;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+/* 阶段标签复用全局样式 */
+.stage-tag {
+  display: inline-block;
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-helper);
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.stage-meet { color: var(--stage-meet-text); border-color: var(--stage-meet-text); }
+.stage-comm { color: var(--stage-comm-text); border-color: var(--stage-comm-text); }
+.stage-present { color: var(--stage-present-text); border-color: var(--stage-present-text); }
+.stage-closing { color: var(--stage-closing-text); border-color: var(--stage-closing-text); }
+.stage-deal { color: var(--stage-deal-text); border-color: var(--stage-deal-text); }
+.stage-lost { color: var(--stage-lost-text); border-color: var(--stage-lost-text); }
+
+.card-last-visit {
+  margin-left: auto;
+  color: var(--color-text-placeholder);
+  font-size: var(--font-size-helper);
+  flex-shrink: 0;
+}
+
+/* 卡片内容行 */
+.card-body {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.card-signal-text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+
+.growth-badge {
+  background: var(--color-growth-badge-bg);
+  color: var(--color-success);
+  border-radius: 8rpx;
+  padding: 4rpx 12rpx;
+  font-size: 22rpx;
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+}
+
+.empty-wrap {
+  padding-top: 60px;
+}

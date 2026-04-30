@@ -37,8 +37,8 @@
 .official-badge { flex-shrink: 0; }
 .official-badge-text {
   font-size: 18rpx;
-  color: #1A6FD4;
-  background: #DBEAFE;
+  color: var(--color-primary);
+  background: var(--stage-present-bg);
   padding: 2rpx 10rpx;
   border-radius: 8rpx;
   white-space: nowrap;
@@ -72,33 +72,33 @@
 /* 分类颜色映射 */
 /* WXSS 不支持中文类名，统一用英文 .badge-{英文名} */
 .badge-price {
-  background: #FEE2E2;
-  color: #E74C3C;
+  background: var(--priority-p0-bg);
+  color: var(--color-danger);
 }
 
 .badge-necessity {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--priority-p1-bg);
+  color: var(--priority-p1-text);
 }
 
 .badge-timing {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: var(--stage-present-bg);
+  color: var(--color-secondary);
 }
 
 .badge-compare {
-  background: #E0E7FF;
-  color: #4F46E5;
+  background: var(--stage-closing-bg);
+  color: var(--stage-closing-text);
 }
 
 .badge-trust {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--stage-deal-bg);
+  color: var(--stage-deal-text);
 }
 
 .badge-other {
-  background: #F3F4F6;
-  color: #6B7280;
+  background: var(--color-border);
+  color: var(--color-text-secondary);
 }
 
 /* ---- 话术预览 ---- */
@@ -136,6 +136,16 @@
   font-size: var(--font-size-helper);
   color: var(--color-text-placeholder);
 }
+.resolution-text {
+  font-size: var(--font-size-helper);
+  color: var(--color-success);
+  margin-left: 16rpx;
+}
+.resolution-insufficient {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  margin-left: 16rpx;
+}
 
 /* ---- 右侧删除按钮（左滑露出） ---- */
 .delete-btn {
@@ -144,7 +154,7 @@
   top: 0;
   bottom: 0;
   width: 140rpx;
-  background: #E74C3C;
+  background: var(--color-danger);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,5 +163,5 @@
 .delete-btn-text {
   font-size: 28rpx;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-bg-card);
 }

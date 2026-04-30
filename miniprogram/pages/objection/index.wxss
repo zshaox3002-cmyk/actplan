@@ -51,7 +51,7 @@
   width: 100%;
 }
 
-/* 右侧渐变遮罩暗示可滑动 (假设页面背景色为 #F5F7FA) */
+/* 右侧渐变遮罩暗示可滑动 */
 .chip-scroll-wrap::after {
   content: '';
   position: absolute;
@@ -59,8 +59,8 @@
   right: 0;
   width: 60rpx;
   height: 100%;
-  background: linear-gradient(to right, rgba(245,247,250,0), rgba(245,247,250,1));
-  pointer-events: none; /* 穿透点击，不影响滑动 */
+  background: linear-gradient(to right, rgba(244,247,251,0), rgba(244,247,251,1));
+  pointer-events: none;
 }
 
 /* 隐藏横向滚动条 */
@@ -86,25 +86,25 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 24rpx;
-  background: #FFFFFF;
+  background: var(--color-bg-card);
   border-radius: 32rpx;
   font-size: 28rpx;
-  color: #4B5563;
+  color: var(--color-text-secondary);
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
   transition: all 0.2s;
 }
 .chip-num {
   font-size: 24rpx;
   font-weight: 600;
-  color: #9CA3AF;
+  color: var(--color-text-placeholder);
 }
 /* 标签选中态 */
 .chip-item.active {
-  background: #1A6FD4;
-  color: #FFFFFF;
+  background: var(--color-primary);
+  color: var(--color-bg-card);
 }
 .chip-item.active .chip-num {
-  color: #BFDBFE;
+  color: var(--color-primary-light);
 }
 
 /* 列表头部 */
@@ -117,19 +117,19 @@
 .list-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-primary);
 }
 .sort-btn {
   display: flex;
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 20rpx;
-  background: #F3F4F6;
+  background: var(--color-bg-page);
   border-radius: 20rpx;
   font-size: 24rpx;
-  color: #4B5563;
+  color: var(--color-text-secondary);
 }
 .sort-icon {
   font-size: 24rpx;
-  color: #9CA3AF;
+  color: var(--color-text-placeholder);
 }

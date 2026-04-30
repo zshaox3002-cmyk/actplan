@@ -1,7 +1,7 @@
 /* components/chart-pie/index.wxss */
 
 .chart-container {
-  background: #FFFFFF;
+  background: var(--color-bg-card);
   border-radius: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
   padding: 24rpx;

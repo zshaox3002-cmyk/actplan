@@ -1,16 +1,11 @@
 /**
  * record-new/index.js — 新建拜访记录
  *
- * 入口：URL 带 customer_id + customer_name + plan_id + plan_date + plan_type
- * 客户锁定，单页平铺式表单
+ * 两种入口：
+ * - planned：从计划页「执行」进入，携带 customer_id/plan_id/plan_date/plan_time/visit_way
+ * - adhoc：从客户列表/详情「+记录」进入，仅携带 customer_id
  *
- * 字段：
- * - 客户（只读）
- * - 关联计划（只读，仅计划触发时显示）
- * - 沟通摘要（必填，textarea）
- * - 跟进阶段（必填，inline-picker，保存后同步更新客户）
- * - 下次跟进日期（选填，填写后自动创建拜访计划）
- * - 异议记录（选填，可多条）
+ * 字段顺序：沟通结果 → 摘要 → 涉及异议 → 跟进阶段 → 下次跟进
  */
 
 var recordRepo = require('../../utils/repository/record.repo');
@@ -19,64 +14,148 @@ var planRepo = require('../../utils/repository/plan.repo');
 var objectionRepo = require('../../utils/repository/objection.repo');
 var storage = require('../../utils/storage');
 var toast = require('../../utils/toast');
+var constants = require('../../utils/constants');
+var dateUtil = require('../../utils/date');
+
+var STAGE_OPTIONS = ['初步认识', '需求沟通', '方案讲解', '待促成', '已成交', '已流失'];
+
+var STAGE_CLASS_MAP = {
+  '初步认识': 'meet',
+  '需求沟通': 'comm',
+  '方案讲解': 'present',
+  '待促成': 'closing',
+  '已成交': 'deal',
+  '已流失': 'lost'
+};
+
+var COMM_RESULTS = [
+  { key: 'smooth', label: '进展顺利', emoji: '😊' },
+  { key: 'normal', label: '一般', emoji: '😐' },
+  { key: 'blocked', label: '受阻', emoji: '😟' },
+  { key: 'deal', label: '已成交', emoji: '✅' }
+];
+
+var NEXT_FOLLOW_SHORTCUTS = [
+  { key: 'none', label: '不安排' },
+  { key: 'tomorrow', label: '明天' },
+  { key: '3days', label: '3天后' },
+  { key: 'week', label: '一周后' },
+  { key: 'custom', label: '自定义' }
+];
+
+var OBJECTION_RESULTS = ['已化解', '仍在考虑', '未化解'];
 
 Page({
   data: {
+    // 入口模式
+    recordType: 'planned',   // 'planned' | 'adhoc'
+
+    // 客户信息（只读）
     customerId: '',
     customerName: '',
+
+    // 计划信息（planned 模式显示）
     planId: '',
-    planInfo: '',        // 关联计划展示文字："2026-04-25 面对面"
-    planTime: '',        // 由 plan 传入的 plan_time
+    planDate: '',
+    planTime: '',
+    visitWay: '面对面',
+    planGoal: '',
 
-    summary: '',         // 沟通摘要
+    // 沟通结果
+    commResults: COMM_RESULTS,
+    commResultKey: '',
 
-    // 跟进阶段（复用 inline-picker，value 为索引）
-    stageOptions: ['需求沟通', '方案呈现', '异议处理', '促成签单', '已成交', '已拒绝'],
+    // 沟通摘要
+    summary: '',
+
+    // 异议（从 repo 加载的客户已有异议）
+    objections: [],           // { id, content, category, resolved: false }
+
+    // 跟进阶段
+    stageOptions: STAGE_OPTIONS,
+    stageClassMap: STAGE_CLASS_MAP,
     stageIndex: 0,
+    currentStage: '',         // 客户当前阶段
 
-    nextDate: '',        // 下次跟进日期（选填）
-    nextDateDisplay: '请选择日期',
+    // 下次跟进
+    nextPlanCreated: false,
+    nextPlanText: '',
 
-    objections: [],      // 已录入异议列表 [{ content, category }]
+    // 预约弹窗
+    showPlanSheet: false,
+    planSheetDate: '',
+    planSheetTime: '',
+    planSheetVisitWay: '面对面',
+    planSheetVisitWayOptions: [],
+
+    // 选择异议 sheet
+    showObjSheet: false,
+    objSheetList: [],
   },
 
-  // 页面实例属性（不经过 setData，不受序列化影响）
   _justCreatedIds: null,
 
   onLoad: function (options) {
-    // 初始化实例属性
     this._justCreatedIds = [];
 
     var customerId = options.customer_id ? parseInt(options.customer_id) : '';
-    var customerName = options.customer_name || '';
+    var recordType = options.record_type || (options.plan_id ? 'planned' : 'adhoc');
     var planId = options.plan_id ? parseInt(options.plan_id) : '';
     var planDate = options.plan_date || '';
     var planTime = options.plan_time || '';
-    var planType = options.plan_type || '';
-    var planInfo = planDate && planType ? planDate + ' ' + planType : '';
+    var visitWay = options.visit_way
+      ? (function(v) { try { return decodeURIComponent(v); } catch(e) { return v; } })(options.visit_way)
+      : '面对面';
+    var planGoal = options.plan_goal || '';
+    var customerName = options.customer_name
+      ? (function(v) { try { return decodeURIComponent(v); } catch(e) { return v; } })(options.customer_name)
+      : '';
 
-    // 读取客户当前跟进阶段，回填 stageIndex
     var stageIndex = 0;
+    var currentStage = '';
     if (customerId) {
       var customer = customerRepo.get(customerId);
-      if (customer && customer.stage) {
-        var idx = this.data.stageOptions.indexOf(customer.stage);
+      if (customer) {
+        if (!customerName) customerName = customer.name || '';
+        currentStage = customer.stage || '';
+        var idx = STAGE_OPTIONS.indexOf(currentStage);
         if (idx >= 0) stageIndex = idx;
-      }
-      // 如果 customerName 未传，从客户数据取
-      if (!customerName && customer) {
-        customerName = customer.name || '';
       }
     }
 
+    // 加载客户已有异议
+    var objections = [];
+    if (customerId) {
+      var allObjections = storage.getTable('objection') || [];
+      var customerObjs = allObjections.filter(function(o) {
+        return o.customer_id === customerId;
+      });
+      objections = customerObjs.filter(function(o) {
+        var notes = objectionRepo.listNotes(o.id);
+        return !(notes.length > 0 && notes[0].result === '已化解');
+      }).map(function(o) {
+        return { id: o.id, content: o.content || '', category: o.category || '', resolved: false };
+      });
+    }
+
     this.setData({
+      recordType: recordType,
       customerId: customerId,
       customerName: customerName,
       planId: planId,
-      planInfo: planInfo,
+      planDate: planDate,
       planTime: planTime,
+      visitWay: visitWay,
+      planGoal: planGoal,
       stageIndex: stageIndex,
+      currentStage: currentStage,
+      objections: objections
     });
+  },
+
+  /** 选择沟通结果 */
+  onCommResultTap: function (e) {
+    this.setData({ commResultKey: e.currentTarget.dataset.key });
   },
 
   /** 沟通摘要输入 */
@@ -84,64 +163,151 @@ Page({
     this.setData({ summary: e.detail.value });
   },
 
-  /** 跟进阶段变化（inline-picker 返回选中索引） */
-  onStageChange: function (e) {
-    this.setData({ stageIndex: e.detail.value });
+  /** 切换异议已化解状态 */
+  onObjResolvedToggle: function(e) {
+    var index = parseInt(e.currentTarget.dataset.index);
+    var objections = this.data.objections.slice();
+    objections[index] = Object.assign({}, objections[index], { resolved: !objections[index].resolved });
+    this.setData({ objections: objections });
   },
 
-  /** 下次跟进日期变化 */
-  onNextDateChange: function (e) {
-    var date = e.detail.value;
-    this.setData({
-      nextDate: date,
-      nextDateDisplay: date,
+  /** 打开异议选择 sheet */
+  onAddObjection: function() {
+    var existingIds = this.data.objections.map(function(o) { return o.id; });
+    var all = objectionRepo.list({ sortBy: 'count' });
+    var list = all.map(function(o) {
+      return {
+        id: o.id,
+        content: o.content || o.title || '',
+        category: o.category || '',
+        count: o.occurrenceCount || o.count || 0,
+        selected: existingIds.indexOf(o.id) >= 0
+      };
     });
+    this.setData({ showObjSheet: true, objSheetList: list });
   },
 
-  /** 选择异议 — 跳转异议选择页（预置 + 新建） */
-  onAddObjection: function () {
+  onObjSheetItemTap: function(e) {
+    var idx = parseInt(e.currentTarget.dataset.index);
+    var list = this.data.objSheetList.slice();
+    list[idx] = Object.assign({}, list[idx], { selected: !list[idx].selected });
+    this.setData({ objSheetList: list });
+  },
+
+  onObjSheetConfirm: function() {
+    var existingIds = this.data.objections.map(function(o) { return o.id; });
+    var toAdd = this.data.objSheetList.filter(function(o) {
+      return o.selected && existingIds.indexOf(o.id) < 0;
+    });
+    var objections = this.data.objections.slice();
+    toAdd.forEach(function(o) {
+      objections.push({ id: o.id, content: o.content, category: o.category, resolved: false });
+    });
+    this.setData({ showObjSheet: false, objections: objections });
+  },
+
+  onObjSheetCancel: function() {
+    this.setData({ showObjSheet: false });
+  },
+
+  onObjSheetCreateNew: function() {
     var that = this;
-    // 将当前已选 ids 编码传过去（编辑场景）
-    var selectedIds = that.data.objections.map(function (o) { return o.id; });
-    var selectedParam = encodeURIComponent(JSON.stringify(selectedIds));
-
+    this.setData({ showObjSheet: false });
     wx.navigateTo({
-      url: '/pages/objection/select/index?selected=' + selectedParam,
+      url: '/pages/objection-new/index?customer_id=' + this.data.customerId,
       events: {
-        onSelected: function (result) {
-          // 兼容两种格式：{ items, justCreatedIds } 或 纯数组
-          var selected = result.items || result;
-          var justCreatedIds = result.justCreatedIds || [];
-
-          // 诊断日志
-          console.warn('[RecordNew] onSelected: justCreatedIds=' + JSON.stringify(justCreatedIds));
-          console.warn('[RecordNew] onSelected: selected items=' + JSON.stringify(selected.map(function(o) { return o.id; })));
-
-          // 用实例属性存 justCreatedIds（不走 setData，不受序列化影响）
-          that._justCreatedIds = justCreatedIds;
-
+        onObjectionCreated: function(data) {
           var objections = that.data.objections.slice();
-          // 合并选中结果
-          for (var i = 0; i < selected.length; i++) {
-            // 去重：同一条不重复添加
-            var exists = objections.some(function (o) { return o.id === selected[i].id; });
-            if (!exists) {
-              objections.push(selected[i]);
-            }
-          }
+          objections.push({ id: data.id, content: data.content || '', category: data.category || '', resolved: false });
           that.setData({ objections: objections });
         }
       }
     });
   },
 
-  /** 删除异议 */
-  onDeleteObjection: function (e) {
-    var index = e.currentTarget.dataset.index;
-    var objections = this.data.objections.filter(function (_, i) {
-      return i !== index;
+  /** 跟进阶段推进按钮 */
+  onStageTap: function (e) {
+    var idx = parseInt(e.currentTarget.dataset.idx);
+    this.setData({ stageIndex: idx });
+  },
+
+  /** 页面显示时刷新下次计划 */
+  onShow: function() {
+    var customerId = this.data.customerId;
+    if (!customerId) return;
+    var allPlans = planRepo.listAll ? planRepo.listAll() : [];
+    var futurePlans = allPlans.filter(function(p) {
+      return p.customer_id === customerId && p.status === '待执行';
     });
-    this.setData({ objections: objections });
+    futurePlans.sort(function(a, b) { return a.plan_date > b.plan_date ? 1 : -1; });
+    var next = futurePlans[0];
+    if (next) {
+      var way = next.visit_way || '面对面';
+      try { way = decodeURIComponent(way); } catch(e) {}
+      this.setData({ nextPlanCreated: true, nextPlanText: next.plan_date + ' · ' + way });
+    }
+  },
+
+  /** 跳转计划选择页 */
+  onGoToPlanSelect: function() {
+    wx.navigateTo({
+      url: '/pages/plan-select/index?customer_id=' + this.data.customerId +
+           '&customer_name=' + encodeURIComponent(this.data.customerName)
+    });
+  },
+
+  /** 打开预约弹窗 */
+  onOpenPlanSheet: function() {
+    this.setData({
+      showPlanSheet: true,
+      planSheetDate: dateUtil.today(),
+      planSheetTime: '',
+      planSheetVisitWay: '面对面',
+      planSheetVisitWayOptions: constants.VISIT_WAY_OPTIONS
+    });
+  },
+
+  onPlanSheetDateChange: function(e) {
+    this.setData({ planSheetDate: e.detail.value });
+  },
+
+  onPlanSheetTimeChange: function(e) {
+    this.setData({ planSheetTime: e.detail.value });
+  },
+
+  onPlanSheetVisitWayChange: function(e) {
+    this.setData({ planSheetVisitWay: constants.VISIT_WAY_OPTIONS[e.detail.value] });
+  },
+
+  onPlanSheetClearTime: function() {
+    this.setData({ planSheetTime: '' });
+  },
+
+  onPlanSheetCancel: function() {
+    this.setData({ showPlanSheet: false });
+  },
+
+  onPlanSheetConfirm: function() {
+    var d = this.data;
+    if (!d.planSheetDate) {
+      wx.showToast({ title: '请选择日期', icon: 'none' });
+      return;
+    }
+    var result = planRepo.create({
+      customer_id: d.customerId,
+      plan_date: d.planSheetDate,
+      plan_time: d.planSheetTime || null,
+      visit_way: d.planSheetVisitWay,
+      goal: '',
+      status: '待执行'
+    });
+    if (result && result.conflict) {
+      wx.showToast({ title: '该客户当日已有计划', icon: 'none' });
+      return;
+    }
+    var text = d.planSheetDate + ' · ' + d.planSheetVisitWay;
+    if (d.planSheetTime) text += ' · ' + d.planSheetTime;
+    this.setData({ showPlanSheet: false, nextPlanCreated: true, nextPlanText: text });
   },
 
   /** 保存记录 */
@@ -149,96 +315,49 @@ Page({
     var d = this.data;
     var summary = (d.summary || '').trim();
 
-    // 必填校验
     if (!summary) {
       wx.showToast({ title: '请填写沟通摘要', icon: 'none' });
       return;
     }
 
-    var selectedStage = d.stageOptions[d.stageIndex];
+    var selectedStage = STAGE_OPTIONS[d.stageIndex];
 
     try {
-      // 捕获页面实例引用，供事务回调内使用
-      var justCreatedIds = this._justCreatedIds;
-
-      // 【诊断日志】验证 justCreatedIds 传递链路
-      console.warn('[RecordNew] onSave justCreatedIds:', JSON.stringify(justCreatedIds));
-      for (var di = 0; di < d.objections.length; di++) {
-        var dObj = d.objections[di];
-        console.warn('[RecordNew] objection #' + di, 'id=' + dObj.id, 'type=' + typeof dObj.id,
-          'inJustCreated=' + (justCreatedIds && justCreatedIds.indexOf(dObj.id) >= 0));
-      }
-
-      // 外层事务：保证多步操作原子性，任一失败全部回滚
       storage.transaction(function () {
-        // 1. 先处理异议：新建的创建入库收集 id，已有的追加 note 自动 count+1
+        // 1. 处理异议
         var objectionIds = [];
-        if (d.objections.length > 0) {
-          for (var i = 0; i < d.objections.length; i++) {
-            var obj = d.objections[i];
-            if (!obj.id) {
-              // 新建异议（理论上很少走到，因为 objection-new 已 create）
-              var created = objectionRepo.create({
-                customer_id: d.customerId,
-                content: obj.content || '',
-                category: obj.category || '其他',
-                solution: obj.solution || ''
-              });
-              if (created && created.id != null) {
-                objectionIds.push(created.id);
-              }
-            } else if (justCreatedIds && justCreatedIds.indexOf(obj.id) >= 0) {
-              // 本次流程刚从 objection-new 新建并入库的异议：
-              // create 时已设 customer_id 和 count=1，无需再计数、无需再写 note
-              console.warn('[RecordNew] 跳过 appendNote (justCreated): id=' + obj.id);
-              objectionIds.push(obj.id);
-            } else {
-              // 真正的"复用"：用户从异议选择页勾选了一条已存在的历史异议，
-              // 此时应写一条追加备注（内部自动 count+1 或写 objection_links）
-              console.warn('[RecordNew] 执行 appendNote (existing): id=' + obj.id);
-              var autoNote = '在本次拜访中再次遇到该异议'
-                + (summary ? '；沟通摘要：' + summary.slice(0, 40)
-                   + (summary.length > 40 ? '…' : '') : '');
-              objectionRepo.appendNote(obj.id, d.customerId, autoNote);
-              objectionIds.push(obj.id);
-            }
-          }
+        for (var i = 0; i < d.objections.length; i++) {
+          var obj = d.objections[i];
+          var result = obj.resolved ? '已化解' : '仍在考虑';
+          objectionRepo.appendNote(obj.id, d.customerId, '在本次拜访中遇到该异议', {
+            result: result
+          });
+          objectionIds.push(obj.id);
         }
 
-        // 2. 保存拜访记录（带上 objection_ids）
+        // 2. 保存拜访记录
         recordRepo.create({
           customer_id: d.customerId,
           plan_id: d.planId || null,
           visit_date: new Date().toISOString().slice(0, 10),
           visit_time: d.planTime || null,
-          visit_way: '面对面',
+          visit_way: d.visitWay || '面对面',
           summary: summary,
           stage: selectedStage,
+          comm_result: d.commResultKey,
+          record_type: d.recordType,
           is_deal: selectedStage === '已成交' ? '签单成交' : '暂未成交',
-          next_follow_date: d.nextDate || null,
           has_objection: objectionIds.length > 0 ? 1 : 0,
           objection_ids: objectionIds,
           updated_fields: ['stage']
         });
 
-        // 3. 同步更新客户跟进阶段（recordRepo.create 内部只处理成交状态，这里补充阶段同步）
+        // 3. 同步客户阶段
         customerRepo.update(d.customerId, { stage: selectedStage });
-
-        // 4. 若填写了下次跟进日期，自动创建拜访计划
-        if (d.nextDate) {
-          planRepo.create({
-            customer_id: d.customerId,
-            plan_date: d.nextDate,
-            visit_way: '面对面',
-            note: '由拜访记录自动创建'
-          });
-        }
       });
 
       toast.success('记录已保存');
-      setTimeout(function () {
-        wx.navigateBack();
-      }, 800);
+      setTimeout(function () { wx.navigateBack(); }, 800);
     } catch (e) {
       toast.fail('保存失败：' + (e.message || ''));
     }

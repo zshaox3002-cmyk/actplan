@@ -70,6 +70,12 @@ page {
   --color-tab-active-text: #0EA5A4;
   --color-tab-inactive-text: #94A3B8;
 
+  /* ---- 客户节奏状态色 ---- */
+  --color-rhythm-warming-bg: #FFF7ED;
+  --color-rhythm-cooling-bg: #EFF6FF;
+  --color-rhythm-stuck-bg: #F8FAFC;
+  --color-growth-badge-bg: #DCFCE7;
+
   /* ---- 字号 ---- */
   --font-size-title: 18px;
   --font-size-page-title: 18px;
@@ -133,4 +139,22 @@ page {
   --size-badge-dot: 4px;
   --size-metric-dot: 20rpx;
   --min-touch: 44px;
+
+  /* ---- Chip 筛选栏 ---- */
+  --chip-inactive-bg: #F1F5F9;
+  --chip-inactive-text: var(--color-text-secondary);
+
+  /* ---- 卡片 meta 信息 ---- */
+  --color-text-meta-label: var(--color-text-placeholder);
+  --color-text-meta-value: #475569;
+
+  /* ---- 次级操作按钮 ---- */
+  --btn-secondary-bg: #F1F5F9;
+  --btn-secondary-text: #475569;
+
+  /* ---- FAB 品牌色弥散阴影 ---- */
+  --shadow-fab-brand: 0 4px 12px rgba(14, 165, 164, 0.3);
+
+  /* ---- 客户属性标签圆角 ---- */
+  --radius-custom-tag: 4px;
 }

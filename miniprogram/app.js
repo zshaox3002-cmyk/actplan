@@ -17,7 +17,6 @@ App({
     storageReady: false,
     currentPeriod: 'week',
     filters: {
-      appleRank: '全部',
       stage: '全部'
     }
   },

@@ -1,14 +1,14 @@
 /* pages/objection/select/index.wxss */
 
-page { background: #F5F7FA; }
+page { background: var(--color-bg-page); }
 
 .page-wrap { padding-bottom: 160rpx; }
 
 /* 搜索栏 */
 .search-bar { padding: 20rpx 24rpx 0; }
 .search-input {
-  background: #fff;
-  border-radius: 12rpx;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-input);
   padding: 0 24rpx;
   height: 72rpx;
   font-size: 28rpx;
@@ -22,12 +22,12 @@ page { background: #F5F7FA; }
 .chip-item {
   display: inline-flex;
   padding: 10rpx 24rpx;
-  background: #fff;
+  background: var(--color-bg-card);
   border-radius: 32rpx;
   font-size: 26rpx;
-  color: #4B5563;
+  color: var(--color-text-secondary);
 }
-.chip-item.active { background: #1A6FD4; color: #fff; }
+.chip-item.active { background: var(--color-primary); color: var(--color-bg-card); }
 
 /* 异议列表 */
 .objection-list { padding: 0 24rpx; display: flex; flex-direction: column; gap: 12rpx; }
@@ -36,13 +36,13 @@ page { background: #F5F7FA; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
-  border-radius: 16rpx;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
   padding: 24rpx;
   transition: all 0.15s ease;
 }
 .obj-select-item.selected {
-  border: 2rpx solid #1A6FD4;
+  border: 2rpx solid var(--color-primary);
 }
 
 .obj-select-left {
@@ -54,7 +54,7 @@ page { background: #F5F7FA; }
 }
 .obj-title {
   font-size: 28rpx;
-  color: #111827;
+  color: var(--color-text-primary);
   flex: 1;
   line-height: 1.5;
   overflow: hidden;
@@ -66,8 +66,8 @@ page { background: #F5F7FA; }
 .obj-official { flex-shrink: 0; }
 .official-text {
   font-size: 18rpx;
-  color: #1A6FD4;
-  background: #DBEAFE;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
   padding: 2rpx 10rpx;
   border-radius: 8rpx;
   white-space: nowrap;
@@ -78,7 +78,7 @@ page { background: #F5F7FA; }
   width: 40rpx;
   height: 40rpx;
   border-radius: 50%;
-  border: 2rpx solid #D1D5DB;
+  border: 2rpx solid var(--color-disabled);
   flex-shrink: 0;
   margin-left: 16rpx;
   display: flex;
@@ -86,12 +86,12 @@ page { background: #F5F7FA; }
   justify-content: center;
 }
 .obj-check.checked {
-  background: #1A6FD4;
-  border-color: #1A6FD4;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 .check-icon {
   font-size: 22rpx;
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   line-height: 1;
 }
 
@@ -103,12 +103,12 @@ page { background: #F5F7FA; }
   flex-shrink: 0;
   white-space: nowrap;
 }
-.tag-red    { background: #FEE2E2; color: #DC2626; }
-.tag-blue   { background: #DBEAFE; color: #1D4ED8; }
-.tag-yellow { background: #FEF3C7; color: #D97706; }
-.tag-purple { background: #EDE9FE; color: #7C3AED; }
-.tag-green  { background: #D1FAE5; color: #059669; }
-.tag-gray   { background: #F3F4F6; color: #6B7280; }
+.tag-red    { background: var(--priority-p0-bg); color: var(--priority-p0-text); }
+.tag-blue   { background: var(--stage-present-bg); color: var(--stage-present-text); }
+.tag-yellow { background: var(--priority-p1-bg); color: var(--priority-p1-text); }
+.tag-purple { background: var(--color-secondary-light); color: var(--color-secondary); }
+.tag-green  { background: var(--stage-deal-bg); color: var(--stage-deal-text); }
+.tag-gray   { background: var(--stage-meet-bg); color: var(--stage-meet-text); }
 
 /* 空状态 */
 .empty-hint {
@@ -117,7 +117,7 @@ page { background: #F5F7FA; }
 }
 .empty-hint text {
   font-size: 26rpx;
-  color: #9CA3AF;
+  color: var(--color-text-placeholder);
 }
 
 /* 新增入口 */
@@ -127,9 +127,9 @@ page { background: #F5F7FA; }
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1rpx dashed #C7D7F5;
-  border-radius: 16rpx;
-  color: #1A6FD4;
+  border: 1rpx dashed var(--color-primary-light);
+  border-radius: var(--radius-card);
+  color: var(--color-primary);
   font-size: 28rpx;
 }
 .add-new-btn text { letter-spacing: 1rpx; }
@@ -141,21 +141,21 @@ page { background: #F5F7FA; }
   left: 0;
   right: 0;
   padding: 16rpx 24rpx 48rpx;
-  background: #fff;
-  border-top: 1rpx solid #F3F4F6;
+  background: var(--color-bg-card);
+  border-top: 1rpx solid var(--color-border);
 }
 .confirm-btn {
   height: 96rpx;
-  background: #1A6FD4;
-  border-radius: 16rpx;
+  background: var(--color-primary);
+  border-radius: var(--radius-button);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-bg-card);
 }
 .confirm-btn.disabled {
-  background: #E5E7EB;
-  color: #9CA3AF;
+  background: var(--color-border);
+  color: var(--color-text-placeholder);
 }

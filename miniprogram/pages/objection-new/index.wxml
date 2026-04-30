@@ -28,7 +28,7 @@
         bindtap="onCustomerSelect"
       >
         <text class="item-name">{{item.name}}</text>
-        <text class="item-rank">{{item.apple_rank_label || item.apple_rank || '待定'}}</text>
+        <text class="item-rank">{{item.stage || ''}}</text>
       </view>
 
       <view class="empty-tip" wx:if="{{customers.length === 0}}">

@@ -43,7 +43,9 @@
 
       <view class="confirm-info">
         <text class="confirm-label">日期</text>
-        <text class="confirm-value">{{planDate}}</text>
+        <picker mode="date" value="{{planDate}}" bindchange="onPlanDateChange">
+          <text class="confirm-value picker-value">{{planDate}} ▾</text>
+        </picker>
       </view>
 
       <view class="confirm-info">

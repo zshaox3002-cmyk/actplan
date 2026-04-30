@@ -10,11 +10,26 @@ var customerRepo = require('../../utils/repository/customer.repo');
 var dateUtil = require('../../utils/date');
 var constants = require('../../utils/constants');
 
+/**
+ * 安全解码 URL 编码的字符串，解码失败时返回原值
+ * @param {string} str
+ * @returns {string}
+ */
+function safeDecodeURIComponent(str) {
+  if (!str) return str;
+  try {
+    return decodeURIComponent(str);
+  } catch (e) {
+    return str;
+  }
+}
+
 Page({
   data: {
     viewMode: 'week',           // 'week' | 'month'
     anchorDate: '',             // 当前锚点日期
     selectedDate: '',           // 选中的日期
+    yearMonth: '',              // 年月显示（YYYY-MM）
     weekDays: [],               // 周视图数据
     monthDays: [],              // 月视图数据
     events: [],                 // 选中日期的事件列表
@@ -53,14 +68,10 @@ Page({
     var self = this;
     var today = dateUtil.today();
 
-    console.log('[calendar] _loadData called');
-
     // 全量加载计划和记录
     var allPlans = planRepo.listAll();
     var allRecords = recordRepo.list();
     var allCustomers = customerRepo.list();  // 不传参数获取全量客户
-
-    console.log('[calendar] allPlans:', allPlans.length, 'allRecords:', allRecords.length, 'allCustomers:', allCustomers.length);
 
     // 构建客户 ID → 客户对象的映射
     var customerMap = {};
@@ -76,8 +87,6 @@ Page({
     allRecords.forEach(function (r) {
       markedDates.add(r.visit_date);
     });
-
-    console.log('[calendar] markedDates:', Array.from(markedDates));
 
     // 缓存到页面实例（不放 data，避免序列化）
     this._allPlans = allPlans;
@@ -100,21 +109,16 @@ Page({
   _refreshCalendarView: function () {
     var anchorDate = this.data.anchorDate;
     var viewMode = this.data.viewMode;
-
-    console.log('[calendar] _refreshCalendarView - anchorDate:', anchorDate, 'viewMode:', viewMode);
+    var yearMonth = anchorDate.substring(0, 7);  // 提取 YYYY-MM
 
     if (viewMode === 'week') {
       var weekDays = dateUtil.getWeekDays(anchorDate);
-      console.log('[calendar] weekDays from dateUtil:', weekDays);
       weekDays = this._buildDaysWithMarks(weekDays);
-      console.log('[calendar] weekDays after buildDaysWithMarks:', weekDays);
-      this.setData({ weekDays: weekDays }, function () {
-        console.log('[calendar] setData weekDays complete, data.weekDays:', this.data.weekDays);
-      });
+      this.setData({ weekDays: weekDays, yearMonth: yearMonth });
     } else {
       var monthDays = dateUtil.getMonthDays(anchorDate);
       monthDays = this._buildDaysWithMarks(monthDays);
-      this.setData({ monthDays: monthDays });
+      this.setData({ monthDays: monthDays, yearMonth: yearMonth });
     }
   },
 
@@ -129,8 +133,12 @@ Page({
     var today = dateUtil.today();
 
     return days.map(function (day) {
+      var dateStr = day.date || '';
+      var dayNum = dateStr.substring(5);  // 提取 MM-DD
+
       return {
         date: day.date,
+        dayNum: dayNum,  // 预计算的日期数字
         day: day.day,
         weekday: day.weekday,
         isCurrentMonth: day.isCurrentMonth !== false,
@@ -182,7 +190,7 @@ Page({
         customerName: customer.name,
         stage: customer.stage,
         stageClass: constants.STAGE_CLASS_MAP[customer.stage] || '',
-        visitWay: plan.visit_way || '',
+        visitWay: safeDecodeURIComponent(plan.visit_way) || '',
         status: status,
         statusText: status === 'completed' ? '已完成' : (status === 'overdue' ? '逾期' : '待执行'),
         statusColor: status === 'completed' ? '#10B981' : (status === 'overdue' ? '#EF4444' : '#2563EB')
@@ -205,7 +213,7 @@ Page({
         customerName: customer.name,
         stage: customer.stage,
         stageClass: constants.STAGE_CLASS_MAP[customer.stage] || '',
-        visitWay: record.visit_way || '',
+        visitWay: safeDecodeURIComponent(record.visit_way) || '',
         status: status,
         statusText: status === 'adhoc' ? '临时' : '已完成',
         statusColor: status === 'adhoc' ? '#64748B' : '#10B981'

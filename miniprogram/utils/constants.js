@@ -3,27 +3,26 @@
  * 所有业务枚举集中管理，页面和组件引用此文件，禁止写死字符串
  */
 
-/** 苹果等级 */
-var APPLE_RANK = {
-  RED: '红苹果',
-  GREEN: '青苹果',
-  GRAY: '烂苹果',
-  PENDING: '待定'
-};
-
-/** 苹果等级列表（用于筛选下拉） */
-var APPLE_RANK_OPTIONS = ['全部', '红苹果', '青苹果', '烂苹果', '待定'];
-
 /** 跟进阶段 */
 var STAGE = {
-  TOUCH: '初步接触',
+  MEET: '初步认识',
   COMMUNICATING: '需求沟通',
+  PRESENTING: '方案讲解',
+  CLOSING: '待促成',
   DEAL: '已成交',
-  REJECTED: '已拒绝'
+  LOST: '已流失'
 };
 
 /** 跟进阶段列表（用于筛选下拉） */
-var STAGE_OPTIONS = ['全部', '初步接触', '需求沟通', '已成交', '已拒绝'];
+var STAGE_OPTIONS = ['全部', '初步认识', '需求沟通', '方案讲解', '待促成', '已成交', '已流失'];
+
+/** 跟进优先级标签 */
+var PRIORITY_LABELS = {
+  P0: '今日必跟',
+  P1: '本周重点',
+  P2: '保持节奏',
+  P3: '暂缓跟进'
+};
 
 /** 三维度选项 */
 var DIMENSION_OPTIONS = ['是', '否', '不确定'];
@@ -76,29 +75,31 @@ var DASHBOARD_PERIOD = {
 var DB_FILE_NAME = 'aia_agent_db.sqlite';
 
 /** 数据库版本号（用于迁移检查） */
-var DB_VERSION = 1;
-
-/** 苹果分布图表颜色 */
-var APPLE_CHART_COLORS = {
-  RED: '#E74C3C',
-  GREEN: '#27AE60',
-  GRAY: '#6B7280',
-  PENDING: '#F39C12'
-};
+var DB_VERSION = 2;
 
 /** 指标卡圆点颜色 */
 var METRIC_DOT_COLORS = {
-  TOTAL: '#1A6FD4',
+  TOTAL: '#0EA5A4',
   NEW: '#27AE60',
   VISIT: '#F39C12',
   APPOINTMENT: '#8B5CF6'
 };
 
+/** 阶段 → CSS class 映射 */
+var STAGE_CLASS_MAP = {
+  '初步认识': 'meet',
+  '需求沟通': 'comm',
+  '方案讲解': 'present',
+  '待促成':   'closing',
+  '已成交':   'deal',
+  '已流失':   'lost'
+};
+
 module.exports = {
-  APPLE_RANK: APPLE_RANK,
-  APPLE_RANK_OPTIONS: APPLE_RANK_OPTIONS,
   STAGE: STAGE,
   STAGE_OPTIONS: STAGE_OPTIONS,
+  STAGE_CLASS_MAP: STAGE_CLASS_MAP,
+  PRIORITY_LABELS: PRIORITY_LABELS,
   DIMENSION_OPTIONS: DIMENSION_OPTIONS,
   VISIT_WAY: VISIT_WAY,
   VISIT_WAY_OPTIONS: VISIT_WAY_OPTIONS,
@@ -110,6 +111,5 @@ module.exports = {
   DASHBOARD_PERIOD: DASHBOARD_PERIOD,
   DB_FILE_NAME: DB_FILE_NAME,
   DB_VERSION: DB_VERSION,
-  APPLE_CHART_COLORS: APPLE_CHART_COLORS,
   METRIC_DOT_COLORS: METRIC_DOT_COLORS
 };

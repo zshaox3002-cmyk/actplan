@@ -13,7 +13,7 @@
   padding: 0;
   box-sizing: border-box;
   position: relative;
-  border-top: 1rpx solid #F3F4F6;
+  border-top: 1rpx solid var(--color-border);
 }
 
 /* 紧跟 section-title 后的首行不需要顶部分割线 */
@@ -26,8 +26,8 @@
   width: 200rpx;
   flex-shrink: 0;
   white-space: nowrap;
-  font-size: 28rpx;
-  color: #6B7280;
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
   line-height: 96rpx;
 }
 
@@ -43,7 +43,7 @@
 
 /* 文字样式 */
 .picker-text {
-  font-size: 30rpx;
+  font-size: 26rpx;
   text-align: right;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -51,11 +51,11 @@
 }
 
 .picker-text.placeholder {
-  color: #9CA3AF;
+  color: var(--color-text-placeholder);
 }
 
 .picker-text.selected {
-  color: #111827;
+  color: var(--color-text-primary);
 }
 
 /* 苹果等级圆点 */
@@ -89,7 +89,7 @@
 .options-wrap {
   overflow: hidden;
   transition: max-height 0.25s ease;
-  background: #FFFFFF;
+  background: var(--color-bg-card);
   border-radius: 0 0 16rpx 16rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   margin: 0 -32rpx;
@@ -114,9 +114,9 @@
   align-items: center;
   gap: 16rpx;
   height: 88rpx;
-  border-bottom: 1rpx solid #F3F4F6;
-  font-size: 30rpx;
-  color: #374151;
+  border-bottom: 1rpx solid var(--color-border);
+  font-size: 26rpx;
+  color: var(--color-text-primary);
 }
 
 .option-item:last-child {
@@ -124,7 +124,7 @@
 }
 
 .option-item.active {
-  color: #1A6FD4;
+  color: var(--color-primary);
   font-weight: 500;
 }
 

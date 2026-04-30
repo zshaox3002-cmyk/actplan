@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "复盘",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/index"
+  }
+}

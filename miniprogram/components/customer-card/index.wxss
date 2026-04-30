@@ -1,150 +1,171 @@
-/* customer-card 组件 — 左侧色条 + 底色区分等级 + 左滑删除 */
+/* customer-card/index.wxss */
 
-/* ---- 滑动容器 ---- */
 .swipe-container {
   position: relative;
   overflow: hidden;
-  border-radius: 16rpx;
-  margin-bottom: 16rpx;
+  border-radius: var(--radius-card);
 }
 
-/* ---- 卡片主体 ---- */
 .customer-card {
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-direction: row;
-  border-radius: 16rpx;
-  margin-bottom: 0;
-  overflow: hidden;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.06);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  border: 1rpx solid var(--color-border);
+  padding: 24rpx 28rpx;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: transform 0.25s ease;
 }
 
-/* ---- 删除按钮 ---- */
+/* 删除按钮 */
 .delete-btn {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
   width: 140rpx;
-  background: #E74C3C;
+  background: var(--color-danger);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0 16rpx 16rpx 0;
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
   z-index: 0;
 }
-
 .delete-text {
   font-size: 28rpx;
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   font-weight: 600;
 }
 
-/* ---- 左侧色条 ---- */
-.rank-bar {
-  width: 10rpx;
-  flex-shrink: 0;
-  border-radius: 16rpx 0 0 16rpx;
-}
-
-/* ---- 等级底色 + 色条颜色 ---- */
-.rank-red { background: #FFF5F5; }
-.rank-red .rank-bar { background: #E74C3C; }
-
-.rank-green { background: #F0FDF4; }
-.rank-green .rank-bar { background: #27AE60; }
-
-.rank-brown { background: #FFFBEB; }
-.rank-brown .rank-bar { background: #92400E; }
-
-.rank-yellow { background: #FFFBEB; }
-.rank-yellow .rank-bar { background: #F39C12; }
-
-/* ---- 内容区 ---- */
-.card-content {
-  flex: 1;
-  padding: 20rpx 20rpx 16rpx;
-}
-
-/* ---- 第一行：姓名 + 阶段 ---- */
-.card-row-1 {
+/* 头部：姓名 + 阶段标签同行 */
+.card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10rpx;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
 }
-
 .customer-name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #1A1A2E;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  min-width: 0;
-}
-
-/* 阶段徽章 */
-.stage-badge {
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
-  font-size: 22rpx;
+  font-size: 32rpx;
   font-weight: 500;
-  line-height: 1.6;
-  flex-shrink: 0;
-  margin-left: 12rpx;
+  color: var(--color-text-primary);
 }
 
-.stage-need, .stage-touch {
-  background: #E8F1FC;
-  color: #1A6FD4;
-}
-
-.stage-deal {
-  background: #DCFCE7;
-  color: #27AE60;
-}
-
-.stage-reject {
-  background: #FEE2E2;
-  color: #E74C3C;
-}
-
-/* ---- 第二行：拜访 · 最近 ---- */
-.card-row-2 {
+/* 优先级行 */
+.priority-row {
   display: flex;
   align-items: center;
+  gap: 8rpx;
   margin-bottom: 12rpx;
 }
 
-.card-meta {
+/* 优先级标签：实心色块，白色文字 */
+.priority-tag {
+  padding: 4rpx 14rpx;
+  border-radius: var(--radius-badge);
   font-size: 22rpx;
-  color: #6B7280;
-  white-space: nowrap;
+  font-weight: 500;
+  color: #fff;
+  flex-shrink: 0;
+}
+.priority-P0 { background: var(--priority-p0-bg); }
+.priority-P1 { background: var(--priority-p1-bg); }
+.priority-P2 { background: var(--priority-p2-bg); }
+.priority-P3 { background: var(--priority-p3-bg); }
+
+/* 驱动因素文字 */
+.priority-reasons {
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+}
+.priority-reasons.overdue {
+  color: var(--color-danger);
 }
 
-.card-dot {
+/* 阶段标签：描边样式 */
+.stage-tag {
+  padding: 4rpx 14rpx;
+  border-radius: var(--radius-badge);
   font-size: 22rpx;
-  color: #D1D5DB;
+  background: transparent;
+  border: 1rpx solid currentColor;
+  flex-shrink: 0;
 }
+.stage-tag.stage-meet    { color: var(--stage-meet-text); }
+.stage-tag.stage-comm    { color: var(--stage-comm-text); }
+.stage-tag.stage-present { color: var(--stage-present-text); }
+.stage-tag.stage-closing { color: var(--stage-closing-text); }
+.stage-tag.stage-deal    { color: var(--stage-deal-text); }
+.stage-tag.stage-lost    { color: var(--stage-lost-text); }
 
-/* ---- 第三行：信息标签 ---- */
-.card-row-3 {
+/* 客户属性标签 */
+.custom-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+.custom-tag {
+  padding: 4rpx 14rpx;
+  background: var(--chip-inactive-bg);
+  color: var(--chip-inactive-text);
+  border-radius: var(--radius-custom-tag);
+  font-size: 22rpx;
 }
 
-.info-tag {
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 6rpx;
-  padding: 4rpx 12rpx;
+/* meta 信息：垂直两行 */
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  margin: 12rpx 0;
+}
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.meta-label {
+  font-size: 24rpx;
+  color: var(--color-text-meta-label);
+  flex-shrink: 0;
+}
+.meta-value {
+  font-size: 24rpx;
+  color: var(--color-text-meta-value);
+}
+.meta-row.overdue .meta-label,
+.meta-row.overdue .meta-value {
+  color: var(--color-danger);
 }
 
-.info-tag text {
-  font-size: 20rpx;
-  color: #9CA3AF;
+/* 摘要：单行截断 */
+.last-summary {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 16rpx;
+}
+
+/* 底部操作：统一次级样式 */
+.card-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+.action-btn {
+  flex: 1;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-radius: var(--radius-button);
+  font-size: 26rpx;
+}
+.action-btn:active {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }

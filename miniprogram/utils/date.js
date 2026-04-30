@@ -230,6 +230,24 @@ function nowISO() {
   return y + '-' + mm + '-' + dd + ' ' + hh + ':' + mmin + ':' + ss;
 }
 
+/**
+ * 计算两个日期之间的天数差（dateA - dateB）
+ * @param {string} dateA - 'YYYY-MM-DD'
+ * @param {string} dateB - 'YYYY-MM-DD'
+ * @returns {number}
+ */
+function daysBetween(dateA, dateB) {
+  return Math.round((new Date(dateA) - new Date(dateB)) / 86400000);
+}
+
+/**
+ * 获取今天日期
+ * @returns {string} 'YYYY-MM-DD'
+ */
+function today() {
+  return formatDate(new Date(), 'YYYY-MM-DD');
+}
+
 module.exports = {
   getWeekRange: getWeekRange,
   getMonthRange: getMonthRange,
@@ -240,5 +258,7 @@ module.exports = {
   getMonthDays: getMonthDays,
   shiftWeek: shiftWeek,
   shiftMonth: shiftMonth,
-  nowISO: nowISO
+  nowISO: nowISO,
+  daysBetween: daysBetween,
+  today: today
 };

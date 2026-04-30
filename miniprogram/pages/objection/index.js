@@ -39,6 +39,15 @@ Page({
       };
       var list = objectionRepo.list(filters);
 
+      // 为每条异议附加化解率
+      list = list.map(function (o) {
+        var rr = objectionRepo.getResolutionRate(o.id);
+        return Object.assign({}, o, {
+          _resolutionRate: rr.rate,
+          _resolutionTotal: rr.total
+        });
+      });
+
       this.setData({
         objections: list,
         pageState: list.length === 0 ? 'empty' : 'data'

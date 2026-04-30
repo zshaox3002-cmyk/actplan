@@ -39,13 +39,13 @@
 }
 
 .dot-check {
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   font-size: 14px;
   font-weight: var(--font-weight-bold);
 }
 
 .dot-number {
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   font-size: 13px;
   font-weight: var(--font-weight-semibold);
 }

@@ -6,7 +6,7 @@
  */
 
 /** 预定义色板（与 variables.wxss 苹果等级色对应） */
-var COLOR_PALETTE = ['#E74C3C', '#27AE60', '#6B7280', '#F39C12', '#1A6FD4', '#4F46E5'];
+var COLOR_PALETTE = ['#E74C3C', '#27AE60', '#6B7280', '#F39C12', '#0EA5A4', '#4F46E5'];
 
 /** 间隙角度（2rpx 近似） */
 var GAP_ANGLE = 0.03;
@@ -92,7 +92,7 @@ Component({
       ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
       ctx.arc(cx, cy, innerR, Math.PI * 2, 0, true);
       ctx.closePath();
-      ctx.fillStyle = '#F5F6FA';
+      ctx.fillStyle = '#F4F7FB';
       ctx.fill();
 
       // 绘制圆环扇区（带间隙）
@@ -119,7 +119,7 @@ Component({
       }
 
       // 中心总计文字
-      ctx.fillStyle = '#1A1A2E';
+      ctx.fillStyle = '#0F172A';
       ctx.font = 'bold 22px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -155,7 +155,7 @@ Component({
 
         // 数量（粗体）
         var nameWidth = ctx.measureText(legendItem.name || '').width;
-        ctx.fillStyle = '#1A1A2E';
+        ctx.fillStyle = '#0F172A';
         ctx.font = '600 13px sans-serif';
         ctx.fillText(String(legendItem.value || 0), legendX + 16 + nameWidth + 10, ly);
 

@@ -28,7 +28,7 @@
 }
 
 .tag-selected .tag-text {
-  color: #FFFFFF;
+  color: var(--color-bg-card);
 }
 
 .tag-item:active {

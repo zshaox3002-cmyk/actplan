@@ -30,33 +30,33 @@
 /* 分类颜色映射 */
 /* WXSS 不支持中文类名，统一用英文 .badge-{英文名} */
 .badge-price {
-  background: #FEE2E2;
-  color: #E74C3C;
+  background: var(--priority-p0-bg);
+  color: var(--color-danger);
 }
 
 .badge-necessity {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--priority-p1-bg);
+  color: var(--color-warning);
 }
 
 .badge-timing {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: var(--stage-present-bg);
+  color: var(--color-secondary);
 }
 
 .badge-compare {
-  background: #E0E7FF;
-  color: #4F46E5;
+  background: var(--stage-present-bg);
+  color: var(--color-secondary);
 }
 
 .badge-trust {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--stage-deal-bg);
+  color: var(--color-success);
 }
 
 .badge-other {
-  background: #F3F4F6;
-  color: #6B7280;
+  background: var(--color-bg-page);
+  color: var(--color-text-secondary);
 }
 
 .count-text {
@@ -107,7 +107,7 @@
   display: block;
   font-size: 26rpx;
   font-weight: 700;
-  color: #1A6FD4;
+  color: var(--color-primary);
   margin: 28rpx 0 8rpx;
   letter-spacing: 1rpx;
 }
@@ -117,12 +117,75 @@
 .script-step-content {
   display: block;
   font-size: 28rpx;
-  color: #374151;
+  color: var(--color-text-primary);
   line-height: 1.8;
   white-space: pre-wrap;
   padding-left: 16rpx;
-  border-left: 3rpx solid #DBEAFE;
+  border-left: 3rpx solid var(--stage-present-bg);
 }
+
+/* ---- 化解率 ---- */
+.resolution-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 16rpx;
+  flex-wrap: wrap;
+}
+.resolution-label {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+.resolution-bar-wrap {
+  width: 160rpx;
+  height: 12rpx;
+  background: var(--color-bg-page);
+  border-radius: 6rpx;
+  overflow: hidden;
+}
+.resolution-bar {
+  height: 100%;
+  background: var(--color-success);
+  border-radius: 6rpx;
+  min-width: 4rpx;
+}
+.resolution-pct {
+  font-size: 24rpx;
+  color: var(--color-success);
+  font-weight: 500;
+}
+.resolution-insufficient {
+  font-size: 24rpx;
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 官方推荐徽章 ---- */
+.preset-badge {
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  background: var(--color-primary-light);
+  border-radius: var(--radius-badge);
+}
+.preset-badge text {
+  font-size: var(--font-size-helper);
+  color: var(--color-primary-dark);
+}
+
+/* ---- 实战记录结果标签 ---- */
+.note-result {
+  display: inline-flex;
+  margin-top: 8rpx;
+  padding: 4rpx 14rpx;
+  border-radius: var(--radius-badge);
+}
+.note-result text { font-size: 22rpx; font-weight: 500; }
+.result-resolved { background: var(--stage-deal-bg); }
+.result-resolved text { color: var(--stage-deal-text); }
+.result-pending { background: var(--priority-p1-bg); }
+.result-pending text { color: var(--priority-p1-text); }
+.result-failed { background: var(--priority-p0-bg); }
+.result-failed text { color: var(--color-danger); }
+.result-none { display: none; }
 
 /* ---- 追加历史 ---- */
 .note-list {

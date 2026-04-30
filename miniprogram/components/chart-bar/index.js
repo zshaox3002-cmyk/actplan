@@ -12,7 +12,7 @@
  * dpr 适配
  */
 
-var COLOR_PALETTE = ['#1A6FD4', '#D1D5DB', '#E74C3C', '#27AE60', '#F39C12', '#4F46E5'];
+var COLOR_PALETTE = ['#0EA5A4', '#D1D5DB', '#E74C3C', '#27AE60', '#F39C12', '#4F46E5'];
 
 Component({
   properties: {
@@ -131,7 +131,7 @@ Component({
         ctx.fill();
 
         // 柱顶数字
-        ctx.fillStyle = '#1A1A2E';
+        ctx.fillStyle = '#0F172A';
         ctx.font = '11px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
@@ -217,7 +217,7 @@ Component({
 
           // 柱顶数字
           if (val2 > 0) {
-            ctx.fillStyle = '#1A1A2E';
+            ctx.fillStyle = '#0F172A';
             ctx.font = '10px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';

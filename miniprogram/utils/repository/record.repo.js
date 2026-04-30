@@ -61,6 +61,8 @@ function get(id) {
  * @param {string} data.visit_way - 拜访方式
  * @param {string} data.summary - 沟通摘要
  * @param {string} data.is_deal - 成交状态
+ * @param {string} [data.comm_result] - 沟通结果（顺利/一般/受阻/已成交）
+ * @param {string} [data.record_type] - 记录类型（planned=计划内拜访 / adhoc=临时沟通）
  * @param {number|null} [data.plan_id] - 关联计划 ID
  * @param {number|null} [data.duration] - 拜访时长
  * @param {string|null} [data.next_follow_date] - 下次跟进日期
@@ -90,6 +92,8 @@ function create(data) {
       duration: data.duration || null,
       summary: data.summary || '',
       stage: data.stage || '',
+      comm_result: data.comm_result || '',
+      record_type: data.record_type || 'planned',
       updated_fields: data.updated_fields || [],
       is_deal: data.is_deal || constants.DEAL_STATUS.NO_DEAL,
       next_follow_date: data.next_follow_date || null,

@@ -24,6 +24,50 @@
 | ✅ 全局工具类使用 `app.wxss` 中定义的 | 如 `.card`、`.flex`、`.text-primary` |
 | ❌ 禁止使用 `!important` | 通过选择器优先级控制 |
 
+### 排版层级规范
+
+| 层级 | 用途 | 字号 | 字重 | 颜色 |
+|------|------|------|------|------|
+| 核心数据 | 指标数字（如 metric-value） | 40rpx | 600 | `var(--color-primary)` |
+| 主标题 | Section 标题 | 30rpx | 500 | `var(--color-text-primary)` |
+| 主信息 | 列表主行（客户名等） | 30rpx | 500 | `var(--color-text-primary)` |
+| 次要信息 | 副标题、描述、meta | 24rpx | 400 | `var(--color-text-secondary)` |
+| 辅助文字 | 问候语、提示语 | 26rpx | 400 | `var(--color-text-primary)` |
+
+**原则：**
+- ❌ 禁止在同一页面大量使用 weight 600/700，会导致视觉层次扁平
+- ✅ 用颜色（`var(--color-primary)`）突出核心数据，而不是靠更粗的字重
+- ✅ 主次信息的区分优先靠字号差，其次靠颜色，最后才靠字重
+
+### 标签组件规范
+
+项目中有四种标签形态，**不可混用**：
+
+| 标签类型 | 形态 | padding | border-radius | font-size | 颜色方案 | Class 命名 |
+|---------|------|---------|--------------|-----------|---------|-----------|
+| **优先级标签** | 实心色块，白色文字 | `4rpx 14rpx` | `var(--radius-badge)` | `22rpx` | 背景用 `var(--priority-pX-text)` | `.priority-tag.priority-P0/P1/P2/P3` |
+| **阶段标签** | 描边，无背景 | `4rpx 14rpx` | `var(--radius-badge)` | `22rpx` | 文字/边框用 `var(--stage-xxx-text)` | `.stage-tag.stage-meet/comm/present/closing/deal/lost` |
+| **客户画像标签** | 浅蓝背景 | `4rpx 14rpx` | `var(--radius-badge)` | `22rpx` | `--color-secondary-light` + `--color-secondary` | `.custom-tag` |
+| **筛选 Chip** | 胶囊形，激活时填色 | `10rpx 24rpx` | `32rpx`（刻意圆形） | `26rpx` | 激活用 `var(--color-primary)` | `.chip-item` |
+
+**阶段 class 映射表**（JS 层转换，WXML 只做 class 绑定）：
+
+```js
+var STAGE_CLASS_MAP = {
+  '初步认识': 'meet',
+  '需求沟通': 'comm',
+  '方案讲解': 'present',
+  '待促成':   'closing',
+  '已成交':   'deal',
+  '已流失':   'lost'
+};
+```
+
+**规则：**
+- ✅ 阶段标签必须按阶段绑定对应颜色 class，不允许统一用灰色
+- ✅ Chip 的 `32rpx` 圆角是刻意与内容标签（`6px`）区分的，不要统一
+- ❌ 禁止在不同页面对同一语义标签使用不同样式（如 dashboard 的阶段标签必须与 customer-card 一致）
+
 ---
 
 ## 三、数据层规范

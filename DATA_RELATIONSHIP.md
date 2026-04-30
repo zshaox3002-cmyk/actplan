@@ -39,13 +39,15 @@
 | `marital` | string | `''` | 婚姻状况 | customer-detail: `['未婚','已婚–无子','已婚–有子','离异','丧偶']` |
 | `intimacy` | string | `''` | 交情 | customer-detail: `['陌生','普通朋友','熟人','好友','亲密']` |
 | `apple_grade` | string | `'pending'` | 苹果等级 | `red`/`green`/`rotten`/`pending` |
-| `stage` | string | `'需求沟通'` | 跟进阶段 | constants.STAGE / customer-detail: `['需求沟通','方案呈现','异议处理','促成签单','已成交','已拒绝']` |
+| `stage` | string | `'需求沟通'` | 跟进阶段 | `初步认识`/`需求沟通`/`方案讲解`/`待促成`/`已成交`/`已流失` |
 | `stage_updated_at` | string|null | `null` | 阶段更新时间 | ISO 8601 |
 | `family` | string | `''` | 家庭成员 | customer-detail: `['单身','夫妻二人','有未成年子女','有成年子女','与父母同住','三代同堂']` |
 | `has_need` | string | `'不确定'` | 有无需求 | `是`/`否`/`不确定` |
 | `has_ability` | string | `'不确定'` | 有无购买力 | `是`/`否`/`不确定` |
 | `is_decider` | string | `'不确定'` | 是否决策人 | `是`/`否`/`不确定` |
 | `coverage_gap` | string | `''` | 保障缺口说明 | 自由文本 |
+| `tags` | Array | `[]` | 客户自定义标签 | 自由文本数组 |
+| `coverage_needs` | Object | `{}` | 保障需求 | key 为险种（重疾/医疗/教育金/养老/意外/寿险），value 为需求等级（`关注中`/`有兴趣`/`待了解`/`暂不考虑`） |
 | `last_visit` | string|null | `null` | 最近拜访日期 | YYYY-MM-DD |
 | `visit_count` | number | `0` | 拜访次数 | — |
 | `created_at` | string | nowISO() | 创建时间 | ISO 8601 |
@@ -72,10 +74,12 @@
 | `summary` | string | `''` | 沟通摘要 |
 | `stage` | string | `''` | 当时跟进阶段 |
 | `updated_fields` | Array | `[]` | 本次更新的客户字段 |
-| `is_deal` | string | `'暂未成交'` | 成交状态 |
+| `is_deal` | string | `'暂未成交'` | 成交状态 | `签单成交`/`暂未成交` |
 | `next_follow_date` | string\|null | `null` | 下次跟进日期 |
 | `has_objection` | number | `0` | 是否关联异议 |
 | `objection_ids` | Array\<number\|string\> | `[]` | 本次拜访关联的异议 ID 列表 |
+| `comm_result` | string | `''` | 沟通结果 | `smooth`（进展顺利）/`normal`（一般）/`blocked`（受阻）/`deal`（已成交） |
+| `record_type` | string | `'planned'` | 记录类型 | `planned`（计划内拜访）/`adhoc`（临时沟通） |
 | `created_at` | string | nowISO() | 创建时间 |
 
 ### 2.3 plan
@@ -116,6 +120,7 @@
 | `objection_id` | number\|string | — | 关联异议 ID（数字=自建，字符串=预置） |
 | `customer_id` | number | — | 关联客户 ID |
 | `note` | string | — | 备注内容 |
+| `result` | string | `''` | 处理结果 | `已化解`/`仍在考虑`/`未化解` |
 | `created_at` | string | nowISO() | 创建时间 |
 
 ### 2.6 objection_links
@@ -186,7 +191,8 @@ objection ──1:N──→ objection_note  (objection.id = objection_note.obje
 | `pages/customer/index` | customer (R) | customer (D) | D=删除 |
 | `pages/customer-detail/index` | customer (R/W), operation_log (W) | customer (C/U) | C=创建 U=更新 |
 | `pages/dashboard/index` | customer, visit_record, plan, objection, objection_note, objection_links (均通过 stats.js R) | 无 | stats.js 一次性快照 |
-| `pages/plan/index` | plan (R), customer (R), visit_record (R) | plan (D) | — |
+| `pages/rhythm/index` | customer (R), visit_record (R) | 无 | rhythm.js 分类计算 |
+| `pages/review/index` | customer, visit_record, plan, objection, objection_note, operation_log (均 R) | 无 | review-stats.js 统计 |
 | `pages/plan-select/index` | customer (R), plan (R) | plan (C) | — |
 | `pages/record-new/index` | customer (R/W), plan (R/W), record (C), objection (C/R) | 多表 | 事务写入（storage.transaction），含 objection_ids |
 | `pages/record/index` | visit_record (R), customer (R) | 无 | — |
@@ -230,14 +236,14 @@ objection ──1:N──→ objection_note  (objection.id = objection_note.obje
 
 | 存储值 | 显示文字 | CSS class |
 |--------|---------|-----------|
-| 需求沟通 | 需求沟通 | need |
-| 方案呈现 | 方案呈现 | — |
-| 异议处理 | 异议处理 | — |
-| 促成签单 | 促成签单 | — |
+| 初步认识 | 初步认识 | meet |
+| 需求沟通 | 需求沟通 | comm |
+| 方案讲解 | 方案讲解 | present |
+| 待促成 | 待促成 | closing |
 | 已成交 | 已成交 | deal |
-| 已拒绝 | 已拒绝 | reject |
+| 已流失 | 已流失 | lost |
 
-**兼容处理位置**：customer-card/index.js（映射旧格式 need/touch/deal/1/2/3）、filter-bar/index.js
+**映射来源**：`constants.js` → `STAGE_CLASS_MAP`
 
 ### 8.3 异议分类 CSS 映射
 

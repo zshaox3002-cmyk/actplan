@@ -33,7 +33,7 @@
 .item-selected { border: 2px solid var(--color-primary); }
 .item-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .item-name { font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
-.item-badge { font-size: var(--font-size-helper); color: var(--color-warning); background: #FEF3C7; padding: 2px 8px; border-radius: var(--radius-badge); }
+.item-badge { font-size: var(--font-size-helper); color: var(--color-warning); background: var(--priority-p1-bg); padding: 2px 8px; border-radius: var(--radius-badge); }
 .item-meta { display: flex; gap: 12px; }
 .item-rank, .item-stage { font-size: var(--font-size-helper); color: var(--color-text-placeholder); }
 */
@@ -142,7 +142,7 @@
 }
 
 .btn-confirm .btn-text {
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   font-weight: var(--font-weight-semibold);
 }
 

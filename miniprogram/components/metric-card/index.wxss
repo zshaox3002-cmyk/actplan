@@ -6,7 +6,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #FFFFFF;
+  background: var(--color-bg-card);
   border-radius: 16rpx;
   padding: 32rpx 16rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
@@ -24,12 +24,12 @@
 .metric-value {
   font-size: 40rpx;
   font-weight: 700;
-  color: #1A1A2E;
+  color: var(--color-text-primary);
   line-height: 1.2;
 }
 
 .metric-label {
   font-size: 22rpx;
-  color: #9CA3AF;
+  color: var(--color-text-placeholder);
   margin-top: 8rpx;
 }

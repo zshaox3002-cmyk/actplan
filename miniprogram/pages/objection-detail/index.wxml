@@ -7,10 +7,23 @@
         <view class="category-badge badge-{{categoryClass}}">
           <text class="badge-text">{{objection.category}}</text>
         </view>
-        <text class="count-text">出现 {{objection.occurrenceCount || objection.count || 0}} 次</text>
+        <view class="preset-badge" wx:if="{{objection.isPreset}}">
+          <text>官方推荐</text>
+        </view>
+        <text class="count-text">出场 {{objection.occurrenceCount || objection.count || 0}} 次</text>
       </view>
-      <text class="created-text" wx:if="{{objection.created_at}}">创建于 {{objection.created_at}}</text>
-      <text class="created-text" wx:elif="{{objection.isPreset}}">官方推荐话术</text>
+
+      <!-- 化解率 -->
+      <view class="resolution-row" wx:if="{{resolutionTotal > 0}}">
+        <text class="resolution-label">化解率</text>
+        <view wx:if="{{resolutionRate !== null}}">
+          <view class="resolution-bar-wrap">
+            <view class="resolution-bar" style="width: {{resolutionRate}}%;"></view>
+          </view>
+          <text class="resolution-pct">{{resolutionRate}}%（{{resolutionResolved}}/{{resolutionTotal}}）</text>
+        </view>
+        <text wx:else class="resolution-insufficient">样本不足（{{resolutionTotal}} 次）</text>
+      </view>
     </view>
 
     <!-- 异议内容 -->
@@ -27,13 +40,10 @@
       <view class="script-section">
         <text class="script-step-title">① 认同</text>
         <text class="script-step-content">{{objection.script.step1_affirm}}</text>
-
         <text class="script-step-title">② 澄清</text>
         <text class="script-step-content">{{objection.script.step2_clarify}}</text>
-
         <text class="script-step-title">③ 回应</text>
         <text class="script-step-content">{{objection.script.step3_response}}</text>
-
         <text class="script-step-title">④ 确认</text>
         <text class="script-step-content">{{objection.script.step4_confirm}}</text>
       </view>
@@ -47,9 +57,9 @@
       </view>
     </view>
 
-    <!-- 追加历史 -->
+    <!-- 实战记录 -->
     <view class="detail-section">
-      <view class="section-title">追加历史</view>
+      <view class="section-title">实战记录</view>
 
       <view class="note-list" wx:if="{{notes.length > 0}}">
         <view class="note-item" wx:for="{{notes}}" wx:key="id">
@@ -58,11 +68,14 @@
             <text class="note-time">{{item.created_at}}</text>
           </view>
           <text class="note-content">{{item.note}}</text>
+          <view class="note-result result-{{item.result === '已化解' ? 'resolved' : item.result === '仍在考虑' ? 'pending' : item.result === '未化解' ? 'failed' : 'none'}}" wx:if="{{item.result}}">
+            <text>{{item.result}}</text>
+          </view>
         </view>
       </view>
 
       <view class="empty-notes" wx:else>
-        <text class="empty-text">暂无追加备注</text>
+        <text class="empty-text">暂无实战记录</text>
       </view>
     </view>
   </block>

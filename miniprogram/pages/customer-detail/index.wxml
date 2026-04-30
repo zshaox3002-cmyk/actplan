@@ -1,264 +1,404 @@
-<view class="page-container detail-page">
+<!-- pages/customer-detail/index.wxml -->
+<view class="page-wrap">
+
   <!-- 加载态 -->
   <view class="loading-wrap" wx:if="{{loading}}">
-    <text class="text-placeholder">加载中...</text>
+    <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- 内容区域 -->
   <block wx:else>
 
-    <view class="detail-actions">
-      <view wx:if="{{!isEdit}}" class="action-btn edit-btn" bindtap="onEditTap">
-        <text class="action-text text-accent">编辑</text>
-      </view>
-      <view wx:if="{{!isEdit && !isNew}}" class="action-btn delete-btn" bindtap="onDeleteTap">
-        <text class="action-text text-danger">删除</text>
-      </view>
-    </view>
-
-    <!-- A. 基础信息区块 -->
-    <view class="section">
-      <view class="section-title">
-        <text class="section-title-text">基础信息</text>
+    <!-- 顶部客户卡片 -->
+    <view class="top-card">
+      <view class="top-card-header">
+        <text class="customer-name">{{customerName}}</text>
+        <view class="priority-tag priority-{{priorityLevel}}" wx:if="{{priorityLevel}}">
+          <text>{{priorityLevel}} {{priorityLabel}}</text>
+        </view>
       </view>
 
-      <!-- 客户姓名 -->
-      <view class="field-row">
-        <text class="field-label">客户姓名</text>
-        <input
-          wx:if="{{isEdit}}"
-          class="field-input"
-          value="{{form.name}}"
-          placeholder="请输入姓名"
-          data-field="name"
-          bindinput="onFieldChange"
-        />
-        <text wx:else class="field-value text-primary">{{form.name}}</text>
+      <!-- 阶段标签 + 自定义标签同行 -->
+      <view class="top-labels" wx:if="{{stageLabel || tags.length > 0}}">
+        <view class="stage-tag stage-{{stageClassMap[stageLabel]}}" wx:if="{{stageLabel}}">
+          <text>{{stageLabel}}</text>
+        </view>
+        <view class="custom-tag" wx:for="{{tags}}" wx:key="*this">
+          <text>{{item}}</text>
+        </view>
       </view>
 
-      <!-- 性别 -->
-      <inline-picker
-        label="性别"
-        options="{{genderOptions}}"
-        value="{{genderIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onGenderChange">
-      </inline-picker>
-
-      <!-- 关系 -->
-      <inline-picker
-        label="关系"
-        options="{{relationOptions}}"
-        value="{{relationIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onRelationChange">
-      </inline-picker>
-
-      <!-- 收入 -->
-      <inline-picker
-        label="收入"
-        options="{{incomeOptions}}"
-        value="{{incomeIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onIncomeChange">
-      </inline-picker>
-
-      <!-- 年龄范围 -->
-      <inline-picker
-        label="年龄范围"
-        options="{{ageRangeOptions}}"
-        value="{{ageRangeIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onAgeRangeChange">
-      </inline-picker>
-
-      <!-- 职业 -->
-      <inline-picker
-        label="职业"
-        options="{{occupationOptions}}"
-        value="{{occupationIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onOccupationChange">
-      </inline-picker>
-
-      <!-- 居住类型 -->
-      <inline-picker
-        label="居住类型"
-        options="{{residenceOptions}}"
-        value="{{residenceIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onResidenceChange">
-      </inline-picker>
-
-      <!-- 婚姻状况 -->
-      <inline-picker
-        label="婚姻状况"
-        options="{{maritalOptions}}"
-        value="{{maritalIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onMaritalChange">
-      </inline-picker>
-
-      <!-- 交情 -->
-      <inline-picker
-        label="交情"
-        options="{{intimacyOptions}}"
-        value="{{intimacyIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onIntimacyChange">
-      </inline-picker>
-
-      <!-- 苹果等级 -->
-      <inline-picker
-        label="苹果等级"
-        options="{{appleGradeOptions}}"
-        value="{{appleGradeIndex}}"
-        disabled="{{!isEdit}}"
-        show-dot="{{true}}"
-        bindchange="onAppleGradeChange">
-      </inline-picker>
-
-      <!-- 跟进阶段 -->
-      <inline-picker
-        label="跟进阶段"
-        options="{{stageOptions}}"
-        value="{{stageIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onStageChange">
-      </inline-picker>
-
-      <!-- DISABLED: field-removed - 暂时禁用，保留备用
-      <view class="field-row">
-        <text class="field-label">跟进时间</text>
-        <picker wx:if="{{isEdit}}" mode="date" value="{{form.follow_date}}" data-field="follow_date" bindchange="onDateChange">
-          <text class="field-value {{form.follow_date ? '' : 'text-placeholder'}}">{{form.follow_date || '请选择'}}</text>
-        </picker>
-        <text wx:else class="field-value">{{form.follow_date}}</text>
+      <!-- 沟通信息 -->
+      <view class="contact-info">
+        <text class="contact-item">最近沟通：{{lastVisit || '暂无'}}</text>
+        <text class="contact-item next-plan {{nextPlanText === '未安排' ? 'no-plan' : ''}}">
+          下次跟进：{{nextPlanText}}
+        </text>
       </view>
 
-      <view class="field-row field-row--full">
-        <text class="field-label">代办任务</text>
-        <textarea
-          wx:if="{{isEdit}}"
-          class="field-textarea"
-          value="{{form.todo_task}}"
-          placeholder="请输入"
-          data-field="todo_task"
-          bindinput="onFieldChange"
-          auto-height
-        ></textarea>
-        <text wx:else class="field-value">{{form.todo_task}}</text>
-      </view>
-
-      <view class="field-row field-row--full">
-        <text class="field-label">异议记录</text>
-        <textarea
-          wx:if="{{isEdit}}"
-          class="field-textarea"
-          value="{{form.objection_legacy}}"
-          placeholder="飞书遗留字段"
-          data-field="objection_legacy"
-          bindinput="onFieldChange"
-          auto-height
-        ></textarea>
-        <text wx:else class="field-value">{{form.objection_legacy}}</text>
-      </view>
-      -->
-    </view>
-
-    <!-- B. 苹果分级（已简化为一行 picker，合并到基础信息区块） -->
-    <!-- DISABLED: apple-auto-grade - 独立卡片已移除，三维度字段已移至扩展信息区
-    <view class="section">
-      ...
-    </view>
-    -->
-
-    <!-- C. 扩展字段区块 -->
-    <view class="section">
-      <view class="section-title">
-        <text class="section-title-text">扩展信息</text>
-      </view>
-
-      <!-- 家庭成员 -->
-      <inline-picker
-        label="家庭成员"
-        options="{{familyOptions}}"
-        value="{{familyIndex}}"
-        disabled="{{!isEdit}}"
-        no-top-border="{{true}}"
-        bindchange="onFamilyChange">
-      </inline-picker>
-
-      <!-- 是否有真实需求 -->
-      <inline-picker
-        label="是否有真实需求"
-        options="{{hasNeedOptions}}"
-        value="{{hasNeedIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onHasNeedChange">
-      </inline-picker>
-
-      <!-- 是否有购买能力 -->
-      <inline-picker
-        label="是否有购买能力"
-        options="{{hasAbilityOptions}}"
-        value="{{hasAbilityIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onHasAbilityChange">
-      </inline-picker>
-
-      <!-- 是否是决策人 -->
-      <inline-picker
-        label="是否是决策人"
-        options="{{isDeciderOptions}}"
-        value="{{isDeciderIndex}}"
-        disabled="{{!isEdit}}"
-        bindchange="onIsDeciderChange">
-      </inline-picker>
-
-      <!-- DISABLED: field-removed - 已有保障概览字段已删除
-      <view class="field-row">
-        <text class="field-label">已有保障概览</text>
-        <picker wx:if="{{isEdit}}" mode="multiSelector" range="{{['医疗险','重疾险','寿险','年金险','意外险','无']}}" bindchange="onCoverageChange">
-          <text class="field-value {{form.coverage.length ? '' : 'text-placeholder'}}">{{form.coverage.length ? form.coverage.join('、') : '请选择'}}</text>
-        </picker>
-        <text wx:else class="field-value">{{form.coverage.length ? form.coverage.join('、') : '-'}}</text>
-      </view>
-      -->
-
-      <!-- 保障缺口说明（保留 textarea，不改为下拉） -->
-      <view class="field-row field-row--full">
-        <text class="field-label">保障缺口说明</text>
-        <textarea
-          wx:if="{{isEdit}}"
-          class="field-textarea"
-          value="{{form.coverage_gap}}"
-          placeholder="请输入保障缺口说明"
-          data-field="coverage_gap"
-          bindinput="onFieldChange"
-          auto-height
-        ></textarea>
-        <text wx:else class="field-value">{{form.coverage_gap || '-'}}</text>
-      </view>
-
-      <!-- 最近拜访日期（自动写入，置灰） -->
-      <view class="field-row">
-        <text class="field-label">最近拜访日期</text>
-        <text class="field-value field-auto">{{form.last_visit || '-'}}</text>
-      </view>
-
-      <!-- 累计拜访次数（自动写入，置灰） -->
-      <view class="field-row">
-        <text class="field-label">累计拜访次数</text>
-        <text class="field-value field-auto">{{form.visit_count || 0}}</text>
+      <!-- 快捷操作 -->
+      <view class="quick-actions">
+        <view class="quick-btn quick-btn-primary" bindtap="onAddPlan">
+          <text>预约</text>
+        </view>
+        <view class="quick-btn quick-btn-secondary" bindtap="onAddRecord">
+          <text>随手记</text>
+        </view>
       </view>
     </view>
 
-    <view class="save-wrap" wx:if="{{isEdit}}">
-      <view class="save-btn" bindtap="onSaveTap">
-        <text>保存</text>
+    <!-- Tab 导航 -->
+    <view class="tab-nav">
+      <view class="tab-item {{activeTab === 'profile' ? 'active' : ''}}"
+            data-tab="profile" bindtap="onTabTap">
+        <text>画像</text>
+      </view>
+      <view class="tab-item {{activeTab === 'timeline' ? 'active' : ''}}"
+            data-tab="timeline" bindtap="onTabTap">
+        <text>沟通</text>
+      </view>
+      <view class="tab-item {{activeTab === 'objection' ? 'active' : ''}}"
+            data-tab="objection" bindtap="onTabTap">
+        <text>异议</text>
+      </view>
+      <view class="tab-item {{activeTab === 'needs' ? 'active' : ''}}"
+            data-tab="needs" bindtap="onTabTap">
+        <text>需求</text>
+      </view>
+      <view class="tab-item {{activeTab === 'plan' ? 'active' : ''}}"
+            data-tab="plan" bindtap="onTabTap">
+        <text>计划</text>
+      </view>
+    </view>
+
+    <!-- ===== 画像 Tab ===== -->
+    <view wx:if="{{activeTab === 'profile'}}">
+      <view class="section-card">
+        <view class="section-header">
+          <text class="section-title">客户画像</text>
+          <view class="edit-btn" bindtap="onEditProfileTap" wx:if="{{!isEditProfile && !isNew}}">
+            <text>编辑</text>
+          </view>
+        </view>
+
+        <!-- 姓名 -->
+        <view class="field-row" wx:if="{{isEditProfile}}">
+          <text class="field-label">姓名<text class="required-mark">*</text></text>
+          <input class="field-input"
+                 value="{{form.name}}" placeholder="请输入姓名"
+                 data-field="name" bindinput="onFieldChange"/>
+        </view>
+
+        <!-- 非编辑态：3列网格 -->
+        <view wx:if="{{!isEditProfile}}">
+          <view class="profile-grid">
+            <view class="grid-cell">
+              <text class="grid-label">性别</text>
+              <text class="grid-value">{{profileGender || '-'}}</text>
+            </view>
+            <view class="grid-cell">
+              <text class="grid-label">年龄</text>
+              <text class="grid-value">{{profileAgeRange || '-'}}</text>
+            </view>
+            <view class="grid-cell">
+              <text class="grid-label">职业</text>
+              <text class="grid-value">{{profileOccupation || '-'}}</text>
+            </view>
+            <view class="grid-cell">
+              <text class="grid-label">收入</text>
+              <text class="grid-value">{{profileIncome || '-'}}</text>
+            </view>
+            <view class="grid-cell">
+              <text class="grid-label">婚姻</text>
+              <text class="grid-value">{{profileMarital || '-'}}</text>
+            </view>
+            <view class="grid-cell">
+              <text class="grid-label">家庭</text>
+              <text class="grid-value">{{profileFamily || '-'}}</text>
+            </view>
+          </view>
+          <text class="profile-meta" wx:if="{{profileIntimacy || profileRelation}}">交情：{{profileIntimacy || '-'}} · 来源：{{profileRelation || '-'}}</text>
+        </view>
+
+        <!-- 编辑态：列表式字段 -->
+        <block wx:if="{{isEditProfile}}">
+          <inline-picker label="性别 *" options="{{genderOptions}}"
+            value="{{genderIndex}}" disabled="{{false}}"
+            bindchange="onGenderChange"/>
+          <inline-picker label="年龄范围" options="{{ageRangeOptions}}"
+            value="{{ageRangeIndex}}" disabled="{{false}}"
+            bindchange="onAgeRangeChange"/>
+          <inline-picker label="职业" options="{{occupationOptions}}"
+            value="{{occupationIndex}}" disabled="{{false}}"
+            bindchange="onOccupationChange"/>
+          <inline-picker label="收入" options="{{incomeOptions}}"
+            value="{{incomeIndex}}" disabled="{{false}}"
+            bindchange="onIncomeChange"/>
+          <inline-picker label="婚姻" options="{{maritalOptions}}"
+            value="{{maritalIndex}}" disabled="{{false}}"
+            bindchange="onMaritalChange"/>
+          <inline-picker label="家庭" options="{{familyOptions}}"
+            value="{{familyIndex}}" disabled="{{false}}"
+            bindchange="onFamilyChange"/>
+          <inline-picker label="居住" options="{{residenceOptions}}"
+            value="{{residenceIndex}}" disabled="{{false}}"
+            bindchange="onResidenceChange"/>
+          <inline-picker label="交情" options="{{intimacyOptions}}"
+            value="{{intimacyIndex}}" disabled="{{false}}"
+            bindchange="onIntimacyChange"/>
+          <inline-picker label="关系来源" options="{{relationOptions}}"
+            value="{{relationIndex}}" disabled="{{false}}"
+            bindchange="onRelationChange"/>
+          <inline-picker label="跟进阶段" options="{{stageOptions}}"
+            value="{{stageIndex}}" disabled="{{false}}"
+            bindchange="onStageChange"/>
+          <inline-picker label="有需求" options="{{hasNeedOptions}}"
+            value="{{hasNeedIndex}}" disabled="{{false}}"
+            bindchange="onHasNeedChange"/>
+          <inline-picker label="有能力" options="{{hasAbilityOptions}}"
+            value="{{hasAbilityIndex}}" disabled="{{false}}"
+            bindchange="onHasAbilityChange"/>
+          <inline-picker label="是决策者" options="{{isDeciderOptions}}"
+            value="{{isDeciderIndex}}" disabled="{{false}}"
+            bindchange="onIsDeciderChange"/>
+        </block>
+
+        <!-- 客户标签：非编辑态常显，编辑态可编辑 -->
+        <view class="field-row field-row-full" wx:if="{{!isEditProfile}}">
+          <text class="field-label">客户标签</text>
+          <view wx:if="{{tags.length > 0}}" class="tag-list tag-list-readonly">
+            <view class="tag-item" wx:for="{{tags}}" wx:key="*this">
+              <text>{{item}}</text>
+            </view>
+          </view>
+          <text wx:else class="field-value-full tag-empty">暂无标签</text>
+        </view>
+        <view class="field-row field-row-full" wx:if="{{isEditProfile}}">
+          <text class="field-label">客户标签</text>
+          <view class="tag-editor">
+            <view class="tag-list">
+              <view class="tag-item" wx:for="{{tags}}" wx:key="*this">
+                <text>{{item}}</text>
+                <text class="tag-del" data-idx="{{index}}" bindtap="onTagDelete">×</text>
+              </view>
+            </view>
+            <input class="tag-input" value="{{tagInput}}"
+                   placeholder="输入标签回车添加"
+                   bindinput="onTagInput"
+                   bindconfirm="onTagConfirm"/>
+          </view>
+        </view>
+      </view>
+
+      <!-- 保存按钮 -->
+      <view class="save-bar" wx:if="{{isEditProfile}}">
+        <button class="save-btn" bindtap="onSaveProfile">保存</button>
+      </view>
+    </view>
+
+    <!-- ===== 沟通 Tab ===== -->
+    <view wx:if="{{activeTab === 'timeline'}}">
+      <view class="section-card">
+        <view class="section-header">
+          <text class="section-title">沟通记录</text>
+        </view>
+
+        <view wx:if="{{timeline.length === 0}}" class="empty-hint">
+          <text>暂无沟通记录</text>
+        </view>
+
+        <view class="timeline" wx:else>
+          <view class="timeline-item" wx:for="{{timelineVisible}}" wx:key="id">
+            <view class="timeline-dot {{item.type === 'planned' ? 'dot-large' : 'dot-small'}}"></view>
+            <view class="timeline-content">
+              <view class="timeline-meta">
+                <text class="timeline-date">{{item.date}}{{item.time ? ' ' + item.time : ''}}</text>
+                <text class="timeline-type">{{item.type === 'planned' ? '计划拜访' : '临时沟通'}} · {{item.way}}</text>
+              </view>
+              <text class="timeline-summary">{{item.summary}}</text>
+              <text class="timeline-stage" wx:if="{{item.stageChange}}">阶段：{{item.stageChange}}</text>
+              <text class="timeline-next" wx:if="{{item.nextDate}}">下次：{{item.nextDate}}</text>
+            </view>
+          </view>
+          <view class="expand-btn" wx:if="{{!timelineExpanded && timelineTotal > 5}}" bindtap="onExpandTimeline">
+            <text>展开全部（共{{timelineTotal}}条）</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ===== 异议 Tab ===== -->
+    <view wx:if="{{activeTab === 'objection'}}">
+      <view class="section-card">
+        <view class="section-header">
+          <text class="section-title">异议记录</text>
+          <view class="edit-btn" bindtap="onAddObjection">
+            <text>+ 新增</text>
+          </view>
+        </view>
+
+        <view wx:if="{{customerObjections.length === 0}}" class="empty-hint">
+          <text>暂无异议记录</text>
+        </view>
+
+        <view class="objection-list" wx:else>
+          <view class="objection-item" wx:for="{{customerObjections}}" wx:key="id"
+                bindtap="onObjectionTap" data-id="{{item.id}}">
+            <view class="obj-header">
+              <text class="obj-category-tag">{{item.category}}</text>
+              <text class="obj-result-tag obj-result-{{item.resultClass}}" wx:if="{{item.latestResult}}">{{item.latestResult}}</text>
+              <text class="obj-count" wx:if="{{item.count > 1}}">{{item.count}}次</text>
+            </view>
+            <text class="obj-content">{{item.content}}</text>
+            <view class="obj-footer">
+              <text class="obj-solution" wx:if="{{item.solution}}">话术：{{item.solution}}</text>
+              <text class="obj-note-count" wx:if="{{item.noteCount > 0}}">{{item.noteCount}}条备注</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ===== 需求 Tab ===== -->
+    <view wx:if="{{activeTab === 'needs'}}">
+      <view class="section-card">
+        <view class="section-header">
+          <text class="section-title">保障需求</text>
+          <view class="edit-btn" bindtap="onEditNeedsTap" wx:if="{{!isEditNeeds}}">
+            <text>编辑</text>
+          </view>
+        </view>
+
+        <!-- 非编辑态：原有列表 -->
+        <view class="needs-list" wx:if="{{!isEditNeeds}}">
+          <view class="need-item" wx:for="{{coverageNeedKeys}}" wx:key="*this">
+            <text class="need-key">{{item}}</text>
+            <text class="{{coverageNeedClasses[index]}}">{{coverageNeeds[item] || '待了解'}}</text>
+          </view>
+        </view>
+
+        <!-- 编辑态：inline-picker 列表 -->
+        <block wx:else>
+          <inline-picker
+            wx:for="{{coverageNeedKeys}}" wx:key="*this"
+            wx:for-index="idx"
+            label="{{item}}"
+            options="{{coverageNeedOptions}}"
+            value="{{coverageNeedIndexes[idx]}}"
+            disabled="{{false}}"
+            data-idx="{{idx}}"
+            bindchange="onNeedIndexChange"
+            noTopBorder="{{idx === 0}}"
+          />
+        </block>
+
+        <view class="save-bar-inline" wx:if="{{isEditNeeds}}">
+          <button class="save-btn-sm" bindtap="onSaveNeeds">保存需求</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- ===== 计划 Tab ===== -->
+    <view wx:if="{{activeTab === 'plan'}}">
+      <view class="section-card">
+        <view class="section-header">
+          <text class="section-title">下一步计划</text>
+        </view>
+
+        <view wx:if="{{customerPlans.length === 0}}" class="empty-hint">
+          <text>暂无待执行计划</text>
+        </view>
+
+        <view class="plan-list" wx:else>
+          <view class="plan-item" wx:for="{{customerPlans}}" wx:key="id">
+            <view class="plan-item-info">
+              <text class="plan-date {{item.isOverdue ? 'plan-date-overdue' : ''}}">{{item.plan_date}}{{item.plan_time ? ' ' + item.plan_time : ''}}</text>
+              <text class="plan-way">{{item.visit_way}}</text>
+            </view>
+            <view class="plan-item-actions">
+              <view class="plan-act-btn plan-act-primary" data-id="{{item.id}}" bindtap="onExecutePlanFromDetail">完成记录</view>
+              <view class="plan-act-btn" data-id="{{item.id}}" bindtap="onEditPlanFromDetail">修改</view>
+              <view class="plan-act-btn plan-act-danger" data-id="{{item.id}}" bindtap="onDeletePlanFromDetail">删除</view>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
 
   </block>
+
+  <!-- 添加计划底部 sheet -->
+  <view class="plan-sheet" wx:if="{{showPlanSheet}}">
+    <view class="plan-sheet-mask" bindtap="onPlanSheetCancel"></view>
+    <view class="plan-sheet-content card">
+      <text class="plan-sheet-title">{{planSheetMode === 'edit' ? '修改拜访计划' : '添加拜访计划'}}</text>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">客户</text>
+        <text class="plan-sheet-value">{{customerName}}</text>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">日期</text>
+        <picker mode="date" value="{{planSheetDate}}" bindchange="onPlanSheetDateChange">
+          <text class="plan-sheet-value plan-sheet-picker">{{planSheetDate}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">拜访方式</text>
+        <picker mode="selector" range="{{planSheetVisitWayOptions}}" bindchange="onPlanSheetVisitWayChange">
+          <text class="plan-sheet-value plan-sheet-picker">{{planSheetVisitWay}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">计划时间</text>
+        <view class="plan-sheet-time-row">
+          <picker mode="time" value="{{planSheetTime}}" start="06:00" end="23:30" bindchange="onPlanSheetTimeChange">
+            <text class="plan-sheet-value {{planSheetTime ? '' : 'plan-sheet-placeholder'}}">{{planSheetTime || '请选择时间'}}</text>
+          </picker>
+          <view class="plan-sheet-time-clear" wx:if="{{planSheetTime}}" bindtap="onPlanSheetClearTime">
+            <text>清除</text>
+          </view>
+        </view>
+      </view>
+      <view class="plan-sheet-actions">
+        <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">
+          <text class="plan-sheet-btn-text">取消</text>
+        </view>
+        <view class="plan-sheet-btn plan-sheet-btn-confirm" bindtap="onPlanSheetConfirm">
+          <text class="plan-sheet-btn-text">{{planSheetMode === 'edit' ? '保存' : '确认添加'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 选择异议 sheet -->
+  <view class="obj-sheet" wx:if="{{showObjSheet}}">
+    <view class="obj-sheet-mask" bindtap="onObjSheetCancel"></view>
+    <view class="obj-sheet-content card">
+      <text class="obj-sheet-title">选择异议</text>
+      <scroll-view class="obj-sheet-list" scroll-y>
+        <view class="obj-sheet-item {{item.selected ? 'selected' : ''}}"
+              wx:for="{{objSheetList}}" wx:key="id"
+              data-index="{{index}}" bindtap="onObjSheetItemTap">
+          <view class="obj-sheet-check">
+            <text wx:if="{{item.selected}}">✓</text>
+          </view>
+          <view class="obj-sheet-info">
+            <text class="obj-sheet-content-text">{{item.content}}</text>
+            <view class="obj-sheet-meta">
+              <text class="obj-sheet-category">{{item.category}}</text>
+              <text class="obj-sheet-count" wx:if="{{item.count > 0}}">出现 {{item.count}} 次</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="obj-sheet-actions">
+        <view class="obj-sheet-btn-new" bindtap="onObjSheetCreateNew">
+          <text>+ 新建异议</text>
+        </view>
+        <view class="obj-sheet-btn-confirm" bindtap="onObjSheetConfirm">
+          <text>确认</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
 </view>

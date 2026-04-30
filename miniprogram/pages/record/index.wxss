@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px var(--spacing-card);
-  background: linear-gradient(135deg, var(--color-primary-light), #F0F7FF);
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-bg-page));
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
   margin-bottom: var(--spacing-section);

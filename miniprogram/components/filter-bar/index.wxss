@@ -17,8 +17,8 @@
 .filter-select {
   display: flex;
   align-items: center;
-  background: #FFFFFF;
-  border: 1rpx solid #E5E7EB;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border);
   border-radius: 10rpx;
   padding: 0 16rpx;
   height: 64rpx;
@@ -27,14 +27,14 @@
 
 .filter-label {
   font-size: 22rpx;
-  color: #9CA3AF;
+  color: var(--color-text-placeholder);
   flex-shrink: 0;
 }
 
 .filter-value {
   flex: 1;
   font-size: 26rpx;
-  color: #1A1A2E;
+  color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -45,7 +45,7 @@
   height: 0;
   border-left: 8rpx solid transparent;
   border-right: 8rpx solid transparent;
-  border-top: 10rpx solid #9CA3AF;
+  border-top: 10rpx solid var(--color-text-placeholder);
   transition: transform 0.2s;
   flex-shrink: 0;
 }
@@ -60,8 +60,8 @@
   top: 68rpx;
   left: 0;
   right: 0;
-  background: #FFFFFF;
-  border: 1rpx solid #E5E7EB;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border);
   border-radius: 10rpx;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.10);
   z-index: 999;
@@ -82,8 +82,8 @@
   justify-content: space-between;
   padding: 20rpx 20rpx;
   font-size: 26rpx;
-  color: #1A1A2E;
-  border-bottom: 1rpx solid #F3F4F6;
+  color: var(--color-text-primary);
+  border-bottom: 1rpx solid var(--color-border);
 }
 
 .dropdown-item:last-child {
@@ -91,13 +91,13 @@
 }
 
 .dropdown-item-active {
-  background: #E8F1FC;
-  color: #1A6FD4;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
   font-weight: 500;
 }
 
 .dropdown-check {
-  color: #1A6FD4;
+  color: var(--color-primary);
   font-size: 26rpx;
 }
 

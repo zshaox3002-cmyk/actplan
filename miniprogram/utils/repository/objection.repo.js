@@ -140,9 +140,11 @@ function create(data) {
  * @param {number|string} objectionId - 目标异议 ID（数字=自建，字符串=预置）
  * @param {number} customerId - 关联客户 ID
  * @param {string} note - 追加备注内容
+ * @param {Object} [data] - 扩展数据
+ * @param {string} [data.result] - 处理结果（已化解/仍在考虑/未化解）
  * @returns {number} 新 note ID
  */
-function appendNote(objectionId, customerId, note) {
+function appendNote(objectionId, customerId, note, data) {
   // 先判断是否为预置异议
   var isPreset = false;
   for (var p = 0; p < PRESET_OBJECTIONS.length; p++) {
@@ -165,6 +167,7 @@ function appendNote(objectionId, customerId, note) {
       objection_id: objectionId,
       customer_id: customerId,
       note: note,
+      result: data && data.result ? data.result : '',
       created_at: now
     });
     ctx.setTable('objection_note', notes);
@@ -283,6 +286,28 @@ function get(id) {
   return null;
 }
 
+/**
+ * 统计异议化解率和平均化解次数
+ * @param {number|string} objectionId
+ * @returns {{ total: number, resolved: number, rate: number|null, avgTimes: number|null }}
+ */
+function getResolutionRate(objectionId) {
+  var notes = storage.getTable('objection_note');
+  var relevant = notes.filter(function (n) { return n.objection_id === objectionId; });
+  var total = relevant.length;
+  if (total === 0) return { total: 0, resolved: 0, rate: null, avgTimes: null };
+
+  var resolved = 0;
+  for (var i = 0; i < relevant.length; i++) {
+    if (relevant[i].result === '已化解') resolved++;
+  }
+
+  var rate = total >= 5 ? Math.round((resolved / total) * 100) : null;
+  var avgTimes = resolved > 0 ? Math.round((total / resolved) * 10) / 10 : null;
+
+  return { total: total, resolved: resolved, rate: rate, avgTimes: avgTimes };
+}
+
 module.exports = {
   list: list,
   listByCategory: listByCategory,
@@ -292,6 +317,7 @@ module.exports = {
   listNotes: listNotes,
   remove: remove,
   incrementCount: incrementCount,
+  getResolutionRate: getResolutionRate,
   /** 获取纯预置列表（不合并用户数据） */
   getPresets: function () { return PRESET_OBJECTIONS.slice(); }
 };

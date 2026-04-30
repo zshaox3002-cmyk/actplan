@@ -274,7 +274,7 @@
 }
 
 .btn-text-white {
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-semibold);
 }
@@ -323,7 +323,7 @@
 
 .ai-prompt-copy-text {
   font-size: var(--font-size-helper);
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   font-weight: var(--font-weight-medium);
 }
 

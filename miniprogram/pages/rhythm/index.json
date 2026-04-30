@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "客户节奏",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/index"
+  }
+}

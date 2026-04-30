@@ -41,6 +41,6 @@
 
 .action-text {
   font-size: var(--font-size-body);
-  color: #FFFFFF;
+  color: var(--color-bg-card);
   font-weight: var(--font-weight-medium);
 }

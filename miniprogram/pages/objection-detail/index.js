@@ -25,7 +25,10 @@ Page({
     objection: null,
     notes: [],
     customerMap: {},
-    categoryClass: 'other'
+    categoryClass: 'other',
+    resolutionRate: null,   // null = 样本不足，0-100 = 百分比
+    resolutionTotal: 0,
+    resolutionResolved: 0
   },
 
   onLoad: function (options) {
@@ -78,11 +81,16 @@ Page({
       }
     }
 
+    var rr = objectionRepo.getResolutionRate(id);
+
     this.setData({
       objection: objection,
       notes: notes,
       customerMap: customerMap,
-      categoryClass: CATEGORY_CLASS_MAP[objection.category] || 'other'
+      categoryClass: CATEGORY_CLASS_MAP[objection.category] || 'other',
+      resolutionRate: rr.rate,
+      resolutionTotal: rr.total,
+      resolutionResolved: rr.resolved
     });
   }
 });

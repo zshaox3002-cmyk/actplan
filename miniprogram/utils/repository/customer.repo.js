@@ -44,7 +44,6 @@ function _normalizeCustomer(raw) {
  * 查询客户列表，支持筛选和搜索
  * @param {Object} [filters] - 筛选条件
  * @param {string} [filters.keyword] - 姓名关键词模糊匹配
- * @param {string} [filters.appleRank] - 苹果等级筛选（'全部'不过滤）
  * @param {string} [filters.stage] - 跟进阶段筛选（'全部'不过滤）
  * @returns {Array<Object>} 客户列表
  */
@@ -52,24 +51,13 @@ function list(filters) {
   filters = filters || {};
   var all = storage.getTable('customer');
 
-  // 先归一化再筛选，否则 stage 数字/英文与中文筛选值永远匹配不上
   var normalized = all.map(_normalizeCustomer);
 
   return normalized
     .filter(function (c) {
-      // 关键词模糊匹配
       if (filters.keyword) {
         if ((c.name || '').indexOf(filters.keyword) === -1) return false;
       }
-      // 苹果等级筛选
-      if (filters.appleRank && filters.appleRank !== '全部') {
-        // 兼容 apple_grade（value）和 apple_rank（中文标签）两种存储格式
-        var cGrade = c.apple_grade || c.apple_rank || '';
-        var GRADE_LABEL = { 'red': '红苹果', 'green': '青苹果', 'rotten': '烂苹果', 'pending': '待定' };
-        var cLabel = GRADE_LABEL[cGrade] || cGrade;
-        if (cLabel !== filters.appleRank && cGrade !== filters.appleRank) return false;
-      }
-      // 跟进阶段筛选
       if (filters.stage && filters.stage !== '全部') {
         if (c.stage !== filters.stage) return false;
       }
@@ -119,9 +107,10 @@ function create(data) {
     residence: data.residence || '',
     marital: data.marital || '',
     intimacy: data.intimacy || '',
-    apple_grade: data.apple_grade || 'pending',
     stage: data.stage || '需求沟通',
     stage_updated_at: data.stage_updated_at || null,
+    tags: data.tags || [],
+    coverage_needs: data.coverage_needs || {},
     /* DISABLED: field-removed - 暂时禁用，保留备用
     follow_date: data.follow_date || null,
     todo_task: data.todo_task || '',

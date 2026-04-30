@@ -8,6 +8,7 @@ var customerRepo = require('../../utils/repository/customer.repo');
 var planRepo = require('../../utils/repository/plan.repo');
 var constants = require('../../utils/constants');
 var toast = require('../../utils/toast');
+var dateUtil = require('../../utils/date');
 
 Page({
   data: {
@@ -21,7 +22,8 @@ Page({
     planTime: '',
     showConfirm: false,
     isEditMode: false,
-    editPlanId: null
+    editPlanId: null,
+    isCustomerPrefilled: false
   },
 
   onLoad: function (options) {
@@ -41,12 +43,22 @@ Page({
       });
       return;
     }
-    var date = options.date || '';
+    var date = options.date || dateUtil.today();
     this.setData({
       planDate: date,
       visitWayOptions: constants.VISIT_WAY_OPTIONS
     });
-    this._loadCustomers();
+
+    if (options.customer_id) {
+      this.setData({
+        selectedCustomerId: parseInt(options.customer_id),
+        selectedCustomerName: decodeURIComponent(options.customer_name || ''),
+        showConfirm: true,
+        isCustomerPrefilled: true
+      });
+    } else {
+      this._loadCustomers();
+    }
   },
 
   /**
@@ -102,7 +114,7 @@ Page({
         title: '提示',
         content: '该客户本周已有拜访计划，是否继续添加？',
         confirmText: '继续添加',
-        confirmColor: '#1A6FD4',
+        confirmColor: '#0EA5A4',
         success: function (res) {
           if (res.confirm) {
             that.setData({
@@ -137,6 +149,11 @@ Page({
   /** 清除已选时间 */
   onClearPlanTime: function () {
     this.setData({ planTime: '' });
+  },
+
+  /** 日期 picker 变化 */
+  onPlanDateChange: function (e) {
+    this.setData({ planDate: e.detail.value });
   },
 
   /** 确认添加计划 */
@@ -179,7 +196,7 @@ Page({
 
   /** 取消选择 */
   onCancelSelect: function () {
-    if (this.data.isEditMode) {
+    if (this.data.isEditMode || this.data.isCustomerPrefilled) {
       wx.navigateBack();
       return;
     }

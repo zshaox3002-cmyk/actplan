@@ -33,7 +33,7 @@ function drawDonutChart(ctx, segments, cx, cy, outerR, innerR) {
   ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
   ctx.arc(cx, cy, innerR, Math.PI * 2, 0, true);
   ctx.closePath();
-  ctx.fillStyle = '#F5F6FA';
+  ctx.fillStyle = '#F4F7FB';
   ctx.fill();
 
   // 绘制圆环扇区（带间隙）

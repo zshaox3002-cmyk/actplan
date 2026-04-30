@@ -8,22 +8,14 @@ var customerRepo = require('../../../utils/repository/customer.repo');
 var planRepo = require('../../../utils/repository/plan.repo');
 var objectionRepo = require('../../../utils/repository/objection.repo');
 
-// 苹果等级颜色映射
-var APPLE_COLOR = {
-  red: '#E74C3C',
-  green: '#27AE60',
-  rotten: '#92400E',
-  pending: '#F39C12'
-};
-
 // 跟进阶段徽章样式映射
 var STAGE_CLS = {
+  '初步认识': 'stage-gray',
   '需求沟通': 'stage-blue',
-  '方案呈现': 'stage-purple',
-  '异议处理': 'stage-orange',
-  '促成签单': 'stage-teal',
-  '已成交': 'stage-green',
-  '已拒绝': 'stage-red'
+  '方案讲解': 'stage-purple',
+  '待促成':   'stage-orange',
+  '已成交':   'stage-green',
+  '已流失':   'stage-red'
 };
 
 // 异议分类徽章颜色
@@ -41,7 +33,6 @@ Page({
     customer: {},
     relatedPlan: null,
     objections: [],
-    appleColor: '',
     stageCls: '',
     formattedTime: ''
   },
@@ -61,7 +52,6 @@ Page({
     }
 
     var customer = record.customer_id ? customerRepo.get(record.customer_id) : {};
-    var appleColor = APPLE_COLOR[(customer && customer.apple_grade) || 'pending'] || '#F39C12';
     // 记录的 stage 优先，fallback 到客户当前阶段
     var displayStage = record.stage || (customer && customer.stage) || '需求沟通';
     var stageCls = STAGE_CLS[displayStage] || 'stage-blue';
@@ -147,7 +137,6 @@ Page({
       relatedPlan: relatedPlan,
       objections: objections,
       hasObjections: objections.length > 0,
-      appleColor: appleColor,
       stageCls: stageCls,
       formattedTime: formattedTime
     });
@@ -165,7 +154,7 @@ Page({
   onViewPlan: function () {
     var plan = this.data.relatedPlan;
     if (plan) {
-      wx.navigateTo({ url: '/pages/plan/index' });
+      wx.navigateTo({ url: '/pages/customer-detail/index?id=' + plan.customer_id });
     }
   },
 

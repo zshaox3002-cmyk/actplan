@@ -3,7 +3,6 @@
   <!-- ① 顶部客户信息条 -->
   <view class="customer-bar" bindtap="onViewCustomer">
     <view class="customer-bar-left">
-      <view class="apple-dot" style="background:{{appleColor}}"></view>
       <view class="customer-info">
         <text class="customer-name">{{customer.name}}</text>
       </view>

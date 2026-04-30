@@ -1,0 +1,85 @@
+<view class="page-container">
+  <!-- 顶部摘要条 -->
+  <view class="summary-bar">
+    <view class="summary-item warming-summary" bindtap="onTabChange" data-tab="warming">
+      <text class="summary-icon">🔥</text>
+      <text class="summary-count">{{warmingList.length}}</text>
+      <text class="summary-label">升温</text>
+      <text class="summary-delta">较上周 {{warmingDelta}}</text>
+    </view>
+    <view class="summary-item cooling-summary" bindtap="onTabChange" data-tab="cooling">
+      <text class="summary-icon">❄️</text>
+      <text class="summary-count">{{coolingList.length}}</text>
+      <text class="summary-label">降温</text>
+      <text class="summary-delta">较上周 {{coolingDelta}}</text>
+    </view>
+    <view class="summary-item stuck-summary" bindtap="onTabChange" data-tab="stuck">
+      <text class="summary-icon">⏸</text>
+      <text class="summary-count">{{stuckList.length}}</text>
+      <text class="summary-label">卡住</text>
+      <text class="summary-delta">较上周 {{stuckDelta}}</text>
+    </view>
+  </view>
+
+  <!-- Tab 切换 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'warming' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="warming">升温中</view>
+    <view class="tab-item {{activeTab === 'cooling' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="cooling">降温中</view>
+    <view class="tab-item {{activeTab === 'stuck' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="stuck">卡住了</view>
+  </view>
+
+  <!-- 升温列表 -->
+  <view wx:if="{{activeTab === 'warming'}}">
+    <view wx:if="{{warmingList.length === 0}}" class="empty-wrap">
+      <empty-state text="暂无升温中的客户" />
+    </view>
+    <view wx:for="{{warmingList}}" wx:key="id" class="rhythm-card" bindtap="onCustomerTap" data-id="{{item.id}}">
+      <view class="card-header">
+        <view class="card-left-bar signal-bar-warming"></view>
+        <text class="card-name">{{item.name}}</text>
+        <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
+        <text class="card-last-visit">{{item.lastVisitLabel}}</text>
+      </view>
+      <view class="card-body">
+        <text class="card-signal-text">{{item.visitCountText}}，{{item.signalText}}</text>
+        <text wx:if="{{item.hasGrowth}}" class="growth-badge">{{item.growthRate}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 降温列表 -->
+  <view wx:if="{{activeTab === 'cooling'}}">
+    <view wx:if="{{coolingList.length === 0}}" class="empty-wrap">
+      <empty-state text="暂无降温中的客户" />
+    </view>
+    <view wx:for="{{coolingList}}" wx:key="id" class="rhythm-card" bindtap="onCustomerTap" data-id="{{item.id}}">
+      <view class="card-header">
+        <view class="card-left-bar signal-bar-cooling"></view>
+        <text class="card-name">{{item.name}}</text>
+        <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
+        <text class="card-last-visit">{{item.lastVisitLabel}}</text>
+      </view>
+      <view class="card-body">
+        <text class="card-signal-text">{{item.visitCountText}}，{{item.signalText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 卡住列表 -->
+  <view wx:if="{{activeTab === 'stuck'}}">
+    <view wx:if="{{stuckList.length === 0}}" class="empty-wrap">
+      <empty-state text="暂无卡住的客户" />
+    </view>
+    <view wx:for="{{stuckList}}" wx:key="id" class="rhythm-card" bindtap="onCustomerTap" data-id="{{item.id}}">
+      <view class="card-header">
+        <view class="card-left-bar signal-bar-stuck"></view>
+        <text class="card-name">{{item.name}}</text>
+        <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
+        <text class="card-last-visit">{{item.lastVisitLabel}}</text>
+      </view>
+      <view class="card-body">
+        <text class="card-signal-text">{{item.signalText}}</text>
+      </view>
+    </view>
+  </view>
+</view>

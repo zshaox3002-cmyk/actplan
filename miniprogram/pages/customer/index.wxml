@@ -1,18 +1,43 @@
+<!-- pages/customer/index.wxml -->
 <view class="page-container" bindtap="onPageTap">
+
   <!-- 搜索栏 -->
   <search-bar
     value="{{keyword}}"
-    placeholder="搜索客户姓名"
+    placeholder="搜索客户姓名 / 标签 / 备注"
     bind:input="onSearchInput"
     bind:clear="onSearchClear"
-  ></search-bar>
+  />
 
-  <!-- 筛选栏 -->
-  <filter-bar
-    apple-rank="{{appleRank}}"
-    stage="{{stage}}"
-    bind:change="onFilterChange"
-  ></filter-bar>
+  <!-- 优先级 + 阶段 Chip 筛选 -->
+  <scroll-view scroll-x class="chip-scroll">
+    <view class="chip-list">
+      <view class="chip-item {{priorityFilter === '全部' ? 'active' : ''}}"
+            data-val="全部" bindtap="onPriorityFilterTap">
+        <text>全部 {{customers.length}}</text>
+      </view>
+      <view class="chip-item chip-p0 {{priorityFilter === 'P0' ? 'active' : ''}}"
+            data-val="P0" bindtap="onPriorityFilterTap">
+        <text>P0 {{chipCounts.P0}}</text>
+      </view>
+      <view class="chip-item chip-p1 {{priorityFilter === 'P1' ? 'active' : ''}}"
+            data-val="P1" bindtap="onPriorityFilterTap">
+        <text>P1 {{chipCounts.P1}}</text>
+      </view>
+      <view class="chip-item chip-overdue {{priorityFilter === '逾期' ? 'active' : ''}}"
+            data-val="逾期" bindtap="onPriorityFilterTap">
+        <text>逾期 {{chipCounts.overdue}}</text>
+      </view>
+      <!-- 分隔线 -->
+      <view class="chip-divider"></view>
+      <!-- 阶段 chip -->
+      <view wx:for="{{stageChips}}" wx:key="*this"
+            class="chip-item chip-stage {{stageFilter === item ? 'active' : ''}}"
+            data-val="{{item}}" bindtap="onStageFilterTap">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </scroll-view>
 
   <!-- 加载态 -->
   <skeleton wx:if="{{pageState === 'loading'}}" rows="{{5}}" />
@@ -25,25 +50,63 @@
       customer="{{item}}"
       bind:tap="onCustomerTap"
       bind:delete="onCustomerDelete"
-    ></customer-card>
+      bind:addPlan="onAddPlan"
+      bind:addRecord="onAddRecord"
+    />
   </view>
 
   <!-- 空状态 -->
   <empty-state
     wx:elif="{{pageState === 'empty'}}"
     icon="👤"
-    text="还没有客户"
-    subText="点击右下角 + 号添加第一位客户 ↘"
+    text="暂无客户"
+    subText="点击右下角 + 添加第一位客户"
   />
 
-  <!-- 错误状态 -->
-  <empty-state
-    wx:elif="{{pageState === 'error'}}"
-    icon="⚠️"
-    text="加载失败"
-    subText="请稍后重试"
-  />
-
-  <!-- FAB 新建按钮 -->
+  <!-- FAB -->
   <fab-button bindtap="onAddCustomer" />
+
+  <!-- 添加计划底部 sheet -->
+  <view class="plan-sheet" wx:if="{{showPlanSheet}}">
+    <view class="plan-sheet-mask" bindtap="onPlanSheetCancel"></view>
+    <view class="plan-sheet-content card">
+      <text class="plan-sheet-title">添加拜访计划</text>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">客户</text>
+        <text class="plan-sheet-value">{{planSheetCustomerName}}</text>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">日期</text>
+        <picker mode="date" value="{{planSheetDate}}" bindchange="onPlanSheetDateChange">
+          <text class="plan-sheet-value plan-sheet-picker">{{planSheetDate}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">拜访方式</text>
+        <picker mode="selector" range="{{planSheetVisitWayOptions}}" bindchange="onPlanSheetVisitWayChange">
+          <text class="plan-sheet-value plan-sheet-picker">{{planSheetVisitWay}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">计划时间</text>
+        <view class="plan-sheet-time-row">
+          <picker mode="time" value="{{planSheetTime}}" start="06:00" end="23:30" bindchange="onPlanSheetTimeChange">
+            <text class="plan-sheet-value {{planSheetTime ? '' : 'plan-sheet-placeholder'}}">{{planSheetTime || '请选择时间'}}</text>
+          </picker>
+          <view class="plan-sheet-time-clear" wx:if="{{planSheetTime}}" bindtap="onPlanSheetClearTime">
+            <text>清除</text>
+          </view>
+        </view>
+      </view>
+      <view class="plan-sheet-actions">
+        <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">
+          <text class="plan-sheet-btn-text">取消</text>
+        </view>
+        <view class="plan-sheet-btn plan-sheet-btn-confirm" bindtap="onPlanSheetConfirm">
+          <text class="plan-sheet-btn-text">确认添加</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
 </view>

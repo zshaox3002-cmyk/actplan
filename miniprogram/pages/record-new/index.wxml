@@ -1,15 +1,41 @@
 <!-- pages/record-new/index.wxml -->
 <view class="page-wrap">
 
-  <!-- 只读信息区 -->
+  <!-- 顶部只读信息 -->
   <view class="readonly-section">
     <view class="readonly-row">
       <text class="readonly-label">客户</text>
       <text class="readonly-value">{{customerName}}</text>
     </view>
-    <view class="readonly-row" wx:if="{{planInfo}}">
-      <text class="readonly-label">关联计划</text>
-      <text class="readonly-value plan-value">{{planInfo}}</text>
+    <view class="readonly-row" wx:if="{{recordType === 'planned' && planDate}}">
+      <text class="readonly-label">拜访日期</text>
+      <text class="readonly-value">{{planDate}}</text>
+    </view>
+    <view class="readonly-row" wx:if="{{recordType === 'planned'}}">
+      <text class="readonly-label">拜访方式</text>
+      <text class="readonly-value">{{visitWay}}</text>
+    </view>
+    <view class="readonly-row" wx:if="{{recordType === 'planned' && planGoal}}">
+      <text class="readonly-label">原计划目标</text>
+      <text class="readonly-value plan-goal">{{planGoal}}</text>
+    </view>
+  </view>
+
+  <!-- 沟通结果（必填） -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">沟通结果</text>
+      <text class="required-mark">*</text>
+    </view>
+    <view class="result-grid">
+      <view class="result-item {{commResultKey === item.key ? 'selected' : ''}}"
+            wx:for="{{commResults}}"
+            wx:key="key"
+            data-key="{{item.key}}"
+            bindtap="onCommResultTap">
+        <text class="result-emoji">{{item.emoji}}</text>
+        <text class="result-label">{{item.label}}</text>
+      </view>
     </view>
   </view>
 
@@ -17,67 +43,145 @@
   <view class="section-card">
     <view class="field-label-row">
       <text class="field-label">沟通摘要</text>
-      <text class="required-dot">*</text>
+      <text class="required-mark">*</text>
     </view>
     <textarea class="summary-input"
               value="{{summary}}"
               bindinput="onSummaryInput"
-              placeholder="记录本次拜访的沟通内容和客户反应..."
+              placeholder="记录本次沟通内容和客户反馈..."
               maxlength="500"
               auto-height/>
   </view>
 
-  <!-- 跟进阶段（必填，复用 inline-picker） -->
-  <view class="section-card">
-    <inline-picker
-      label="跟进阶段"
-      options="{{stageOptions}}"
-      value="{{stageIndex}}"
-      bindchange="onStageChange">
-    </inline-picker>
-    <text class="field-hint">保存后将同步更新客户详情页的跟进阶段</text>
-  </view>
-
-  <!-- 下次跟进日期（选填，填写后自动创建计划） -->
+  <!-- 涉及异议（选填） -->
   <view class="section-card">
     <view class="field-label-row">
-      <text class="field-label">下次跟进日期</text>
-      <text class="field-label-sub">选填 · 填写后自动创建拜访计划</text>
-    </view>
-    <picker mode="date"
-            value="{{nextDate}}"
-            start="2026-01-01"
-            end="2030-12-31"
-            bindchange="onNextDateChange">
-      <view class="date-picker-row">
-        <text class="{{nextDate ? 'selected' : 'placeholder'}}">{{nextDate ? nextDate : nextDateDisplay}}</text>
-        <image class="chevron-icon" src="/assets/icons/chevron-down.svg"/>
-      </view>
-    </picker>
-  </view>
-
-  <!-- 新增异议（选填） -->
-  <view class="section-card">
-    <view class="field-label-row">
-      <text class="field-label">异议记录</text>
+      <text class="field-label">涉及异议</text>
       <text class="field-label-sub">选填</text>
+      <view class="add-objection-inline" bindtap="onAddObjection">
+        <text>+ 新增</text>
+      </view>
     </view>
-    <!-- 已录入的异议列表 -->
-    <view class="objection-item"
-          wx:for="{{objections}}"
-          wx:key="index">
-      <text class="obj-content">{{item.content}}</text>
-      <view class="obj-delete" data-index="{{index}}" bindtap="onDeleteObjection">×</view>
+    <view wx:if="{{objections.length > 0}}" class="objection-list">
+      <view class="objection-item" wx:for="{{objections}}" wx:key="id">
+        <view class="obj-info">
+          <text class="obj-category">{{item.category}}</text>
+          <text class="obj-content">{{item.content}}</text>
+        </view>
+        <view class="obj-resolved-check {{item.resolved ? 'resolved' : ''}}"
+              data-index="{{index}}" bindtap="onObjResolvedToggle">
+          <text class="obj-resolved-label">已化解</text>
+        </view>
+      </view>
     </view>
-    <!-- 新增异议入口 -->
-    <view class="add-objection-btn" bindtap="onAddObjection">
-      <text>+ 新增异议</text>
+    <view wx:else class="obj-empty">
+      <text class="obj-empty-text">暂无异议记录，点击右上角新增</text>
+    </view>
+  </view>
+
+  <!-- 跟进阶段 -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">跟进阶段</text>
+    </view>
+    <view class="stage-btns">
+      <view class="stage-tag stage-{{stageClassMap[item]}} {{stageIndex === index ? 'stage-tag-selected' : ''}}"
+            wx:for="{{stageOptions}}" wx:key="*this"
+            data-idx="{{index}}" bindtap="onStageTap">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 下次跟进 -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">下次跟进</text>
+      <text class="field-label-sub">选填</text>
+      <view class="add-objection-inline" bindtap="onOpenPlanSheet">
+        <text>+ 预约</text>
+      </view>
     </view>
   </view>
 
   <!-- 保存按钮 -->
   <view class="save-bar">
-    <button class="save-btn" bindtap="onSave">保存记录</button>
+    <button class="save-btn" bindtap="onSave">保存</button>
+  </view>
+
+  <!-- 预约弹窗 -->
+  <view class="plan-sheet" wx:if="{{showPlanSheet}}">
+    <view class="plan-sheet-mask" bindtap="onPlanSheetCancel"></view>
+    <view class="plan-sheet-content card">
+      <text class="plan-sheet-title">安排下次拜访</text>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">客户</text>
+        <text class="plan-sheet-value">{{customerName}}</text>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">日期</text>
+        <picker mode="date" value="{{planSheetDate}}" bindchange="onPlanSheetDateChange">
+          <text class="plan-sheet-value plan-sheet-picker">{{planSheetDate}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">拜访方式</text>
+        <picker mode="selector" range="{{planSheetVisitWayOptions}}" bindchange="onPlanSheetVisitWayChange">
+          <text class="plan-sheet-value plan-sheet-picker">{{planSheetVisitWay}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">计划时间</text>
+        <view class="plan-sheet-time-row">
+          <picker mode="time" value="{{planSheetTime}}" start="06:00" end="23:30" bindchange="onPlanSheetTimeChange">
+            <text class="plan-sheet-value {{planSheetTime ? '' : 'plan-sheet-placeholder'}}">{{planSheetTime || '请选择时间'}}</text>
+          </picker>
+          <view class="plan-sheet-time-clear" wx:if="{{planSheetTime}}" bindtap="onPlanSheetClearTime">
+            <text>清除</text>
+          </view>
+        </view>
+      </view>
+      <view class="plan-sheet-actions">
+        <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">
+          <text class="plan-sheet-btn-text">取消</text>
+        </view>
+        <view class="plan-sheet-btn plan-sheet-btn-confirm" bindtap="onPlanSheetConfirm">
+          <text class="plan-sheet-btn-text">确认添加</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 选择异议 sheet -->
+  <view class="obj-sheet" wx:if="{{showObjSheet}}">
+    <view class="obj-sheet-mask" bindtap="onObjSheetCancel"></view>
+    <view class="obj-sheet-content card">
+      <text class="obj-sheet-title">选择异议</text>
+      <scroll-view class="obj-sheet-list" scroll-y>
+        <view class="obj-sheet-item {{item.selected ? 'selected' : ''}}"
+              wx:for="{{objSheetList}}" wx:key="id"
+              data-index="{{index}}" bindtap="onObjSheetItemTap">
+          <view class="obj-sheet-check">
+            <text wx:if="{{item.selected}}">✓</text>
+          </view>
+          <view class="obj-sheet-info">
+            <text class="obj-sheet-content-text">{{item.content}}</text>
+            <view class="obj-sheet-meta">
+              <text class="obj-sheet-category">{{item.category}}</text>
+              <text class="obj-sheet-count" wx:if="{{item.count > 0}}">出现 {{item.count}} 次</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="obj-sheet-actions">
+        <view class="obj-sheet-btn-new" bindtap="onObjSheetCreateNew">
+          <text>+ 新建异议</text>
+        </view>
+        <view class="obj-sheet-btn-confirm" bindtap="onObjSheetConfirm">
+          <text>确认</text>
+        </view>
+      </view>
+    </view>
   </view>
 
 </view>
