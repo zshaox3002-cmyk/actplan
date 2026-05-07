@@ -17,27 +17,32 @@
   transition: transform 0.25s ease;
 }
 
-/* 删除按钮 */
-.delete-btn {
+/* 左滑操作区：预约 / 随手记 / 删除 */
+.swipe-actions {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
-  width: 140rpx;
-  background: var(--color-danger);
+  width: 300rpx;
+  display: flex;
+  z-index: 0;
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+  overflow: hidden;
+}
+.swipe-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0 var(--radius-card) var(--radius-card) 0;
-  z-index: 0;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #fff;
 }
-.delete-text {
-  font-size: 28rpx;
-  color: var(--color-bg-card);
-  font-weight: 600;
-}
+.swipe-btn-plan   { background: var(--color-primary); }
+.swipe-btn-record { background: var(--color-primary-dark); }
+.swipe-btn-delete { background: var(--color-danger); }
 
-/* 头部：姓名 + 阶段标签同行 */
+/* 头部：姓名 + 交情 + 阶段标签同行 */
 .card-header {
   display: flex;
   align-items: center;
@@ -48,6 +53,11 @@
   font-size: 32rpx;
   font-weight: 500;
   color: var(--color-text-primary);
+}
+.customer-intimacy {
+  font-size: 26rpx;
+  color: var(--color-text-placeholder);
+  flex-shrink: 0;
 }
 
 /* 优先级行 */
@@ -89,6 +99,7 @@
   background: transparent;
   border: 1rpx solid currentColor;
   flex-shrink: 0;
+  margin-left: auto;
 }
 .stage-tag.stage-meet    { color: var(--stage-meet-text); }
 .stage-tag.stage-comm    { color: var(--stage-comm-text); }
@@ -97,22 +108,7 @@
 .stage-tag.stage-deal    { color: var(--stage-deal-text); }
 .stage-tag.stage-lost    { color: var(--stage-lost-text); }
 
-/* 客户属性标签 */
-.custom-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8rpx;
-  margin-bottom: 12rpx;
-}
-.custom-tag {
-  padding: 4rpx 14rpx;
-  background: var(--chip-inactive-bg);
-  color: var(--chip-inactive-text);
-  border-radius: var(--radius-custom-tag);
-  font-size: 22rpx;
-}
-
-/* meta 信息：垂直两行 */
+/* meta 信息 */
 .card-meta {
   display: flex;
   flex-direction: column;
@@ -145,27 +141,4 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 16rpx;
-}
-
-/* 底部操作：统一次级样式 */
-.card-actions {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 16rpx;
-}
-.action-btn {
-  flex: 1;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--btn-secondary-bg);
-  color: var(--btn-secondary-text);
-  border-radius: var(--radius-button);
-  font-size: 26rpx;
-}
-.action-btn:active {
-  background: var(--color-primary-light);
-  color: var(--color-primary-dark);
 }

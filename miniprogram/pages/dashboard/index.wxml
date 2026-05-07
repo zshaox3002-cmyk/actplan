@@ -1,4 +1,5 @@
 <!-- pages/dashboard/index.wxml -->
+<van-toast id="van-toast" />
 <view class="page-container">
 
   <!-- 周期选择栏 -->
@@ -35,6 +36,7 @@
   <!-- 问候语 Hero 区域 -->
   <view class="hero-bar">
     <text class="hero-greeting">{{greetingPrefix}}</text>
+    <text class="hero-subtext{{greetingWarn ? ' hero-subtext--warn' : ''}}">{{greetingSubtext}}</text>
   </view>
 
   <!-- 逾期警示 Banner -->
@@ -49,12 +51,8 @@
     <text class="empty-title">开始管理你的客户</text>
     <text class="empty-desc">添加第一位客户后，这里将展示今日拜访和跟进提醒</text>
     <view class="empty-actions">
-      <view class="empty-btn-primary" bindtap="onGoAddCustomer">
-        <text>+ 添加第一位客户</text>
-      </view>
-      <view class="empty-btn-secondary" bindtap="onGoAddPlan">
-        <text>或先创建拜访计划</text>
-      </view>
+      <van-button type="primary" block bindtap="onGoAddCustomer">+ 添加第一位客户</van-button>
+      <van-button type="default" plain bindtap="onGoAddPlan">或先创建拜访计划</van-button>
     </view>
   </view>
 
@@ -70,50 +68,42 @@
       <text class="today-empty-text">今天没有安排拜访</text>
     </view>
 
-    <view class="today-list" wx:else>
-      <view class="today-item" wx:for="{{todayPlans}}" wx:key="id">
-        <view class="today-item-left">
+    <van-cell-group custom-class="today-cell-group" wx:else>
+      <van-cell wx:for="{{todayPlans}}" wx:key="id" use-label-slot border="{{false}}">
+        <view slot="icon" class="today-time-slot">
           <text class="today-time" wx:if="{{item.plan_time}}">{{item.plan_time}}</text>
           <text class="today-time today-time-empty" wx:else>待定</text>
         </view>
-        <view class="today-item-main">
-          <text class="today-customer">{{item.customerName}}</text>
-          <text class="today-meta">{{item.visit_way || '面对面'}} · {{item.customerStage}}</text>
-        </view>
-        <view class="today-exec-btn" catchtap="onExecutePlan" data-id="{{item.id}}">
-          <text>执行</text>
-        </view>
-      </view>
-    </view>
+        <view slot="title" class="today-cell-title">{{item.customerName}}</view>
+        <view slot="label" class="today-cell-label">{{item.visit_way || '面对面'}} · {{item.customerStage}}</view>
+        <van-button slot="right-icon" type="primary" size="small" catchtap="onExecutePlan" data-id="{{item.id}}">执行</van-button>
+      </van-cell>
+    </van-cell-group>
 
     <!-- 待跟进 Top -->
     <view id="follow-section" class="section-title">
       <text>待跟进</text>
-      <view class="section-link" bindtap="onGoPlanList">
-        <text>全部 ›</text>
-      </view>
     </view>
 
-    <view class="follow-list">
-      <view class="follow-item" wx:for="{{pendingFollowUp}}" wx:key="id" bindtap="onFollowUpTap" data-id="{{item.id}}">
-        <view class="follow-left">
-          <view class="follow-priority priority-{{item.priorityLevel}}">
-            <text>{{item.priorityLevel}}</text>
-          </view>
+    <van-cell-group custom-class="follow-cell-group">
+      <van-cell wx:for="{{pendingFollowUp}}" wx:key="id" use-label-slot bindtap="onFollowUpTap" data-id="{{item.id}}" border="{{false}}">
+        <view slot="icon" class="follow-priority priority-{{item.priorityLevel}}">
+          <text>{{item.priorityLevel}}</text>
         </view>
-        <view class="follow-main">
-          <view class="follow-name-row">
-            <text class="follow-name">{{item.name}}</text>
-            <text class="follow-stage stage-{{item.stageClass}}">{{item.stage}}</text>
-          </view>
+        <view slot="title" class="follow-name-row">
+          <text class="follow-name">{{item.name}}</text>
+          <text class="follow-stage stage-{{item.stageClass}}">{{item.stage}}</text>
+        </view>
+        <view slot="label" class="follow-label-col">
+          <text class="follow-priority-label">{{item.priorityLabel}}</text>
           <view class="follow-next-row">
             <text wx:if="{{item.isOverdue}}" class="overdue-icon">⏰</text>
             <text class="follow-next {{item.isOverdue ? 'overdue' : ''}}">{{item.nextPlanText}}</text>
           </view>
         </view>
-        <text class="follow-arrow">›</text>
-      </view>
-    </view>
+        <van-icon slot="right-icon" name="arrow" color="var(--color-text-placeholder)" />
+      </van-cell>
+    </van-cell-group>
 
     <!-- 本周进展 -->
     <view class="section-title">

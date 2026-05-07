@@ -1,0 +1,15 @@
+{
+  "name": "actplan",
+  "version": "1.0.0",
+  "description": "面向保险代理人的日常活动管理工具，微信小程序原生开发，零后端依赖，数据全部存储在微信本地 Storage。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vant/weapp": "^1.11.7"
+  }
+}

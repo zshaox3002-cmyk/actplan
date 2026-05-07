@@ -39,6 +39,45 @@
     </view>
   </view>
 
+  <!-- 成交信息子区块（commResultKey='deal' 时展开） -->
+  <view class="section-card deal-block" wx:if="{{showDealBlock}}">
+    <view class="field-label-row">
+      <text class="field-label">成交信息</text>
+      <text class="required-mark">*</text>
+    </view>
+
+    <!-- 险种多选 -->
+    <view class="deal-field-row">
+      <text class="deal-field-label">成交险种</text>
+      <view class="deal-product-chips">
+        <view class="deal-product-chip {{dealProductsMap[item] ? 'selected' : ''}}"
+              wx:for="{{productTypeOptions}}"
+              wx:key="*this"
+              data-type="{{item}}"
+              bindtap="onDealProductToggle">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 每个已选险种对应产品名 + 保费 -->
+    <view wx:if="{{dealProducts.length > 0}}" class="deal-premiums">
+      <view class="deal-premium-row" wx:for="{{dealProducts}}" wx:key="*this">
+        <input class="deal-product-name-input"
+               value="{{dealProductNames[item]}}"
+               data-type="{{item}}"
+               bindinput="onDealProductNameInput"
+               placeholder="产品名称（选填）"/>
+        <input class="deal-premium-input"
+               type="digit"
+               value="{{dealPremiums[item]}}"
+               data-type="{{item}}"
+               bindinput="onDealPremiumInput"
+               placeholder="年缴保费（元）"/>
+      </view>
+    </view>
+  </view>
+
   <!-- 沟通摘要（必填） -->
   <view class="section-card">
     <view class="field-label-row">

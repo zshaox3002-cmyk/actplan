@@ -134,6 +134,7 @@ var STAGE_CLASS_MAP = {
 | 10 | **小程序无 `window`/`document`/`XMLHttpRequest`** | 浏览器端代码无法直接复用 | 使用 `wx.request` 替代 XHR，Canvas 2D API 绘图 |
 | 11 | **`setData` 深拷贝数据，丢弃 `_` 前缀属性** | `this.setData({ _flag: true })` 后 `this.data._flag` 为 `undefined`；嵌套对象中的 `_` 前缀属性同样被剥离 | 运行时标记（如"是否刚创建"）**禁止放入 `data`**，改用页面实例属性（`this._flag = true`，不经过 `setData`）|
 | 12 | **EventChannel 传对象时，嵌套的 `_` 前缀属性也会被序列化剥离** | 跨页通信传 `{ id: 1, _justCreated: true }` → 接收方拿到 `{ id: 1 }` | 跨页传递运行时标记用**独立字段**（如 `{ items, justCreatedIds }`），不要嵌在对象属性里 |
+| 13 | **`onLoad` options 参数均为字符串，id=0 经 `parseInt` 后是 falsy** | `if (id)` 当 id=0 时跳过加载逻辑，页面退化为空白/新建状态 | 判断 id 是否存在用 `id !== null`，不用 `if (id)`；解析时用 `options.id !== undefined && options.id !== ''` 而非 `options.id ?` |
 
 ---
 

@@ -136,7 +136,7 @@
 /* ---- Tab 导航 ---- */
 .tab-nav {
   display: flex;
-  background: var(--color-bg-card);
+  background: var(--color-tab-bg);
   margin: 16rpx 24rpx 0;
   border-radius: var(--radius-card);
   padding: 8rpx;
@@ -150,12 +150,13 @@
   justify-content: center;
   border-radius: var(--radius-input);
   font-size: 26rpx;
-  color: var(--color-text-secondary);
+  color: var(--color-tab-inactive-text);
 }
 .tab-item.active {
-  background: var(--color-primary);
-  color: var(--color-bg-card);
+  background: var(--color-tab-active-bg);
+  color: var(--color-tab-active-text);
   font-weight: 500;
+  box-shadow: var(--shadow-tab-active);
 }
 
 /* ---- 通用 section 卡片 ---- */
@@ -687,4 +688,128 @@
   font-size: var(--font-size-body);
   color: var(--color-bg-card);
   font-weight: var(--font-weight-semibold);
+}
+
+/* ---- 保单列表 ---- */
+.policy-list { padding: 4rpx 0; }
+.policy-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.policy-item:last-child { border-bottom: none; }
+.policy-item-main { flex: 1; }
+.policy-item-header { display: flex; align-items: center; gap: 12rpx; margin-bottom: 6rpx; }
+.policy-product-name {
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+}
+.policy-item-sub { margin-bottom: 8rpx; }
+.policy-type-label {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+}
+.policy-source-tag {
+  font-size: 20rpx;
+  line-height: 1;
+  padding: 5rpx 10rpx;
+  border-radius: var(--radius-custom-tag);
+  flex-shrink: 0;
+}
+.source-self { background: var(--color-primary-light); color: var(--color-primary); }
+.source-external { background: var(--color-secondary-light); color: var(--color-secondary); }
+.policy-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8rpx; }
+.policy-meta-item { font-size: var(--font-size-helper); color: var(--color-text-placeholder); }
+.policy-meta-sep { font-size: 20rpx; color: var(--color-neutral); }
+.policy-action-btn {
+  padding: 8rpx 16rpx;
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+  letter-spacing: 2rpx;
+}
+
+/* ---- 保单价值数据网格 ---- */
+.policy-value-grid {
+  padding: 24rpx 0 20rpx;
+}
+.policy-value-grid .grid-cell {
+  flex: 1;
+  width: auto;
+  text-align: center;
+}
+.policy-value-grid .grid-cell + .grid-cell {
+  border-left: 1rpx solid var(--color-border);
+}
+.policy-value-grid .grid-label {
+  font-size: var(--font-size-data-label);
+  color: var(--color-text-placeholder);
+  margin-bottom: 10rpx;
+}
+.pv-num-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4rpx;
+}
+.pv-num {
+  font-size: var(--font-size-data-card);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent);
+}
+.pv-unit {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  font-weight: 400;
+}
+
+/* ---- 保障状态 ---- */
+.section-hint { font-size: var(--font-size-helper); color: var(--color-text-placeholder); }
+.coverage-status-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding: 20rpx 0 12rpx;
+}
+.coverage-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  border-radius: var(--radius-input);
+  min-width: 96rpx;
+  border: 1rpx solid transparent;
+}
+.coverage-chip-configured { background: var(--color-success-light);  border-color: rgba(90,138,106,0.25); }
+.coverage-chip-gap        { background: var(--color-warning-light);  border-color: rgba(184,149,106,0.25); }
+.coverage-chip-none       { background: var(--color-bg-muted);       border-color: var(--color-border); }
+.coverage-chip-unknown    { background: var(--color-primary-light);  border-color: rgba(59,82,104,0.2); }
+.coverage-chip-disabled { opacity: 0.65; }
+.coverage-chip-key {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  margin-bottom: 6rpx;
+}
+.coverage-chip-val {
+  font-size: var(--font-size-helper);
+  font-weight: var(--font-weight-semibold);
+}
+.coverage-chip-configured .coverage-chip-val { color: var(--color-success); }
+.coverage-chip-gap .coverage-chip-val { color: var(--color-warning); }
+.coverage-chip-none .coverage-chip-val { color: var(--color-text-placeholder); font-weight: 400; }
+.coverage-chip-unknown .coverage-chip-val { color: var(--color-primary); }
+
+/* ---- 历史补录提示 ---- */
+.backfill-tip {
+  background: var(--color-warning-light);
+  border-radius: var(--radius-badge);
+  padding: 12rpx 16rpx;
+  margin-bottom: 12rpx;
+  font-size: var(--font-size-helper);
+  color: var(--color-warning);
 }

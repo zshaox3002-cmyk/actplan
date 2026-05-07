@@ -40,7 +40,7 @@ function _key(name) {
 function init() {
   if (_ready) return;
 
-  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log'];
+  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'segment'];
 
   _tables = {};
 
@@ -49,13 +49,21 @@ function init() {
   if (!meta) {
     meta = {
       nextId: {},
-      version: 1
+      version: 1,
+      segment_index: {},
+      derived_cache: {}
     };
     // 初始化各表 id 计数器
     for (var i = 0; i < tableNames.length; i++) {
       meta.nextId[tableNames[i]] = 0;
     }
     wx.setStorageSync(_key('meta'), meta);
+  } else {
+    // 补齐旧 meta 缺失的字段
+    if (!meta.segment_index) meta.segment_index = {};
+    if (!meta.derived_cache) meta.derived_cache = {};
+    if (!meta.nextId.policy) meta.nextId.policy = 0;
+    if (!meta.nextId.segment) meta.nextId.segment = 0;
   }
   _tables._meta = meta;
 
@@ -74,6 +82,9 @@ function init() {
   _ready = true;
   _readyResolve();
   console.log('[Storage] Ready ✓');
+
+  // 数据迁移（仅在版本号低于目标版本时执行）
+  _migrate();
 }
 
 /**
@@ -170,6 +181,121 @@ function onCapacityWarning(callback) {
 
 /** 容量预警回调 */
 var _onCapacityWarning = null;
+
+/**
+ * v1.0 → v1.1 数据迁移
+ * 仅当 db_meta.version < 2 时执行，执行后写入 version=2
+ * @private
+ */
+function _migrate() {
+  var meta = _tables._meta;
+  if ((meta.version || 1) >= 2) return;
+
+  console.log('[Storage] 执行 v1.1 数据迁移...');
+
+  // 1. customer 表：补齐新字段，迁移 coverage_needs → coverage_status
+  var customers = _tables.customer;
+  var COVERAGE_TYPES = ['重疾', '医疗', '教育金', '养老', '意外', '寿险'];
+  var NEEDS_TO_STATUS = {
+    '关注中': 'gap',
+    '有兴趣': 'gap',
+    '待了解': 'gap',
+    '暂不考虑': 'none'
+  };
+
+  for (var i = 0; i < customers.length; i++) {
+    var c = customers[i];
+    if (c.is_hnw === undefined) c.is_hnw = false;
+    if (c.referral_count === undefined) c.referral_count = 0;
+    if (c.birthday === undefined) c.birthday = null;
+    if (c.policy_expire_date === undefined) c.policy_expire_date = null;
+
+    if (!c.coverage_status) {
+      var status = {};
+      for (var k = 0; k < COVERAGE_TYPES.length; k++) {
+        var type = COVERAGE_TYPES[k];
+        var oldVal = c.coverage_needs && c.coverage_needs[type];
+        status[type] = NEEDS_TO_STATUS[oldVal] || 'unknown';
+      }
+      c.coverage_status = status;
+    }
+  }
+  wx.setStorageSync(_key('customer'), customers);
+
+  // 2. db_segment 初始化：写入 3 条系统预设视图
+  var segments = _tables.segment;
+  if (segments.length === 0) {
+    var now = Date.now();
+    var presets = [
+      {
+        id: meta.nextId.segment++,
+        name: '沉睡金子',
+        color: null,
+        is_system: true,
+        rules: {
+          version: 1,
+          match: 'AND',
+          rules: [
+            {
+              match: 'OR',
+              rules: [
+                { field: 'total_premium', op: 'gte', value: 50000 },
+                { field: 'policy_count', op: 'gte', value: 2 }
+              ]
+            },
+            { field: 'days_since_last_visit', op: 'gte', value: 60 },
+            { field: 'stage', op: 'neq', value: '已流失' }
+          ]
+        },
+        sort: { field: 'total_premium', order: 'desc' },
+        created_at: now,
+        updated_at: now
+      },
+      {
+        id: meta.nextId.segment++,
+        name: '重要客户',
+        color: null,
+        is_system: true,
+        rules: {
+          version: 1,
+          match: 'OR',
+          rules: [
+            { field: 'is_hnw', op: 'eq', value: true },
+            { field: 'intimacy', op: 'gte', value: 4 },
+            { field: 'total_premium', op: 'gte', value: 50000 }
+          ]
+        },
+        sort: { field: 'total_premium', order: 'desc' },
+        created_at: now,
+        updated_at: now
+      },
+      {
+        id: meta.nextId.segment++,
+        name: '高价值缺口',
+        color: null,
+        is_system: true,
+        rules: {
+          version: 1,
+          match: 'AND',
+          rules: [
+            { field: 'coverage_status_any', op: 'eq', value: 'gap' },
+            { field: 'policy_count', op: 'gte', value: 2 }
+          ]
+        },
+        sort: { field: 'total_premium', order: 'desc' },
+        created_at: now,
+        updated_at: now
+      }
+    ];
+    _tables.segment = presets;
+    wx.setStorageSync(_key('segment'), presets);
+  }
+
+  // 3. 更新版本号
+  meta.version = 2;
+  wx.setStorageSync(_key('meta'), meta);
+  console.log('[Storage] v1.1 迁移完成 ✓');
+}
 
 /**
  * 获取 meta 数据（直接引用，不深拷贝）

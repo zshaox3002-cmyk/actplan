@@ -1,14 +1,16 @@
 /**
  * customer-detail/index.js — 客户跟进工作台
  *
- * 5 Tab：画像 / 沟通 / 异议 / 需求 / 计划
- * 顶部卡片：优先级标签、阶段标签、自定义标签、+计划/+记录
+ * v1.1：5 Tab → 4 Tab（下线"需求 Tab"，合并入画像 Tab 的"保障状态"区块）
+ * 画像 Tab 新增：保单价值组、保单区块、保障状态组、扩展字段组
  */
 
 var customerRepo = require('../../utils/repository/customer.repo');
+var policyRepo = require('../../utils/repository/policy.repo');
 var recordRepo = require('../../utils/repository/record.repo');
 var planRepo = require('../../utils/repository/plan.repo');
 var objectionRepo = require('../../utils/repository/objection.repo');
+var logRepo = require('../../utils/repository/log.repo');
 var storage = require('../../utils/storage');
 var priority = require('../../utils/priority');
 var toast = require('../../utils/toast');
@@ -26,22 +28,6 @@ var STAGE_CLASS_MAP = {
   '已流失':   'lost'
 };
 
-var NEED_VAL_CLASS = {
-  '关注中':   'need-val need-val-high',
-  '有兴趣':   'need-val need-val-mid',
-  '待了解':   'need-val need-val-low',
-  '暂不考虑': 'need-val need-val-none'
-};
-
-/** 根据需求状态返回对应颜色 class */
-function getNeedValClass(val) {
-  return NEED_VAL_CLASS[val] || 'need-val need-val-low';
-}
-
-/** 计算 coverageNeedClasses 数组 */
-function buildNeedClasses(keys, needs) {
-  return keys.map(function (k) { return getNeedValClass(needs[k]); });
-}
 
 function findIndex(options, value) {
   if (value == null) return -1;
@@ -51,6 +37,16 @@ function findIndex(options, value) {
 function getValue(options, index) {
   return index >= 0 ? options[index] : null;
 }
+
+/** 金额格式化：>= 10000 转万，保留一位小数（末尾 .0 省略） */
+function fmtWan(n) {
+  if (n >= 10000) {
+    var wan = n / 10000;
+    return (wan % 1 === 0 ? wan.toString() : wan.toFixed(1).replace(/\.0$/, ''));
+  }
+  return n.toString();
+}
+function fmtWanUnit(n) { return n >= 10000 ? '万元' : '元'; }
 
 Page({
   data: {
@@ -69,7 +65,7 @@ Page({
     nextPlanText: '',
 
     // Tab 切换
-    activeTab: 'profile', // profile / timeline / objection / needs / plan
+    activeTab: 'profile', // profile / policy / timeline / objection / plan
 
     // 画像 Tab — 编辑态
     isEditProfile: false,
@@ -117,13 +113,22 @@ Page({
     showObjSheet: false,
     objSheetList: [],
 
-    // 需求 Tab — 编辑态
-    isEditNeeds: false,
-    coverageNeeds: {},    // { 重疾: '关注中', 医疗: '待了解', ... }
-    coverageNeedOptions: ['关注中', '有兴趣', '待了解', '暂不考虑'],
-    coverageNeedKeys: ['重疾', '医疗', '教育金', '养老', '意外', '寿险'],
-    coverageNeedIndexes: [],  // 编辑态各字段选中索引
-    coverageNeedClasses: [],  // 非编辑态各字段颜色 class
+    // 画像 Tab — 保单与保障状态（v1.1）
+    policies: [],
+    derived: { policy_count: 0, total_premium: 0, avg_premium: 0, first_policy_date: '' },
+    coverageStatusList: [],
+    isHnw: false,
+    referralCount: 0,
+    birthday: null,
+    policyExpireDate: null,
+    showHistoryBackfillTip: false,
+    historyDealCount: 0,
+
+    // 扩展信息编辑态
+    isEditExtended: false,
+    hnwOptions: ['是', '否'],
+    hnwIndex: 1,
+    extForm: { referral_count: 0, birthday: '', policy_expire_date: '' },
 
     // 计划 Tab
     customerPlans: [],
@@ -164,7 +169,7 @@ Page({
   },
 
   _loadDetail: function (id) {
-    var customer = customerRepo.get(id);
+    var customer = customerRepo.getCustomerWithDerived(id);
 
     if (!customer) {
       toast.fail('客户不存在');
@@ -246,6 +251,34 @@ Page({
       return Object.assign({}, p, { isOverdue: p.plan_date < ts });
     });
 
+    // 保单列表
+    var rawPolicies = policyRepo.list(id);
+    var policies = rawPolicies.map(function (p) {
+      return {
+        id: p.id,
+        productType: p.product_type,
+        productName: p.product_name || '',
+        premium: p.premium,
+        effectiveDate: p.effective_date || '',
+        expireDate: p.expire_date || '',
+        source: p.source,
+        isSelf: p.source === 'self'
+      };
+    });
+
+    // 保障状态列表
+    var COVERAGE_KEYS = ['重疾', '医疗', '教育金', '养老', '意外', '寿险'];
+    var coverageStatus = customer.coverage_status || {};
+    var coverageStatusList = COVERAGE_KEYS.map(function (k) {
+      return { key: k, value: coverageStatus[k] || 'unknown' };
+    });
+
+    // 历史成交补录提示
+    var historyDealCount = records.filter(function (r) {
+      return r.is_deal === '签单成交' && (!r.deal_products || r.deal_products.length === 0);
+    }).length;
+    var showHistoryBackfillTip = historyDealCount > 0 && policies.length === 0;
+
     var initData = {
       loading: false,
       isNew: false,
@@ -291,11 +324,31 @@ Page({
       timelineExpanded: false,
       customerObjections: customerObjections,
       customerPlans: customerPlans,
-      coverageNeeds: customer.coverage_needs || {},
-      coverageNeedClasses: buildNeedClasses(
-        ['重疾', '医疗', '教育金', '养老', '意外', '寿险'],
-        customer.coverage_needs || {}
-      )
+      policies: policies,
+      derived: {
+        policy_count: customer.policy_count || 0,
+        total_premium: customer.total_premium || 0,
+        avg_premium: customer.avg_premium || 0,
+        first_policy_date: customer.first_policy_date || '',
+        total_premium_display: fmtWan(customer.total_premium || 0),
+        total_premium_unit: fmtWanUnit(customer.total_premium || 0),
+        avg_premium_display: fmtWan(customer.avg_premium || 0),
+        avg_premium_unit: fmtWanUnit(customer.avg_premium || 0)
+      },
+      coverageStatusList: coverageStatusList,
+      isHnw: customer.is_hnw || false,
+      referralCount: customer.referral_count || 0,
+      birthday: customer.birthday || null,
+      policyExpireDate: customer.policy_expire_date || null,
+      showHistoryBackfillTip: showHistoryBackfillTip,
+      historyDealCount: historyDealCount,
+      isEditExtended: false,
+      hnwIndex: customer.is_hnw ? 0 : 1,
+      extForm: {
+        referral_count: customer.referral_count || 0,
+        birthday: customer.birthday || '',
+        policy_expire_date: customer.policy_expire_date || ''
+      }
     };
 
     this.setData(initData);
@@ -508,49 +561,6 @@ Page({
     }
   },
 
-  // ---- 需求 Tab ----
-
-  onEditNeedsTap: function () {
-    var keys = this.data.coverageNeedKeys;
-    var opts = this.data.coverageNeedOptions;
-    var needs = this.data.coverageNeeds;
-    var defaultIdx = opts.indexOf('待了解');
-    var indexes = keys.map(function (k) {
-      var idx = opts.indexOf(needs[k]);
-      return idx >= 0 ? idx : defaultIdx;
-    });
-    this.setData({ isEditNeeds: true, coverageNeedIndexes: indexes });
-  },
-
-  onNeedIndexChange: function (e) {
-    var fieldIdx = parseInt(e.currentTarget.dataset.idx);
-    var selectedIdx = e.detail.value;
-    var indexes = this.data.coverageNeedIndexes.slice();
-    indexes[fieldIdx] = selectedIdx;
-    this.setData({ coverageNeedIndexes: indexes });
-  },
-
-  onSaveNeeds: function () {
-    var keys = this.data.coverageNeedKeys;
-    var opts = this.data.coverageNeedOptions;
-    var indexes = this.data.coverageNeedIndexes;
-    var coverageNeeds = {};
-    keys.forEach(function (k, i) {
-      coverageNeeds[k] = opts[indexes[i]] || '待了解';
-    });
-    try {
-      customerRepo.update(this.data.id, { coverage_needs: coverageNeeds });
-      this.setData({
-        isEditNeeds: false,
-        coverageNeeds: coverageNeeds,
-        coverageNeedClasses: buildNeedClasses(this.data.coverageNeedKeys, coverageNeeds)
-      });
-      toast.success('需求已保存');
-    } catch (e) {
-      toast.fail('保存失败：' + e.message);
-    }
-  },
-
   // ---- 沟通 Tab ----
 
   /** 展开全部沟通记录 */
@@ -673,6 +683,127 @@ Page({
         }
       }
     });
+  },
+
+  // ---- 画像 Tab — 保单与保障状态 ----
+
+  /** 跳转 policy-edit 新建保单 */
+  onAddPolicy: function () {
+    wx.navigateTo({ url: '/pages/policy-edit/index?customer_id=' + this.data.id });
+  },
+
+  /** 保单卡片操作菜单（编辑/删除） */
+  onPolicyAction: function (e) {
+    var policyId = parseInt(e.currentTarget.dataset.id);
+    var isSelf = e.currentTarget.dataset.isSelf === 'true';
+    var self = this;
+    wx.showActionSheet({
+      itemList: ['编辑', '删除'],
+      success: function (res) {
+        if (res.tapIndex === 0) {
+          wx.navigateTo({
+            url: '/pages/policy-edit/index?customer_id=' + self.data.id + '&policy_id=' + policyId
+          });
+        } else if (res.tapIndex === 1) {
+          self._deletePolicy(policyId, isSelf);
+        }
+      }
+    });
+  },
+
+  /** 删除保单，self 保单需二次确认，删后回滚 coverage_status */
+  _deletePolicy: function (policyId, isSelf) {
+    var self = this;
+    var doDelete = function () {
+      var result = policyRepo.remove(policyId);
+      if (!result.success) return;
+      var deletedType = result.deletedPolicy.product_type;
+      var remaining = policyRepo.list(self.data.id);
+      var hasOtherOfType = remaining.some(function (p) { return p.product_type === deletedType; });
+      if (!hasOtherOfType) {
+        var statusRollback = {};
+        statusRollback[deletedType] = 'unknown';
+        customerRepo.update(self.data.id, { coverage_status: statusRollback, _forceStatus: true });
+      }
+      self._loadDetail(self.data.id);
+      toast.success('已删除');
+    };
+    wx.showModal({
+      title: '确认删除',
+      content: isSelf ? '这是自成交保单，删除后无法恢复。' : '删除后无法恢复。',
+      confirmColor: '#EF4444',
+      success: function (res) { if (res.confirm) doDelete(); }
+    });
+  },
+
+  /** 保障状态 Chip 点击：configured 不可点，其余循环 unknown→gap→none→unknown */
+  onCoverageStatusChange: function (e) {
+    var key = e.currentTarget.dataset.key;
+    var list = this.data.coverageStatusList;
+    var current = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].key === key) { current = list[i]; break; }
+    }
+    if (!current || current.value === 'configured') return;
+    var cycle = { unknown: 'gap', gap: 'none', none: 'unknown' };
+    var newVal = cycle[current.value] || 'unknown';
+    var statusUpdate = {};
+    statusUpdate[key] = newVal;
+    try {
+      customerRepo.update(this.data.id, { coverage_status: statusUpdate });
+      var newList = list.map(function (it) {
+        return it.key === key ? { key: it.key, value: newVal } : it;
+      });
+      this.setData({ coverageStatusList: newList });
+    } catch (err) {
+      toast.fail('更新失败');
+    }
+  },
+
+  // ---- 扩展信息编辑 ----
+
+  onEditExtendedTap: function() {
+    this.setData({ isEditExtended: true });
+  },
+
+  onHnwChange: function(e) {
+    this.setData({ hnwIndex: e.detail.value });
+  },
+
+  onExtReferralInput: function(e) {
+    this.setData({ 'extForm.referral_count': e.detail.value });
+  },
+
+  onExtBirthdayChange: function(e) {
+    this.setData({ 'extForm.birthday': e.detail.value });
+  },
+
+  onExtPolicyExpireDateChange: function(e) {
+    this.setData({ 'extForm.policy_expire_date': e.detail.value });
+  },
+
+  onSaveExtended: function() {
+    var d = this.data;
+    var isHnw = d.hnwOptions[d.hnwIndex] === '是';
+    var referralCount = parseInt(d.extForm.referral_count) || 0;
+    try {
+      customerRepo.update(d.id, {
+        is_hnw: isHnw,
+        referral_count: referralCount,
+        birthday: d.extForm.birthday || null,
+        policy_expire_date: d.extForm.policy_expire_date || null
+      });
+      this.setData({
+        isEditExtended: false,
+        isHnw: isHnw,
+        referralCount: referralCount,
+        birthday: d.extForm.birthday || null,
+        policyExpireDate: d.extForm.policy_expire_date || null
+      });
+      toast.success('保存成功');
+    } catch(err) {
+      toast.fail('保存失败：' + err.message);
+    }
   },
 
   // ---- 删除客户 ----

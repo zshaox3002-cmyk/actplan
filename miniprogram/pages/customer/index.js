@@ -1,30 +1,34 @@
 /**
  * customer/index.js — 客户跟进池
- * 按 P0-P3 优先级排序，支持优先级/阶段筛选，卡片含 +计划/+记录 快捷操作
+ * v1.1：视图切换器替换原优先级/阶段 Chip 筛选区
+ * 选中"全部"时行为与 v1.0 完全一致（P0–P3 排序）
  */
 
 var customerRepo = require('../../utils/repository/customer.repo');
 var planRepo = require('../../utils/repository/plan.repo');
 var recordRepo = require('../../utils/repository/record.repo');
+var policyRepo = require('../../utils/repository/policy.repo');
+var segmentRepo = require('../../utils/repository/segment.repo');
 var priority = require('../../utils/priority');
+var segment = require('../../utils/segment');
 var storage = require('../../utils/storage');
 var toast = require('../../utils/toast');
 var dateUtil = require('../../utils/date');
 var constants = require('../../utils/constants');
 
 var STAGE_OPTIONS = ['全部', '初步认识', '需求沟通', '方案讲解', '待促成', '已成交', '已流失'];
-var STAGE_CHIPS = ['需求沟通', '方案讲解', '待促成', '已成交'];
 
 Page({
   data: {
     pageState: 'loading',
     customers: [],
     keyword: '',
-    priorityFilter: '全部',
-    stageFilter: '全部',
-    stageOptions: STAGE_OPTIONS,
-    stageChips: STAGE_CHIPS,
-    chipCounts: { P0: 0, P1: 0, P2: 0, overdue: 0 },
+
+    // 视图切换器（v1.1）
+    segments: [],           // [{ id, name, color, is_system }, ...]，首位为硬编码"全部"
+    activeSegmentId: null,  // null = 全部
+    segmentCounts: {},      // { [segmentId]: count }
+    addSegmentDisabled: false,
 
     // 添加计划底部 sheet
     showPlanSheet: false,
@@ -35,6 +39,9 @@ Page({
     planSheetVisitWay: '面对面',
     planSheetVisitWayOptions: []
   },
+
+  /** 缓存富化后的全量客户列表，用于视图切换时快速过滤 */
+  _enrichedAll: null,
 
   onLoad: function () {
     this._safeLoad();
@@ -59,14 +66,16 @@ Page({
       var allPlans = planRepo.listAll();
       var allRecords = recordRepo.list();
 
+      // 批量获取派生字段（一次读取 db_policy，避免 N 次循环）
+      var derivedMap = policyRepo.getDerivedAll();
+
       var today = new Date();
       var todayStr = today.getFullYear() + '-' +
         String(today.getMonth() + 1).padStart(2, '0') + '-' +
         String(today.getDate()).padStart(2, '0');
 
-      // 为每个客户计算优先级、下次计划、最近摘要
+      // 富化客户列表（含派生字段）
       var enriched = allCustomers.map(function (c) {
-        // 找最近一条待执行计划
         var nextPlan = null;
         for (var i = 0; i < allPlans.length; i++) {
           var p = allPlans[i];
@@ -75,7 +84,6 @@ Page({
           }
         }
 
-        // 最近一条拜访记录摘要
         var lastSummary = '';
         for (var j = 0; j < allRecords.length; j++) {
           if (allRecords[j].customer_id === c.id) {
@@ -86,7 +94,6 @@ Page({
 
         var pri = priority.calculatePriority(c, nextPlan);
 
-        // 下次跟进展示
         var nextFollowText = '未安排';
         var isOverdue = false;
         if (nextPlan) {
@@ -102,7 +109,6 @@ Page({
           }
         }
 
-        // 上次沟通展示
         var lastVisitText = '暂无';
         if (c.last_visit) {
           var days = Math.round((new Date(todayStr) - new Date(c.last_visit)) / 86400000);
@@ -111,41 +117,55 @@ Page({
           else lastVisitText = days + '天前';
         }
 
-        return Object.assign({}, c, {
+        // 合并派生字段
+        var derived = derivedMap[c.id] || { policy_count: 0, total_premium: 0, avg_premium: 0, first_policy_date: null };
+
+        return Object.assign({}, c, derived, {
           _priority: pri,
           _priorityLevel: pri ? pri.level : '',
           _priorityLabel: pri ? pri.label : '',
           _priorityReasons: pri && pri.reasons ? pri.reasons.join(' · ') : '',
           _nextFollowText: nextFollowText,
+          _nextFollowDate: nextPlan ? nextPlan.plan_date : null,
           _isOverdue: isOverdue,
           _lastVisitText: lastVisitText,
           _lastSummary: lastSummary ? lastSummary.slice(0, 30) + (lastSummary.length > 30 ? '…' : '') : ''
         });
       });
 
-      // 计算 Chip 计数
-      var counts = { P0: 0, P1: 0, P2: 0, overdue: 0 };
-      enriched.forEach(function (c) {
-        if (c._priorityLevel === 'P0') counts.P0++;
-        if (c._priorityLevel === 'P1') counts.P1++;
-        if (c._priorityLevel === 'P2') counts.P2++;
-        if (c._isOverdue) counts.overdue++;
+      this._enrichedAll = enriched;
+
+      // 加载视图列表并计算命中数
+      var allSegments = segmentRepo.listAll();
+      var segmentCounts = {};
+      for (var s = 0; s < allSegments.length; s++) {
+        var seg = allSegments[s];
+        var matched = segment.applySegment(enriched, seg.rules, null);
+        segmentCounts[seg.id] = matched.length;
+      }
+
+      this.setData({
+        segments: allSegments,
+        segmentCounts: segmentCounts,
+        addSegmentDisabled: segmentRepo.getUserCount() >= segmentRepo.MAX_USER_SEGMENTS
       });
 
-      // 筛选
-      var pf = this.data.priorityFilter;
-      var sf = this.data.stageFilter;
-      var filtered = enriched.filter(function (c) {
-        if (pf === 'P0' && c._priorityLevel !== 'P0') return false;
-        if (pf === 'P1' && c._priorityLevel !== 'P1') return false;
-        if (pf === 'P2' && c._priorityLevel !== 'P2') return false;
-        if (pf === 'P3' && c._priorityLevel !== 'P3') return false;
-        if (pf === '逾期' && !c._isOverdue) return false;
-        if (sf !== '全部' && c.stage !== sf) return false;
-        return true;
-      });
+      this._applySegmentFilter();
+    } catch (e) {
+      this.setData({ pageState: 'error' });
+      toast.fail('加载失败');
+    }
+  },
 
-      // 排序：P0→P1→P2→P3→已成交→已流失，同级按 score 降序
+  /** 根据当前选中视图过滤并排序客户列表 */
+  _applySegmentFilter: function () {
+    var enriched = this._enrichedAll || [];
+    var activeId = this.data.activeSegmentId;
+    var filtered;
+
+    if (activeId === null) {
+      // 全部：P0→P1→P2→P3→已成交→已流失，同级按 score 降序
+      filtered = enriched.slice();
       filtered.sort(function (a, b) {
         var order = { P0: 0, P1: 1, P2: 2, P3: 3 };
         var aOrder = a._priority ? (order[a._priorityLevel] !== undefined ? order[a._priorityLevel] : 4) : 5;
@@ -155,16 +175,24 @@ Page({
         var bScore = b._priority ? b._priority.score : 0;
         return bScore - aScore;
       });
-
-      this.setData({
-        customers: filtered,
-        chipCounts: counts,
-        pageState: filtered.length === 0 ? 'empty' : 'data'
-      });
-    } catch (e) {
-      this.setData({ pageState: 'error' });
-      toast.fail('加载失败');
+    } else {
+      // 找到对应视图规则
+      var allSegments = this.data.segments;
+      var activeSeg = null;
+      for (var i = 0; i < allSegments.length; i++) {
+        if (allSegments[i].id === activeId) { activeSeg = allSegments[i]; break; }
+      }
+      if (activeSeg) {
+        filtered = segment.applySegment(enriched, activeSeg.rules, activeSeg.sort);
+      } else {
+        filtered = enriched.slice();
+      }
     }
+
+    this.setData({
+      customers: filtered,
+      pageState: filtered.length === 0 ? 'empty' : 'data'
+    });
   },
 
   onSearchInput: function (e) {
@@ -177,22 +205,56 @@ Page({
     this._loadList();
   },
 
-  onPriorityFilterTap: function (e) {
-    var val = e.currentTarget.dataset.val;
-    this.setData({ priorityFilter: val === this.data.priorityFilter ? '全部' : val });
-    this._loadList();
+  /** 视图 Chip 点击 */
+  onSegmentTap: function (e) {
+    var id = e.currentTarget.dataset.id;
+    // null 表示"全部"
+    var newId = (id === null || id === undefined || id === '') ? null : parseInt(id);
+    this.setData({ activeSegmentId: newId });
+    this._applySegmentFilter();
   },
 
-  onStageFilterTap: function (e) {
-    var val = e.currentTarget.dataset.val;
-    this.setData({ stageFilter: val === this.data.stageFilter ? '全部' : val });
-    this._loadList();
+  /** 视图 Chip 长按：弹出编辑/删除菜单 */
+  onSegmentLongPress: function (e) {
+    var id = parseInt(e.currentTarget.dataset.id);
+    var isSystem = e.currentTarget.dataset.isSystem;
+    var that = this;
+
+    var items = isSystem ? ['查看规则'] : ['编辑', '删除'];
+    wx.showActionSheet({
+      itemList: items,
+      success: function (res) {
+        if (isSystem || res.tapIndex === 0) {
+          wx.navigateTo({ url: '/pages/segment-edit/index?id=' + id });
+        } else if (res.tapIndex === 1) {
+          // 删除
+          wx.showModal({
+            title: '删除视图',
+            content: '确认删除该视图？',
+            success: function (modal) {
+              if (modal.confirm) {
+                try {
+                  segmentRepo.remove(id);
+                  toast.success('已删除');
+                  that._loadList();
+                } catch (err) {
+                  toast.fail(err.message || '删除失败');
+                }
+              }
+            }
+          });
+        }
+      }
+    });
   },
 
-  onStageFilterChange: function (e) {
-    var idx = parseInt(e.detail.value);
-    this.setData({ stageFilter: STAGE_OPTIONS[idx] });
-    this._loadList();
+  /** 新建视图 */
+  onAddSegment: function () {
+    if (this.data.addSegmentDisabled) {
+      wx.showToast({ title: '自建视图已达上限（10个）', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/segment-edit/index' });
   },
 
   onCustomerTap: function (e) {

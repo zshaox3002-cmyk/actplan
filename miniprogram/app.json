@@ -13,8 +13,26 @@
     "pages/objection-new/index",
     "pages/objection-detail/index",
     "pages/objection/select/index",
-    "pages/visit-record/detail/index"
+    "pages/visit-record/detail/index",
+    "pages/segment-edit/index",
+    "pages/policy-edit/index"
   ],
+  "usingComponents": { 
+    "van-button": "@vant/weapp/button/index",
+    "van-cell": "@vant/weapp/cell/index",
+    "van-cell-group": "@vant/weapp/cell-group/index",
+    "van-field": "@vant/weapp/field/index",
+    "van-icon": "@vant/weapp/icon/index",
+    "van-image": "@vant/weapp/image/index",
+    "van-popup": "@vant/weapp/popup/index",
+    "van-toast": "@vant/weapp/toast/index",
+    "van-dialog": "@vant/weapp/dialog/index",
+    "van-tab": "@vant/weapp/tab/index",
+    "van-tabs": "@vant/weapp/tabs/index",    
+    "van-tag": "@vant/weapp/tag/index",
+    "van-loading": "@vant/weapp/loading/index",
+    "van-navbar": "@vant/weapp/nav-bar/index"
+  },
   "window": {
     "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTitleText": "活动管理",

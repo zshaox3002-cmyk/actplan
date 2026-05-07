@@ -1,0 +1,153 @@
+<!-- pages/segment-edit/index.wxml -->
+<view class="page-wrap">
+
+  <!-- 视图名称：自建可编辑，系统预设只读展示 -->
+  <view class="section-card" wx:if="{{!isSystem}}">
+    <view class="field-label-row">
+      <text class="field-label">视图名称</text>
+      <text class="required-mark">*</text>
+    </view>
+    <input class="name-input" value="{{name}}" bindinput="onNameInput" placeholder="最长 12 字" maxlength="12"/>
+  </view>
+  <view class="section-card" wx:if="{{isSystem}}">
+    <view class="field-label-row">
+      <text class="field-label">视图名称</text>
+      <text class="system-badge">系统预设</text>
+    </view>
+    <text class="name-readonly">{{name}}</text>
+  </view>
+
+  <!-- 颜色标记（系统预设不可编辑） -->
+  <view class="section-card" wx:if="{{!isSystem}}">
+    <view class="field-label-row">
+      <text class="field-label">颜色标记</text>
+    </view>
+    <view class="color-chips">
+      <view wx:for="{{colorOptions}}" wx:key="*this"
+            class="color-chip color-chip-{{item}} {{color === item ? 'selected' : ''}}"
+            data-color="{{item}}"
+            bindtap="onColorTap">
+        <text>{{colorLabels[item]}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选规则 -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">筛选规则</text>
+      <text class="field-label-sub" wx:if="{{!isSystem}}">AND 关系，最多 8 条</text>
+      <text class="field-label-sub" wx:if="{{isSystem}}">系统预设，不可修改</text>
+    </view>
+    <view class="rule-list">
+      <view class="rule-item" wx:for="{{rules}}" wx:key="index">
+        <view class="rule-item-content {{isSystem ? '' : ''}}" data-index="{{index}}" bindtap="{{isSystem ? '' : 'onEditRule'}}">
+          <text class="rule-field">{{item._fieldLabel}}</text>
+          <text class="rule-op" wx:if="{{!item._isGroup}}"> {{item._opLabel}} </text>
+          <text class="rule-value" wx:if="{{!item._isGroup}}">{{item._valueLabel}}</text>
+        </view>
+        <view class="rule-delete" wx:if="{{!isSystem}}" data-index="{{index}}" bindtap="onDeleteRule">
+          <text>×</text>
+        </view>
+      </view>
+    </view>
+    <view class="add-rule-btn" wx:if="{{!isSystem}}" bindtap="onAddRule">
+      <text>+ 添加规则</text>
+    </view>
+  </view>
+
+  <!-- 排序 -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">排序</text>
+    </view>
+    <view class="sort-row" wx:if="{{!isSystem}}">
+      <picker mode="selector"
+              range="{{sortFieldOptions}}"
+              range-key="label"
+              bindchange="onSortFieldChange">
+        <view class="sort-picker">
+          <text>排序字段：{{sortFieldLabel || sortField}} ▾</text>
+        </view>
+      </picker>
+      <view class="sort-order-btn" bindtap="onSortOrderToggle">
+        <text>{{sortOrder === 'desc' ? '降序' : '升序'}}</text>
+      </view>
+    </view>
+    <view class="sort-row" wx:if="{{isSystem}}">
+      <view class="sort-picker sort-picker-readonly">
+        <text>排序字段：{{sortFieldLabel || sortField}}</text>
+      </view>
+      <view class="sort-order-btn sort-order-readonly">
+        <text>{{sortOrder === 'desc' ? '降序' : '升序'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部预览区 -->
+  <view class="preview-bar" bindtap="onTogglePreview">
+    <text class="preview-count">当前规则命中 {{previewCount}} 位客户</text>
+    <text class="preview-toggle">{{showPreview ? '收起' : '展开'}}</text>
+  </view>
+  <view class="preview-list" wx:if="{{showPreview && previewCustomers.length > 0}}">
+    <view class="preview-item" wx:for="{{previewCustomers}}" wx:key="id">
+      <text class="preview-name">{{item.name}}</text>
+      <text class="preview-stage">{{item.stage}}</text>
+    </view>
+  </view>
+
+  <!-- 保存按钮（系统预设不显示） -->
+  <view class="save-bar" wx:if="{{!isSystem}}">
+    <button class="save-btn" bindtap="onSave">保存</button>
+  </view>
+
+  <!-- 规则编辑弹窗：wrapper 全屏覆盖，mask 和 sheet 同级 -->
+  <view class="rule-editor-wrapper" wx:if="{{showRuleEditor}}">
+    <view class="rule-editor-mask" bindtap="onRuleEditorCancel"></view>
+    <view class="rule-editor-sheet">
+      <view class="rule-editor-body">
+        <text class="rule-editor-title">{{editingRuleIndex >= 0 ? '编辑规则' : '添加规则'}}</text>
+
+        <view class="rule-editor-row">
+          <text class="rule-editor-label">字段</text>
+          <picker mode="selector" range="{{fieldOptions}}" range-key="label" bindchange="onRuleFieldChange">
+            <text class="rule-editor-picker">{{ruleFieldLabel || ruleField}} ▾</text>
+          </picker>
+        </view>
+
+        <view class="rule-editor-row">
+          <text class="rule-editor-label">操作符</text>
+          <picker mode="selector" range="{{ruleOpOptions}}" range-key="label" bindchange="onRuleOpChange">
+            <text class="rule-editor-picker">{{ruleOpLabel || ruleOp}} ▾</text>
+          </picker>
+        </view>
+
+        <view class="rule-editor-row rule-editor-row-value">
+          <text class="rule-editor-label">值</text>
+          <!-- 枚举/状态类型：Chip 选择 -->
+          <view wx:if="{{ruleValueOptions.length > 0}}" class="rule-value-chips">
+            <view wx:for="{{ruleValueOptions}}" wx:key="index"
+                  class="rule-value-chip {{ruleValue == (item.value !== undefined ? item.value : item) ? 'selected' : ''}}"
+                  data-val="{{item.value !== undefined ? item.value : item}}"
+                  bindtap="onRuleValueSelect">
+              <text>{{item.label !== undefined ? item.label : item}}</text>
+            </view>
+          </view>
+          <!-- 数字类型：输入框 -->
+          <input wx:else
+                 class="rule-value-input"
+                 type="digit"
+                 value="{{ruleValue}}"
+                 bindinput="onRuleValueInput"
+                 placeholder="输入数值"/>
+        </view>
+      </view>
+
+      <view class="rule-editor-actions">
+        <view class="rule-editor-btn cancel" bindtap="onRuleEditorCancel"><text>取消</text></view>
+        <view class="rule-editor-btn confirm" bindtap="onRuleEditorConfirm"><text>确认</text></view>
+      </view>
+    </view>
+  </view>
+
+</view>

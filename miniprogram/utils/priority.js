@@ -35,12 +35,21 @@ function _urgencyScore(planDate, today) {
 
 /**
  * 计算活跃度：基于最近拜访日期与今天的距离
+ * 从未拜访时按创建时间冷启动加分，确保新客户前 14 天不被埋没
  * @param {string|null} lastVisit - 'YYYY-MM-DD' 或 null
  * @param {string} today - 'YYYY-MM-DD'
+ * @param {string|null} createdAt - ISO 8601 创建时间，冷启动时使用
  * @returns {number}
  */
-function _recencyScore(lastVisit, today) {
-  if (!lastVisit) return 0;
+function _recencyScore(lastVisit, today, createdAt) {
+  if (!lastVisit) {
+    // 冷启动：从未拜访，按创建时间加分
+    if (!createdAt) return 0;
+    var daysSinceCreated = Math.round((new Date(today) - new Date(createdAt.substring(0, 10))) / 86400000);
+    if (daysSinceCreated <= 7) return 20;
+    if (daysSinceCreated <= 14) return 10;
+    return 0;
+  }
   var diff = Math.round((new Date(today) - new Date(lastVisit)) / 86400000);
   if (diff <= 3) return 25;
   if (diff <= 7) return 18;
@@ -68,7 +77,7 @@ function calculatePriority(customer, nextPlan) {
 
   var I = _INTENT_SCORE[stage] || 0;
   var U = _urgencyScore(nextPlan ? nextPlan.plan_date : null, today);
-  var R = _recencyScore(customer.last_visit || null, today);
+  var R = _recencyScore(customer.last_visit || null, today, customer.created_at || null);
   var score = I + U + R;
 
   var level, label;

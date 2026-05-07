@@ -9,35 +9,36 @@
     bind:clear="onSearchClear"
   />
 
-  <!-- 优先级 + 阶段 Chip 筛选 -->
+  <!-- 视图切换器（v1.1，替换原优先级/阶段 Chip） -->
   <scroll-view scroll-x class="chip-scroll">
     <view class="chip-list">
-      <view class="chip-item {{priorityFilter === '全部' ? 'active' : ''}}"
-            data-val="全部" bindtap="onPriorityFilterTap">
-        <text>全部 {{customers.length}}</text>
+      <!-- 全部（硬编码，无规则） -->
+      <view class="chip-item {{activeSegmentId === null ? 'active' : ''}}"
+            data-id=""
+            bindtap="onSegmentTap">
+        <text>全部</text>
       </view>
-      <view class="chip-item chip-p0 {{priorityFilter === 'P0' ? 'active' : ''}}"
-            data-val="P0" bindtap="onPriorityFilterTap">
-        <text>P0 {{chipCounts.P0}}</text>
+      <!-- 系统预设 + 自建视图 -->
+      <view wx:for="{{segments}}"
+            wx:key="id"
+            class="chip-item chip-segment {{activeSegmentId === item.id ? 'active' : ''}} {{item.color ? 'chip-color-' + item.color : ''}}"
+            data-id="{{item.id}}"
+            data-is-system="{{item.is_system}}"
+            bindtap="onSegmentTap"
+            bindlongpress="onSegmentLongPress">
+        <text>{{item.name}}</text>
+        <text class="chip-count" wx:if="{{segmentCounts[item.id] > 0}}"> {{segmentCounts[item.id]}}</text>
       </view>
-      <view class="chip-item chip-p1 {{priorityFilter === 'P1' ? 'active' : ''}}"
-            data-val="P1" bindtap="onPriorityFilterTap">
-        <text>P1 {{chipCounts.P1}}</text>
-      </view>
-      <view class="chip-item chip-overdue {{priorityFilter === '逾期' ? 'active' : ''}}"
-            data-val="逾期" bindtap="onPriorityFilterTap">
-        <text>逾期 {{chipCounts.overdue}}</text>
-      </view>
-      <!-- 分隔线 -->
-      <view class="chip-divider"></view>
-      <!-- 阶段 chip -->
-      <view wx:for="{{stageChips}}" wx:key="*this"
-            class="chip-item chip-stage {{stageFilter === item ? 'active' : ''}}"
-            data-val="{{item}}" bindtap="onStageFilterTap">
-        <text>{{item}}</text>
+      <!-- 新建按钮 -->
+      <view class="chip-item chip-add {{addSegmentDisabled ? 'disabled' : ''}}"
+            bindtap="onAddSegment">
+        <text>+ 新建</text>
       </view>
     </view>
   </scroll-view>
+
+  <!-- 视图编辑提示 -->
+  <text class="chip-hint" wx:if="{{segments.length > 0}}">长按视图可编辑规则</text>
 
   <!-- 加载态 -->
   <skeleton wx:if="{{pageState === 'loading'}}" rows="{{5}}" />

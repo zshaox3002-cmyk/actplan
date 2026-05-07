@@ -1,160 +1,253 @@
 /* ============================================================
-* variables.wxss — Design System v2.0
-* 所有颜色、字号、间距、圆角、阴影均在此定义
-* 页面和组件禁止写死数值，必须引用 var(--xxx)
-* ============================================================ */
+ * variables.wxss — Design System v4.0 (灰蓝燕麦·掌控感)
+ * 视觉个性：灰蓝墨迹落在燕麦纸上——克制、通透、有掌控感
+ * 参考：Things 3 留白 / Apple Music 大标题 / Flomo 微描边 /
+ *       Craft 连续圆角 / MUJI 低饱和灰蓝
+ * 所有颜色、字号、间距、圆角、阴影均在此定义
+ * 页面和组件禁止写死数值，必须引用 var(--xxx)
+ * ============================================================ */
 
 page {
-  /* ---- 主色（蓝绿） ---- */
-  --color-primary: #0EA5A4;
-  --color-primary-light: #CCFBF1;
-  --color-primary-dark: #0F766E;
 
-  /* ---- 辅助色 ---- */
-  --color-secondary: #2563EB;
-  --color-secondary-light: #DBEAFE;
-  --color-success: #10B981;
-  --color-success-light: #ECFDF5;
-  --color-warning: #F59E0B;
-  --color-warning-light: #FFFBEB;
-  --color-danger: #EF4444;
-  --color-danger-light: #FEF2F2;
-  --color-neutral: #CBD5E1;
+  /* ================================================================
+   * 主色 — 深灰蓝（掌控感核心）
+   * #3B5268 on #FFFFFF 对比度 8.1:1，WCAG AAA ✓
+   * ================================================================ */
+  --color-primary: #3B5268;
+  --color-primary-light: #E8EEF4;
+  --color-primary-dark: #2A3D52;
 
-  /* ---- 中性色 ---- */
-  --color-bg-page: #F4F7FB;
+  /* ================================================================
+   * 强调色 — 燕麦金（核心数据数字专用）
+   * #B8956A on #FFFFFF 对比度 4.6:1，WCAG AA ✓
+   * ================================================================ */
+  --color-accent: #B8956A;
+  --color-accent-light: #F5EDD8;
+
+  /* ================================================================
+   * 辅助色 — 灰蓝（次级操作、信息标签）
+   * ================================================================ */
+  --color-secondary: #6B8FA8;
+  --color-secondary-light: #E8EFF5;
+
+  /* ================================================================
+   * 语义色
+   * ================================================================ */
+  --color-success: #5A8A6A;
+  --color-success-light: #E8F2EC;
+  --color-warning: #B8956A;
+  --color-warning-light: #F5EDD8;
+  --color-danger: #C0392B;
+  --color-danger-light: #FAEAE9;
+
+  /* ================================================================
+   * 中性色阶（全系统骨架）
+   * ================================================================ */
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-placeholder: #9B9B9B;
+  --color-text-meta-label: #9B9B9B;
+  --color-text-meta-value: #6B6B6B;
+  --color-border: #E5E2DC;
+  --color-disabled: #C8C5C0;
+  --color-neutral: #C8C5C0;
+  --color-bg-muted: #F0EDE8;
+  --color-bg-page: #FAFAF8;
   --color-bg-card: #FFFFFF;
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #64748B;
-  --color-text-placeholder: #94A3B8;
-  --color-border: #E5EAF2;
-  --color-disabled: #CBD5E1;
 
-  /* ---- 跟进优先级 ---- */
-  --priority-p0-bg: #EF4444;
+  /* ================================================================
+   * 跟进优先级标签色（实心色块，白色文字）
+   * ================================================================ */
+  --priority-p0-bg: #C0392B;
   --priority-p0-text: #FFFFFF;
-  --priority-p1-bg: #F59E0B;
+  --priority-p1-bg: #B8956A;
   --priority-p1-text: #FFFFFF;
-  --priority-p2-bg: #EAB308;
+  --priority-p2-bg: #7B9E87;
   --priority-p2-text: #FFFFFF;
-  --priority-p3-bg: #CBD5E1;
+  --priority-p3-bg: #C8C5C0;
   --priority-p3-text: #FFFFFF;
 
-  /* ---- 客户阶段 ---- */
-  --stage-meet-bg: #F1F5F9;
-  --stage-meet-text: #64748B;
-  --stage-comm-bg: #CCFBF1;
-  --stage-comm-text: #0F766E;
-  --stage-present-bg: #DBEAFE;
-  --stage-present-text: #2563EB;
-  --stage-closing-bg: #FFF7ED;
-  --stage-closing-text: #F59E0B;
-  --stage-deal-bg: #DCFCE7;
-  --stage-deal-text: #10B981;
-  --stage-lost-bg: #F1F5F9;
-  --stage-lost-text: #94A3B8;
+  /* ================================================================
+   * 客户阶段标签色（描边，无背景）
+   * ================================================================ */
+  --stage-meet-bg: #F5F3F0;
+  --stage-meet-text: #9A9490;
+  --stage-comm-bg: #E8EFF5;
+  --stage-comm-text: #6B8FA8;
+  --stage-present-bg: #E8EEF4;
+  --stage-present-text: #3B5268;
+  --stage-closing-bg: #F5EDD8;
+  --stage-closing-text: #B8956A;
+  --stage-deal-bg: #E8F2EC;
+  --stage-deal-text: #5A8A6A;
+  --stage-lost-bg: #F5F3F0;
+  --stage-lost-text: #C8C5C0;
 
-  /* ---- 图表 ---- */
-  --color-chart-actual: #0EA5A4;
-  --color-chart-plan: #CBD5E1;
+  /* ================================================================
+   * 图表色
+   * ================================================================ */
+  --color-chart-actual: #3B5268;
+  --color-chart-plan: #C8C5C0;
 
-  /* ---- 指标卡圆点 ---- */
-  --color-metric-dot-total: #0F172A;
-  --color-metric-dot-new: #10B981;
-  --color-metric-dot-visit: #F59E0B;
-  --color-metric-dot-deal: #8B5CF6;
+  /* ================================================================
+   * 指标卡圆点
+   * ================================================================ */
+  --color-metric-dot-total: #1A1A1A;
+  --color-metric-dot-new: #5A8A6A;
+  --color-metric-dot-visit: #B8956A;
+  --color-metric-dot-deal: #6B8FA8;
 
-  /* ---- Tab 切换 ---- */
-  --color-tab-bg: #F0F4F8;
+  /* ================================================================
+   * Tab 切换
+   * ================================================================ */
+  --color-tab-bg: #F0EDE8;
   --color-tab-active-bg: #FFFFFF;
-  --color-tab-active-text: #0EA5A4;
-  --color-tab-inactive-text: #94A3B8;
+  --color-tab-active-text: #3B5268;
+  --color-tab-inactive-text: #9B9B9B;
 
-  /* ---- 客户节奏状态色 ---- */
-  --color-rhythm-warming-bg: #FFF7ED;
-  --color-rhythm-cooling-bg: #EFF6FF;
-  --color-rhythm-stuck-bg: #F8FAFC;
-  --color-growth-badge-bg: #DCFCE7;
+  /* ================================================================
+   * 客户节奏状态色
+   * ================================================================ */
+  --color-rhythm-warming-bg: #F5EDD8;
+  --color-rhythm-cooling-bg: #E8EFF5;
+  --color-rhythm-stuck-bg: #F5F3F0;
+  --color-growth-badge-bg: #E8F2EC;
 
-  /* ---- 字号 ---- */
-  --font-size-title: 18px;
-  --font-size-page-title: 18px;
-  --font-size-module: 16px;
-  --font-size-body: 14px;
-  --font-size-secondary: 13px;
-  --font-size-helper: 12px;
-  --font-size-data: 28px;
-  --font-size-data-label: 12px;
-  --font-size-section-title: 16px;
+  /* ================================================================
+   * 辅助色扩展（紫色用于特殊标记）
+   * ================================================================ */
+  --color-purple: #8B7BAA;
+  --color-purple-light: #EDE9F5;
 
-  /* ---- 字重 ---- */
-  --font-weight-bold: 700;
-  --font-weight-semibold: 600;
-  --font-weight-medium: 500;
-  --font-weight-regular: 400;
-
-  /* ---- 行高 ---- */
-  --line-height-title: 28px;
-  --line-height-module: 24px;
-  --line-height-body: 22px;
-  --line-height-secondary: 20px;
-  --line-height-helper: 18px;
-  --line-height-data: 36px;
-  --line-height-data-label: 18px;
-
-  /* ---- 间距 ---- */
-  --spacing-page: 16px;
-  --spacing-card: 16px;
-  --spacing-card-gap: 12px;
-  --spacing-section: 20px;
-  --spacing-form-row: 16px;
-  --spacing-icon-text: 4px;
-  --spacing-badge-px: 8px;
-  --spacing-badge-py: 4px;
-  --spacing-field-label: 6px;
-
-  /* ---- 圆角 ---- */
-  --radius-card: 12px;
-  --radius-badge: 6px;
-  --radius-input: 8px;
-  --radius-button: 10px;
-  --radius-panel: 16px;
-  --radius-tab: 12rpx;
-  --radius-tab-item: 10rpx;
-
-  /* ---- 阴影 ---- */
-  --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.04);
-  --shadow-card-elevated: 0 2rpx 12rpx rgba(15, 23, 42, 0.06);
-  --shadow-tab-active: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
-  --shadow-fab: 0 4px 16px rgba(14, 165, 164, 0.35);
-
-  /* ---- 尺寸 ---- */
-  --height-button: 44px;
-  --height-input: 48px;
-  --height-tabbar: 56px;
-  --size-fab: 56px;
-  --size-icon-tab: 24px;
-  --size-icon-card: 20px;
-  --size-icon-form: 18px;
-  --size-badge-dot: 4px;
-  --size-metric-dot: 20rpx;
-  --min-touch: 44px;
-
-  /* ---- Chip 筛选栏 ---- */
-  --chip-inactive-bg: #F1F5F9;
+  /* ================================================================
+   * Chip 筛选栏
+   * ================================================================ */
+  --chip-inactive-bg: #F0EDE8;
   --chip-inactive-text: var(--color-text-secondary);
 
-  /* ---- 卡片 meta 信息 ---- */
-  --color-text-meta-label: var(--color-text-placeholder);
-  --color-text-meta-value: #475569;
+  /* ================================================================
+   * 次级操作按钮
+   * ================================================================ */
+  --btn-secondary-bg: #F0EDE8;
+  --btn-secondary-text: #6B6B6B;
 
-  /* ---- 次级操作按钮 ---- */
-  --btn-secondary-bg: #F1F5F9;
-  --btn-secondary-text: #475569;
+  /* ================================================================
+   * 字号阶梯（rpx，750rpx = 375px 设备宽度）
+   * ================================================================ */
+  --font-size-h1: 64rpx;        /* 核心指标数字、Apple Music 式大标题 */
+  --font-size-h2: 52rpx;        /* 页面主标题 */
+  --font-size-title: 44rpx;     /* Section 标题（Things 3 风格） */
+  --font-size-title-sm: 36rpx;  /* 卡片标题、Modal 标题 */
+  --font-size-subtitle: 32rpx;  /* 表单分组标题、次级标题 */
+  --font-size-body-md: 30rpx;   /* 列表主行、卡片主内容 */
+  --font-size-body: 28rpx;      /* 标准正文 */
+  --font-size-body-sm: 24rpx;   /* 次要信息、meta、描述 */
+  --font-size-label: 22rpx;     /* 表单标签、小标签 */
+  --font-size-caption: 20rpx;   /* 时间戳、脚注（谨慎使用） */
 
-  /* ---- FAB 品牌色弥散阴影 ---- */
-  --shadow-fab-brand: 0 4px 12px rgba(14, 165, 164, 0.3);
+  /* 向后兼容别名（旧代码引用，逐步迁移） */
+  --font-size-page-title: 44rpx;
+  --font-size-module: 32rpx;
+  --font-size-secondary: 24rpx;
+  --font-size-helper: 22rpx;
+  --font-size-data: 64rpx;
+  --font-size-data-card: 52rpx;
+  --font-size-data-label: 22rpx;
+  --font-size-section-title: 32rpx;
 
-  /* ---- 客户属性标签圆角 ---- */
-  --radius-custom-tag: 4px;
+  /* ================================================================
+   * 字重（全系统只用三档，禁止 700）
+   * ================================================================ */
+  --font-weight-bold: 600;      /* 核心数字、h1/h2 */
+  --font-weight-semibold: 600;  /* 同上，别名 */
+  --font-weight-medium: 500;    /* 标题、列表主行 */
+  --font-weight-regular: 400;   /* 正文、说明、meta */
+
+  /* ================================================================
+   * 行高
+   * ================================================================ */
+  --line-height-title: 1.25;
+  --line-height-body: 1.6;
+  --line-height-caption: 1.4;
+
+  /* 向后兼容别名 */
+  --line-height-module: 1.4;
+  --line-height-secondary: 1.5;
+  --line-height-helper: 1.4;
+  --line-height-data: 1.2;
+  --line-height-data-label: 1.4;
+
+  /* ================================================================
+   * 间距阶梯（8rpx 基础网格）
+   * ================================================================ */
+  --spacing-2xs: 4rpx;    /* 图标与文字间距 */
+  --spacing-xs: 8rpx;     /* 标签内边距纵向、紧凑元素间距 */
+  --spacing-sm: 16rpx;    /* 标签内边距横向、行内元素间距 */
+  --spacing-md: 24rpx;    /* 列表项纵向内边距、卡片内部间距 */
+  --spacing-lg: 32rpx;    /* 页面水平边距（Things 3 大留白）、卡片内边距 */
+  --spacing-xl: 48rpx;    /* Section 间距、模块间距 */
+  --spacing-2xl: 64rpx;   /* 页面顶部留白、大模块间距 */
+  --spacing-3xl: 96rpx;   /* 页面底部安全区留白 */
+
+  /* 向后兼容别名 */
+  --spacing-page: 32rpx;
+  --spacing-card: 32rpx;
+  --spacing-card-gap: 16rpx;
+  --spacing-section: 48rpx;
+  --spacing-gap: 48rpx;
+  --spacing-form-row: 24rpx;
+  --spacing-icon-text: 8rpx;
+  --spacing-badge-px: 14rpx;
+  --spacing-badge-py: 4rpx;
+  --spacing-field-label: 8rpx;
+
+  /* ================================================================
+   * 圆角（Craft 平滑连续圆角）
+   * ================================================================ */
+  --radius-xs: 8rpx;       /* 小徽章、优先级标签 */
+  --radius-sm: 12rpx;      /* 输入框、小卡片 */
+  --radius-md: 20rpx;      /* 标准卡片（主力） */
+  --radius-lg: 28rpx;      /* 大卡片、底部弹窗 */
+  --radius-xl: 40rpx;      /* 全屏 Sheet、大 Modal */
+  --radius-full: 9999rpx;  /* Chip 筛选、FAB、头像 */
+
+  /* 向后兼容别名 */
+  --radius-badge: 8rpx;
+  --radius-input: 12rpx;
+  --radius-button: 20rpx;
+  --radius-card: 20rpx;
+  --radius-panel: 28rpx;
+  --radius-tab: 20rpx;
+  --radius-tab-item: 12rpx;
+  --radius-custom-tag: 8rpx;
+
+  /* ================================================================
+   * 阴影（Flomo 极低透明度，禁止超过 rgba(0,0,0,0.12)）
+   * ================================================================ */
+  --shadow-xs: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
+  --shadow-fab: 0 4rpx 16rpx rgba(59, 82, 104, 0.28);
+
+  /* 向后兼容别名 */
+  --shadow-card: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  --shadow-card-elevated: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  --shadow-tab-active: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
+  --shadow-fab-brand: 0 4rpx 16rpx rgba(59, 82, 104, 0.28);
+
+  /* ================================================================
+   * 尺寸
+   * ================================================================ */
+  --height-button: 88rpx;
+  --height-input: 96rpx;
+  --height-tabbar: 112rpx;
+  --size-fab: 112rpx;
+  --size-icon-tab: 48rpx;
+  --size-icon-card: 40rpx;
+  --size-icon-form: 36rpx;
+  --size-badge-dot: 8rpx;
+  --size-metric-dot: 20rpx;
+  --min-touch: 88rpx;
 }

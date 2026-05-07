@@ -32,12 +32,32 @@ page { background: var(--color-bg-page); }
   font-weight: 500;
 }
 
+/* 视图颜色标记（未激活态：浅色背景 + 深色文字；激活态：深色背景） */
+.chip-color-gold   { background: var(--color-warning-light);   color: var(--color-warning); }
+.chip-color-purple { background: var(--color-purple-light);    color: var(--color-purple); }
+.chip-color-blue   { background: var(--color-secondary-light); color: var(--color-secondary); }
+.chip-color-green  { background: var(--color-success-light);   color: var(--color-success); }
+.chip-color-gray   { background: var(--color-bg-page);         color: var(--color-text-secondary); }
+
+.chip-color-gold.active   { background: var(--color-warning);   color: #fff; }
+.chip-color-purple.active { background: var(--color-purple);    color: #fff; }
+.chip-color-blue.active   { background: var(--color-secondary); color: #fff; }
+.chip-color-green.active  { background: var(--color-success);   color: #fff; }
+.chip-color-gray.active   { background: var(--color-neutral);   color: #fff; }
+
 .chip-divider {
   width: 2rpx;
   height: 28rpx;
   background: var(--color-border);
   align-self: center;
   flex-shrink: 0;
+}
+
+.chip-hint {
+  display: block;
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  padding: 0 0 8rpx;
 }
 
 .customer-list {

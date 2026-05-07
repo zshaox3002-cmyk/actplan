@@ -6,6 +6,7 @@
 var storage = require('../storage');
 var id = require('../id');
 var dateUtil = require('../date');
+var policyRepo = require('./policy.repo');
 
 /**
  * stage 数字/英文 → 中文映射（防御性兜底）
@@ -111,6 +112,14 @@ function create(data) {
     stage_updated_at: data.stage_updated_at || null,
     tags: data.tags || [],
     coverage_needs: data.coverage_needs || {},
+    coverage_status: data.coverage_status || {
+      重疾: 'unknown', 医疗: 'unknown', 教育金: 'unknown',
+      养老: 'unknown', 意外: 'unknown', 寿险: 'unknown'
+    },
+    is_hnw: data.is_hnw || false,
+    referral_count: data.referral_count || 0,
+    birthday: data.birthday || null,
+    policy_expire_date: data.policy_expire_date || null,
     /* DISABLED: field-removed - 暂时禁用，保留备用
     follow_date: data.follow_date || null,
     todo_task: data.todo_task || '',
@@ -164,6 +173,29 @@ function update(id, data) {
         data.stage_updated_at = dateUtil.nowISO();
       }
 
+      // coverage_status 中 configured 态不可手动设置（由系统通过保单写入）
+      if (data.coverage_status) {
+        var existing = all[i].coverage_status || {};
+        var incoming = data.coverage_status;
+        var merged = {};
+        var types = ['重疾', '医疗', '教育金', '养老', '意外', '寿险'];
+        for (var t = 0; t < types.length; t++) {
+          var type = types[t];
+          if (incoming[type] !== undefined) {
+            // 若当前为 configured，只允许系统通过 _forceStatus 标记覆盖
+            if (existing[type] === 'configured' && !data._forceStatus) {
+              merged[type] = 'configured';
+            } else {
+              merged[type] = incoming[type];
+            }
+          } else {
+            merged[type] = existing[type] || 'unknown';
+          }
+        }
+        data.coverage_status = merged;
+        delete data._forceStatus;
+      }
+
       // 合并更新字段
       for (var key in data) {
         if (data[key] !== undefined) {
@@ -214,6 +246,19 @@ function deleteCustomer(id) {
 }
 
 /**
+ * 获取单个客户并附加派生字段（policy_count / total_premium / avg_premium / first_policy_date）
+ * 所有需要展示保单价值的页面必须通过此方法，禁止自行聚合
+ * @param {number} customerId
+ * @returns {Object|null} 含派生字段的客户对象，或 null
+ */
+function getCustomerWithDerived(customerId) {
+  var customer = get(customerId);
+  if (!customer) return null;
+  var derived = policyRepo.getDerived(customerId);
+  return Object.assign({}, customer, derived);
+}
+
+/**
  * 获取客户总量
  * @returns {number} 客户总数
  */
@@ -225,6 +270,7 @@ function count() {
 module.exports = {
   list: list,
   get: get,
+  getCustomerWithDerived: getCustomerWithDerived,
   create: create,
   update: update,
   delete: deleteCustomer,

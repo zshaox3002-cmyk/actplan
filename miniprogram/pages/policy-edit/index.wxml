@@ -1,0 +1,64 @@
+<!-- pages/policy-edit/index.wxml -->
+<view class="page-wrap">
+
+  <!-- 险种（self 保单置灰） -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">险种</text>
+      <text class="required-mark">*</text>
+    </view>
+    <picker wx:if="{{!isSelf}}"
+            mode="selector"
+            range="{{productTypeOptions}}"
+            value="{{productTypeIndex}}"
+            bindchange="onProductTypeChange">
+      <view class="picker-row">
+        <text class="picker-value">{{productType || '请选择险种'}}</text>
+        <text class="picker-arrow">▾</text>
+      </view>
+    </picker>
+    <view wx:else class="picker-row disabled">
+      <text class="picker-value">{{productType}}</text>
+      <text class="picker-hint">自成交保单不可修改险种</text>
+    </view>
+  </view>
+
+  <!-- 产品名（self 保单置灰） -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">产品名</text>
+      <text wx:if="{{!isSelf}}" class="field-label-sub">选填</text>
+    </view>
+    <input wx:if="{{!isSelf}}"
+           class="text-input"
+           value="{{productName}}"
+           bindinput="onProductNameInput"
+           placeholder="如：友邦传世盈佳"/>
+    <view wx:else class="disabled-value">
+      <text>{{productName || '—'}}</text>
+    </view>
+  </view>
+
+  <!-- 保费（self 保单置灰） -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">年缴保费（元）</text>
+      <text wx:if="{{!isSelf}}" class="required-mark">*</text>
+    </view>
+    <input wx:if="{{!isSelf}}"
+           class="text-input"
+           type="digit"
+           value="{{premium}}"
+           bindinput="onPremiumInput"
+           placeholder="年缴金额"/>
+    <view wx:else class="disabled-value">
+      <text>{{premium}}</text>
+    </view>
+  </view>
+
+  <!-- 保存按钮（self 保单全只读，无需保存） -->
+  <view class="save-bar" wx:if="{{!isSelf}}">
+    <button class="save-btn" bindtap="onSave">保存</button>
+  </view>
+
+</view>

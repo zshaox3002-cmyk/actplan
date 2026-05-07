@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>保单 Tab — 重设计原型</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:   '#3B5268',
+            'primary-light': '#E8EEF4',
+            'primary-dark':  '#2A3D52',
+            accent:    '#B8956A',
+            'accent-light':  '#F5EDD8',
+            secondary: '#6B8FA8',
+            'secondary-light': '#E8EFF5',
+            success:   '#5A8A6A',
+            'success-light':  '#E8F2EC',
+            warning:   '#B8956A',
+            'warning-light':  '#F5EDD8',
+            danger:    '#C0392B',
+            'danger-light':   '#FAEAE9',
+            't-primary':   '#1A1A1A',
+            't-secondary': '#6B6B6B',
+            't-muted':     '#9B9B9B',
+            border:    '#E5E2DC',
+            'bg-page': '#FAFAF8',
+            'bg-card': '#FFFFFF',
+          },
+          borderRadius: {
+            badge:  '6px',
+            chip:   '20px',
+            card:   '12px',
+            sheet:  '20px',
+          },
+          boxShadow: {
+            card: '0 2px 8px rgba(0,0,0,0.06)',
+            'card-elevated': '0 4px 16px rgba(0,0,0,0.08)',
+          },
+          fontSize: {
+            'data-num': ['26px', { lineHeight: '1.2', fontWeight: '600' }],
+            'data-unit': ['11px', { lineHeight: '1.4' }],
+            'data-label': ['11px', { lineHeight: '1.4' }],
+            'list-main': ['15px', { lineHeight: '1.4', fontWeight: '600' }],
+            'list-sub':  ['12px', { lineHeight: '1.4' }],
+            'meta':      ['11px', { lineHeight: '1.4' }],
+            'tag':       ['11px', { lineHeight: '1' }],
+            'section':   ['14px', { lineHeight: '1.4', fontWeight: '500' }],
+            'body':      ['14px', { lineHeight: '1.6' }],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: #FAFAF8; font-family: -apple-system, 'PingFang SC', sans-serif; }
+    .phone-frame { max-width: 390px; margin: 0 auto; min-height: 100vh; }
+    .divider-v { width: 1px; background: #E5E2DC; align-self: stretch; margin: 4px 0; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+// ── Mock Data ──────────────────────────────────────────────────────────────
+const MOCK_DERIVED = { policy_count: 3, total_premium: 68000, avg_premium: 22667 };
+
+const MOCK_POLICIES = [
+  {
+    id: 1, isSelf: true,
+    productName: '友邦赢如意终身寿险',
+    productType: '重疾',
+    premium: 34000,
+    effectiveDate: '2022-03-15',
+    expireDate: null,
+  },
+  {
+    id: 2, isSelf: false,
+    productName: '平安福',
+    productType: '重疾',
+    premium: 18000,
+    effectiveDate: '2020-06-01',
+    expireDate: null,
+  },
+  {
+    id: 3, isSelf: true,
+    productName: '国寿鑫享未来',
+    productType: '年金',
+    premium: 16000,
+    effectiveDate: '2023-01-10',
+    expireDate: '2043-01-10',
+  },
+];
+
+const MOCK_COVERAGE = [
+  { key: '重疾', value: 'configured' },
+  { key: '医疗', value: 'gap' },
+  { key: '意外', value: 'configured' },
+  { key: '寿险', value: 'unknown' },
+  { key: '养老', value: 'gap' },
+  { key: '教育', value: 'none' },
+];
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function fmtNum(n) {
+  if (n >= 10000) return (n / 10000).toFixed(n % 10000 === 0 ? 0 : 1) + '万';
+  return n.toLocaleString();
+}
+
+const COVERAGE_CONFIG = {
+  configured: { label: '已配置', bg: '#E8F2EC', text: '#5A8A6A', border: '#C2DEC9' },
+  gap:        { label: '有缺口', bg: '#F5EDD8', text: '#B8956A', border: '#E5D0A8' },
+  none:       { label: '不需要', bg: '#F0EDE8', text: '#9B9B9B', border: '#E5E2DC' },
+  unknown:    { label: '未知',   bg: '#E8EEF4', text: '#3B5268', border: '#C5D3DF' },
+};
+
+// ── Sub-components ─────────────────────────────────────────────────────────
+
+/** 保单价值看板 */
+function PolicyValueDashboard({ derived }) {
+  const metrics = [
+    { label: '保单数',    value: derived.policy_count, unit: '份' },
+    { label: '年缴总保费', value: fmtNum(derived.total_premium), unit: '元' },
+    { label: '平均保费',  value: fmtNum(derived.avg_premium),   unit: '元' },
+  ];
+  return (
+    <div className="bg-bg-card rounded-card shadow-card mx-4 mt-3 overflow-hidden">
+      <div className="flex items-center justify-between px-5 h-12 border-b border-border">
+        <span style={{ fontSize: 14, fontWeight: 500, color: '#1A1A1A' }}>保单价值</span>
+      </div>
+      <div className="flex items-stretch py-4">
+        {metrics.map((m, i) => (
+          <React.Fragment key={m.label}>
+            {i > 0 && <div className="divider-v" />}
+            <div className="flex-1 flex flex-col items-center gap-1 px-2">
+              <span style={{ fontSize: 11, color: '#9B9B9B', letterSpacing: '0.02em' }}>{m.label}</span>
+              <div className="flex items-baseline gap-0.5">
+                <span style={{ fontSize: 26, fontWeight: 600, color: '#B8956A', lineHeight: 1.1 }}>{m.value}</span>
+                <span style={{ fontSize: 11, color: '#9B9B9B', fontWeight: 400 }}>{m.unit}</span>
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 单条保单 */
+function PolicyItem({ policy, onAction }) {
+  const sourceStyle = policy.isSelf
+    ? { bg: '#E8EEF4', text: '#3B5268' }
+    : { bg: '#E8EFF5', text: '#6B8FA8' };
+  const metaParts = [
+    `年缴 ${policy.premium.toLocaleString()} 元`,
+    `生效 ${policy.effectiveDate}`,
+    policy.expireDate ? `到期 ${policy.expireDate}` : null,
+  ].filter(Boolean);
+
+  return (
+    <div className="flex items-start justify-between py-4 border-b border-border last:border-0">
+      <div className="flex-1 min-w-0 pr-2">
+        {/* 主标题行：产品名 + 来源标签 */}
+        <div className="flex items-center gap-2 mb-1">
+          <span style={{ fontSize: 15, fontWeight: 600, color: '#1A1A1A', lineHeight: 1.3 }}>
+            {policy.productName}
+          </span>
+          <span style={{
+            fontSize: 10, padding: '2px 7px', borderRadius: 4,
+            background: sourceStyle.bg, color: sourceStyle.text,
+            fontWeight: 500, flexShrink: 0,
+          }}>
+            {policy.isSelf ? '我成交' : '他渠道'}
+          </span>
+        </div>
+        {/* 险种副行 */}
+        <div className="mb-2">
+          <span style={{ fontSize: 12, color: '#9B9B9B' }}>{policy.productType}</span>
+        </div>
+        {/* Meta 信息行 */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {metaParts.map((part, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <span style={{ fontSize: 10, color: '#C8C5C0' }}>·</span>}
+              <span style={{ fontSize: 11, color: '#9B9B9B' }}>{part}</span>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      <button
+        onClick={() => onAction(policy.id)}
+        style={{ fontSize: 18, color: '#9B9B9B', padding: '4px 8px', letterSpacing: 2, lineHeight: 1 }}
+      >···</button>
+    </div>
+  );
+}
+
+/** 保单列表区块 */
+function PolicyListSection({ policies, onAdd, onAction }) {
+  return (
+    <div className="bg-bg-card rounded-card shadow-card mx-4 mt-3 overflow-hidden">
+      <div className="flex items-center justify-between px-5 h-12 border-b border-border">
+        <span style={{ fontSize: 14, fontWeight: 500, color: '#1A1A1A' }}>保单</span>
+        <button
+          onClick={onAdd}
+          style={{ fontSize: 13, color: '#3B5268', fontWeight: 500, padding: '4px 0' }}
+        >+ 添加</button>
+      </div>
+      <div className="px-5">
+        {policies.length === 0 ? (
+          <div className="py-8 text-center" style={{ fontSize: 13, color: '#9B9B9B' }}>暂无保单记录</div>
+        ) : (
+          policies.map(p => <PolicyItem key={p.id} policy={p} onAction={onAction} />)
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** 单个保障状态 Chip */
+function CoverageChip({ item, onClick }) {
+  const cfg = COVERAGE_CONFIG[item.value] || COVERAGE_CONFIG.unknown;
+  const isConfigured = item.value === 'configured';
+  return (
+    <button
+      onClick={() => !isConfigured && onClick(item.key)}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '10px 14px', borderRadius: 10, minWidth: 64,
+        background: cfg.bg, border: `1px solid ${cfg.border}`,
+        opacity: isConfigured ? 0.75 : 1,
+        cursor: isConfigured ? 'default' : 'pointer',
+        gap: 4,
+      }}
+    >
+      <span style={{ fontSize: 12, color: '#6B6B6B', fontWeight: 400 }}>{item.key}</span>
+      <span style={{ fontSize: 12, color: cfg.text, fontWeight: 600 }}>{cfg.label}</span>
+    </button>
+  );
+}
+
+/** 保障状态区块 */
+function CoverageStatusSection({ coverageList, onToggle }) {
+  return (
+    <div className="bg-bg-card rounded-card shadow-card mx-4 mt-3 overflow-hidden">
+      <div className="flex items-center justify-between px-5 h-12 border-b border-border">
+        <span style={{ fontSize: 14, fontWeight: 500, color: '#1A1A1A' }}>保障状态</span>
+        <span style={{ fontSize: 11, color: '#9B9B9B' }}>点击切换（已配置不可改）</span>
+      </div>
+      <div className="px-5 py-4 flex flex-wrap gap-2">
+        {coverageList.map(item => (
+          <CoverageChip key={item.key} item={item} onClick={onToggle} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Top Customer Card (simplified) ────────────────────────────────────────
+function TopCard() {
+  return (
+    <div className="bg-bg-card rounded-card shadow-card mx-4 mt-4 px-5 py-4">
+      <div className="flex items-start justify-between mb-2">
+        <span style={{ fontSize: 17, fontWeight: 600, color: '#1A1A1A' }}>张伟</span>
+        <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 4, background: '#B8956A', color: '#fff', fontWeight: 500 }}>P1 重点</span>
+      </div>
+      <div className="flex items-center gap-2 mb-3">
+        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, border: '1px solid #3B5268', color: '#3B5268' }}>方案讲解</span>
+        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: '#E8EFF5', color: '#6B8FA8' }}>高净值</span>
+      </div>
+      <div className="flex flex-col gap-1 mb-3">
+        <span style={{ fontSize: 12, color: '#6B6B6B' }}>最近沟通：2026-04-28</span>
+        <span style={{ fontSize: 12, color: '#3B5268' }}>下次跟进：2026-05-10 面谈</span>
+      </div>
+      <div className="flex gap-3 justify-end">
+        <button style={{ width: 72, height: 32, borderRadius: 8, background: '#3B5268', color: '#fff', fontSize: 13, fontWeight: 500, border: 'none' }}>预约</button>
+        <button style={{ width: 72, height: 32, borderRadius: 8, background: 'transparent', color: '#6B6B6B', fontSize: 13, border: '1px solid #C8C5C0' }}>随手记</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Tab Nav ────────────────────────────────────────────────────────────────
+const TABS = ['画像', '保单', '沟通', '异议', '计划'];
+function TabNav({ active, onChange }) {
+  return (
+    <div className="mx-4 mt-3 flex gap-1 p-1.5 rounded-card" style={{ background: '#F0EDE8' }}>
+      {TABS.map(t => (
+        <button
+          key={t}
+          onClick={() => onChange(t)}
+          style={{
+            flex: 1, height: 30, borderRadius: 8, fontSize: 13,
+            fontWeight: active === t ? 500 : 400,
+            background: active === t ? '#fff' : 'transparent',
+            color: active === t ? '#3B5268' : '#9B9B9B',
+            border: 'none',
+            boxShadow: active === t ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
+          }}
+        >{t}</button>
+      ))}
+    </div>
+  );
+}
+
+// ── Main App ───────────────────────────────────────────────────────────────
+function App() {
+  const [activeTab, setActiveTab] = useState('保单');
+  const [policies, setPolicies] = useState(MOCK_POLICIES);
+  const [coverage, setCoverage] = useState(MOCK_COVERAGE);
+
+  const CYCLE = ['unknown', 'gap', 'none', 'configured'];
+  function handleCoverageToggle(key) {
+    setCoverage(prev => prev.map(item => {
+      if (item.key !== key) return item;
+      const idx = CYCLE.indexOf(item.value);
+      return { ...item, value: CYCLE[(idx + 1) % CYCLE.length] };
+    }));
+  }
+
+  return (
+    <div className="phone-frame bg-bg-page pb-16">
+      {/* Status bar placeholder */}
+      <div style={{ height: 44, background: '#fff' }} />
+      {/* Nav bar */}
+      <div className="flex items-center px-4 h-11 bg-bg-card border-b border-border">
+        <span style={{ fontSize: 16, fontWeight: 600, color: '#1A1A1A' }}>客户详情</span>
+      </div>
+
+      <TopCard />
+      <TabNav active={activeTab} onChange={setActiveTab} />
+
+      {activeTab === '保单' && (
+        <div className="pb-6">
+          <PolicyValueDashboard derived={MOCK_DERIVED} />
+          <PolicyListSection
+            policies={policies}
+            onAdd={() => alert('添加保单')}
+            onAction={id => alert(`操作保单 #${id}`)}
+          />
+          <CoverageStatusSection
+            coverageList={coverage}
+            onToggle={handleCoverageToggle}
+          />
+        </div>
+      )}
+
+      {activeTab !== '保单' && (
+        <div className="mx-4 mt-3 bg-bg-card rounded-card shadow-card px-5 py-10 text-center"
+             style={{ fontSize: 13, color: '#9B9B9B' }}>
+          {activeTab} Tab（原型仅展示保单）
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

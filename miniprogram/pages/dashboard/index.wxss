@@ -126,7 +126,7 @@
 
 .section-title text {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
@@ -224,6 +224,15 @@
   color: var(--color-text-primary);
   display: block;
 }
+.hero-subtext {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  display: block;
+  margin-top: 6rpx;
+}
+.hero-subtext--warn {
+  color: var(--color-warning);
+}
 
 /* ---- 逾期警示 Banner ---- */
 .overdue-banner {
@@ -257,7 +266,7 @@
 }
 .section-title text {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 .section-badge {
@@ -290,28 +299,20 @@
   font-size: 26rpx;
   color: var(--color-text-placeholder);
 }
-.today-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  margin-bottom: 8rpx;
-}
-.today-item {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
+.today-cell-group {
   background: var(--color-bg-card);
   border-radius: var(--radius-card);
-  padding: 32rpx;
+  overflow: hidden;
   box-shadow: var(--shadow-card);
+  margin-bottom: 8rpx;
 }
-.today-item-left {
+.today-time-slot {
+  width: 120rpx;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 120rpx;
   flex-shrink: 0;
+  margin-right: 16rpx;
 }
 .today-time {
   font-size: 26rpx;
@@ -322,30 +323,15 @@
   color: var(--color-text-placeholder);
   font-weight: 400;
 }
-.today-item-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-}
-.today-customer {
+.today-cell-title {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
-.today-meta {
+.today-cell-label {
   font-size: 24rpx;
   color: var(--color-text-secondary);
-}
-.today-exec-btn {
-  background: var(--color-primary);
-  border-radius: var(--radius-button);
-  padding: 12rpx 28rpx;
-}
-.today-exec-btn text {
-  font-size: 26rpx;
-  color: var(--color-bg-card);
-  font-weight: 500;
+  margin-top: 6rpx;
 }
 
 /* ---- 指标卡网格 ---- */
@@ -373,7 +359,7 @@
 }
 .metric-value {
   font-size: 56rpx;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-primary);
 }
 .metric-value-zero {
@@ -427,27 +413,21 @@
 }
 
 /* ---- 待跟进列表 ---- */
-.follow-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  margin-bottom: 8rpx;
-}
-.follow-item {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
+.follow-cell-group {
   background: var(--color-bg-card);
   border-radius: var(--radius-card);
-  padding: 32rpx;
+  overflow: hidden;
   box-shadow: var(--shadow-card);
+  margin-bottom: 8rpx;
+  --cell-vertical-padding: 36rpx;
 }
 .follow-left {
-  width: 120rpx;
+  width: 56rpx;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-right: 16rpx;
 }
 .follow-priority {
   width: 56rpx;
@@ -457,6 +437,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-right: 16rpx;
 }
 .follow-priority text {
   font-size: 22rpx;
@@ -479,11 +460,11 @@
 .follow-name-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 20rpx;
 }
 .follow-name {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
 }
 .follow-stage {
@@ -499,10 +480,20 @@
 .follow-stage.stage-closing { color: var(--stage-closing-text); }
 .follow-stage.stage-deal    { color: var(--stage-deal-text); }
 .follow-stage.stage-lost    { color: var(--stage-lost-text); }
+.follow-label-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.follow-priority-label {
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+}
 .follow-next-row {
   display: flex;
   align-items: center;
   gap: 6rpx;
+  margin-top: 6rpx;
 }
 .overdue-icon {
   font-size: 22rpx;
@@ -516,10 +507,6 @@
   color: var(--color-danger);
   font-weight: 500;
 }
-.follow-arrow {
-  font-size: 32rpx;
-  color: var(--color-text-placeholder);
-}
 
 /* ---- 底部留白 ---- */
 .page-bottom-pad {
@@ -532,5 +519,3 @@
 .dashboard-empty .empty-title { font-size: 36rpx; font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin-bottom: 16rpx; }
 .dashboard-empty .empty-desc { font-size: 28rpx; color: var(--color-text-placeholder); text-align: center; line-height: 1.7; margin-bottom: 48rpx; }
 .dashboard-empty .empty-actions { display: flex; flex-direction: column; align-items: center; gap: 20rpx; width: 100%; }
-.dashboard-empty .empty-btn-primary { width: 100%; height: 96rpx; background: var(--color-primary); border-radius: var(--radius-button); display: flex; align-items: center; justify-content: center; font-size: 30rpx; font-weight: var(--font-weight-semibold); color: var(--color-bg-card); }
-.dashboard-empty .empty-btn-secondary { height: 80rpx; display: flex; align-items: center; justify-content: center; font-size: 28rpx; color: var(--color-text-secondary); }

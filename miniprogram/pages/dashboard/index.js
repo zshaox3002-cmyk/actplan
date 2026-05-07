@@ -15,7 +15,7 @@ var planRepo = require('../../utils/repository/plan.repo');
 var customerRepo = require('../../utils/repository/customer.repo');
 var dateUtil = require('../../utils/date');
 var storage = require('../../utils/storage');
-var toast = require('../../utils/toast');
+var Toast = require('@vant/weapp/toast/toast');
 
 var PERIOD_CONFIG = {
   week:    { label: '本周', rangeFn: dateUtil.getWeekRange },
@@ -33,6 +33,8 @@ Page({
 
     // 问候语
     greetingPrefix: '',
+    greetingSubtext: '',
+    greetingWarn: false,
 
     // 逾期
     overdueCount: 0,
@@ -164,8 +166,30 @@ Page({
         };
       });
 
+      // 副文案
+      var unplannedCount = 0;
+      for (var k = 0; k < pendingFollowUp.length; k++) {
+        if (pendingFollowUp[k].planId === null) unplannedCount++;
+      }
+      var greetingSubtext = '';
+      var greetingWarn = false;
+      if (unplannedCount > 0) {
+        greetingSubtext = '待跟进的 ' + unplannedCount + ' 位客户还没有安排拜访';
+        greetingWarn = true;
+      } else if (hour >= 18 && todayPlans.length > 0) {
+        greetingSubtext = '今天的拜访都安排好了，辛苦了';
+      } else if (todayPlans.length > 0) {
+        greetingSubtext = '今天有 ' + todayPlans.length + ' 个拜访计划，加油';
+      } else if (overdueCount > 0) {
+        greetingSubtext = '有 ' + overdueCount + ' 条逾期计划待处理';
+      } else {
+        greetingSubtext = '今天还没有拜访计划，要不要安排一下？';
+      }
+
       this.setData({
         greetingPrefix: greetingPrefix,
+        greetingSubtext: greetingSubtext,
+        greetingWarn: greetingWarn,
         overdueCount: overdueCount,
         todayPlans: todayPlans,
         metrics: metrics,
@@ -175,7 +199,7 @@ Page({
         isEmpty: snapshot.customer.length === 0
       });
     } catch (e) {
-      toast.fail('数据加载失败');
+      Toast.fail('数据加载失败');
       console.error('[Dashboard] _refresh error:', e);
     }
   },

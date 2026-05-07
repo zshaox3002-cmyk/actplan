@@ -52,7 +52,7 @@ Component({
       }
       if (deltaX > 10 && !this.data.isOpen) return;
       var screenWidth = wx.getSystemInfoSync().windowWidth;
-      var maxOffsetPx = -140 * screenWidth / 750;
+      var maxOffsetPx = -300 * screenWidth / 750;
       var rawOffset = this.data.isOpen
         ? Math.max(deltaX - maxOffsetPx, maxOffsetPx)
         : Math.max(deltaX, maxOffsetPx);
@@ -61,8 +61,8 @@ Component({
 
     onTouchEnd: function () {
       if (!this.data.isSwiping) return;
-      if (this.data.offsetX < -70) {
-        this.setData({ offsetX: -140, isOpen: true });
+      if (this.data.offsetX < -150) {
+        this.setData({ offsetX: -300, isOpen: true });
       } else {
         this.setData({ offsetX: 0, isOpen: false });
       }

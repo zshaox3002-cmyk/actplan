@@ -12,6 +12,7 @@ var recordRepo = require('../../utils/repository/record.repo');
 var customerRepo = require('../../utils/repository/customer.repo');
 var planRepo = require('../../utils/repository/plan.repo');
 var objectionRepo = require('../../utils/repository/objection.repo');
+var policyRepo = require('../../utils/repository/policy.repo');
 var storage = require('../../utils/storage');
 var toast = require('../../utils/toast');
 var constants = require('../../utils/constants');
@@ -64,6 +65,14 @@ Page({
     // 沟通结果
     commResults: COMM_RESULTS,
     commResultKey: '',
+
+    // 成交信息子区块（commResultKey='deal' 时展开）
+    showDealBlock: false,
+    dealProducts: [],
+    dealPremiums: {},
+    dealProductNames: {},
+    dealProductsMap: {},
+    productTypeOptions: ['重疾', '医疗', '教育金', '养老', '意外', '寿险'],
 
     // 沟通摘要
     summary: '',
@@ -155,12 +164,58 @@ Page({
 
   /** 选择沟通结果 */
   onCommResultTap: function (e) {
-    this.setData({ commResultKey: e.currentTarget.dataset.key });
+    var key = e.currentTarget.dataset.key;
+    var update = {
+      commResultKey: key,
+      showDealBlock: key === 'deal'
+    };
+    // 选已成交时自动联动跟进阶段
+    if (key === 'deal') {
+      update.stageIndex = STAGE_OPTIONS.indexOf('已成交');
+    }
+    this.setData(update);
   },
 
   /** 沟通摘要输入 */
   onSummaryInput: function (e) {
     this.setData({ summary: e.detail.value });
+  },
+
+  /** 成交险种多选切换 */
+  onDealProductToggle: function (e) {
+    var type = e.currentTarget.dataset.type;
+    var products = this.data.dealProducts.slice();
+    var premiums = Object.assign({}, this.data.dealPremiums);
+    var names = Object.assign({}, this.data.dealProductNames);
+    var idx = products.indexOf(type);
+    if (idx >= 0) {
+      products.splice(idx, 1);
+      delete premiums[type];
+      delete names[type];
+    } else {
+      products.push(type);
+      premiums[type] = '';
+      names[type] = '';
+    }
+    var map = {};
+    for (var i = 0; i < products.length; i++) map[products[i]] = true;
+    this.setData({ dealProducts: products, dealPremiums: premiums, dealProductNames: names, dealProductsMap: map });
+  },
+
+  /** 各险种产品名称输入 */
+  onDealProductNameInput: function (e) {
+    var type = e.currentTarget.dataset.type;
+    var names = Object.assign({}, this.data.dealProductNames);
+    names[type] = e.detail.value;
+    this.setData({ dealProductNames: names });
+  },
+
+  /** 各险种保费输入 */
+  onDealPremiumInput: function (e) {
+    var type = e.currentTarget.dataset.type;
+    var premiums = Object.assign({}, this.data.dealPremiums);
+    premiums[type] = e.detail.value;
+    this.setData({ dealPremiums: premiums });
   },
 
   /** 切换异议已化解状态 */
@@ -322,39 +377,89 @@ Page({
 
     var selectedStage = STAGE_OPTIONS[d.stageIndex];
 
+    // 成交信息校验
+    if (d.showDealBlock) {
+      if (!d.dealProducts || d.dealProducts.length === 0) {
+        wx.showToast({ title: '请选择成交险种', icon: 'none' });
+        return;
+      }
+      for (var k = 0; k < d.dealProducts.length; k++) {
+        var pt = d.dealProducts[k];
+        if (!d.dealPremiums[pt] || isNaN(parseFloat(d.dealPremiums[pt]))) {
+          wx.showToast({ title: '请填写' + pt + '的保费金额', icon: 'none' });
+          return;
+        }
+      }
+    }
+
     try {
-      storage.transaction(function () {
-        // 1. 处理异议
-        var objectionIds = [];
-        for (var i = 0; i < d.objections.length; i++) {
-          var obj = d.objections[i];
-          var result = obj.resolved ? '已化解' : '仍在考虑';
-          objectionRepo.appendNote(obj.id, d.customerId, '在本次拜访中遇到该异议', {
-            result: result
+      // 1. 处理异议
+      var objectionIds = [];
+      for (var i = 0; i < d.objections.length; i++) {
+        var obj = d.objections[i];
+        var result = obj.resolved ? '已化解' : '仍在考虑';
+        objectionRepo.appendNote(obj.id, d.customerId, '在本次拜访中遇到该异议', {
+          result: result
+        });
+        objectionIds.push(obj.id);
+      }
+
+      // 2. 保存拜访记录（recordRepo.create 内部已有事务）
+      var recordData = {
+        customer_id: d.customerId,
+        plan_id: d.planId || null,
+        visit_date: d.planDate || new Date().toISOString().slice(0, 10),
+        visit_time: d.planTime || null,
+        visit_way: d.visitWay || '面对面',
+        summary: summary,
+        stage: selectedStage,
+        comm_result: d.commResultKey,
+        record_type: d.recordType,
+        is_deal: selectedStage === '已成交' ? '签单成交' : '暂未成交',
+        has_objection: objectionIds.length > 0 ? 1 : 0,
+        objection_ids: objectionIds,
+        updated_fields: ['stage']
+      };
+
+      // 成交时附加保单字段
+      if (d.showDealBlock) {
+        var totalPremium = 0;
+        for (var pi = 0; pi < d.dealProducts.length; pi++) {
+          totalPremium += parseFloat(d.dealPremiums[d.dealProducts[pi]] || 0);
+        }
+        recordData.deal_products = d.dealProducts;
+        recordData.deal_premium = totalPremium;
+      }
+
+      // recordRepo.create 返回新记录 ID（数字）
+      var newRecordId = recordRepo.create(recordData);
+
+      // 3. 同步客户阶段（recordRepo 内部已更新，此处补充 segment 相关字段）
+      customerRepo.update(d.customerId, { stage: selectedStage });
+
+      // 4. 成交时为每个险种创建保单记录，并更新 coverage_status
+      if (d.showDealBlock && newRecordId) {
+        var today = new Date().toISOString().slice(0, 10);
+        var newCoverageStatus = {};
+
+        for (var j = 0; j < d.dealProducts.length; j++) {
+          var productType = d.dealProducts[j];
+          policyRepo.create({
+            customer_id: d.customerId,
+            product_type: productType,
+            product_name: d.dealProductNames[productType] || '',
+            premium: parseFloat(d.dealPremiums[productType] || 0),
+            effective_date: today,
+            expire_date: null,
+            source: 'self',
+            visit_record_id: newRecordId
           });
-          objectionIds.push(obj.id);
+          newCoverageStatus[productType] = 'configured';
         }
 
-        // 2. 保存拜访记录
-        recordRepo.create({
-          customer_id: d.customerId,
-          plan_id: d.planId || null,
-          visit_date: new Date().toISOString().slice(0, 10),
-          visit_time: d.planTime || null,
-          visit_way: d.visitWay || '面对面',
-          summary: summary,
-          stage: selectedStage,
-          comm_result: d.commResultKey,
-          record_type: d.recordType,
-          is_deal: selectedStage === '已成交' ? '签单成交' : '暂未成交',
-          has_objection: objectionIds.length > 0 ? 1 : 0,
-          objection_ids: objectionIds,
-          updated_fields: ['stage']
-        });
-
-        // 3. 同步客户阶段
-        customerRepo.update(d.customerId, { stage: selectedStage });
-      });
+        // 强制覆盖 configured 状态（_forceStatus 标记绕过校验）
+        customerRepo.update(d.customerId, { coverage_status: newCoverageStatus, _forceStatus: true });
+      }
 
       toast.success('记录已保存');
       setTimeout(function () { wx.navigateBack(); }, 800);

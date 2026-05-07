@@ -52,6 +52,10 @@
             data-tab="profile" bindtap="onTabTap">
         <text>画像</text>
       </view>
+      <view class="tab-item {{activeTab === 'policy' ? 'active' : ''}}"
+            data-tab="policy" bindtap="onTabTap">
+        <text>保单</text>
+      </view>
       <view class="tab-item {{activeTab === 'timeline' ? 'active' : ''}}"
             data-tab="timeline" bindtap="onTabTap">
         <text>沟通</text>
@@ -59,10 +63,6 @@
       <view class="tab-item {{activeTab === 'objection' ? 'active' : ''}}"
             data-tab="objection" bindtap="onTabTap">
         <text>异议</text>
-      </view>
-      <view class="tab-item {{activeTab === 'needs' ? 'active' : ''}}"
-            data-tab="needs" bindtap="onTabTap">
-        <text>需求</text>
       </view>
       <view class="tab-item {{activeTab === 'plan' ? 'active' : ''}}"
             data-tab="plan" bindtap="onTabTap">
@@ -193,6 +193,165 @@
       <view class="save-bar" wx:if="{{isEditProfile}}">
         <button class="save-btn" bindtap="onSaveProfile">保存</button>
       </view>
+
+      <!-- 扩展字段组 -->
+      <view class="section-card" wx:if="{{!isNew}}">
+        <view class="section-header">
+          <text class="section-title">扩展信息</text>
+          <view class="edit-btn" bindtap="onEditExtendedTap" wx:if="{{!isEditExtended}}">
+            <text>编辑</text>
+          </view>
+        </view>
+        <!-- 只读态 -->
+        <view class="profile-grid" wx:if="{{!isEditExtended}}">
+          <view class="grid-cell">
+            <text class="grid-label">高净值</text>
+            <text class="grid-value">{{isHnw ? '是' : '否'}}</text>
+          </view>
+          <view class="grid-cell">
+            <text class="grid-label">转介绍数</text>
+            <text class="grid-value">{{referralCount}}</text>
+          </view>
+          <view class="grid-cell">
+            <text class="grid-label">生日</text>
+            <text class="grid-value">{{birthday || '-'}}</text>
+          </view>
+          <view class="grid-cell">
+            <text class="grid-label">保单到期</text>
+            <text class="grid-value">{{policyExpireDate || '-'}}</text>
+          </view>
+        </view>
+        <!-- 编辑态 -->
+        <block wx:if="{{isEditExtended}}">
+          <inline-picker label="高净值" options="{{hnwOptions}}"
+            value="{{hnwIndex}}" disabled="{{false}}"
+            bindchange="onHnwChange"/>
+          <view class="field-row">
+            <text class="field-label">转介绍数</text>
+            <input class="field-input" type="number"
+                   value="{{extForm.referral_count}}"
+                   bindinput="onExtReferralInput"
+                   placeholder="0"/>
+          </view>
+          <view class="field-row">
+            <text class="field-label">生日</text>
+            <picker mode="date" value="{{extForm.birthday}}" bindchange="onExtBirthdayChange">
+              <text class="field-value {{extForm.birthday ? '' : 'field-auto'}}">{{extForm.birthday || '请选择'}}</text>
+            </picker>
+          </view>
+          <view class="field-row">
+            <text class="field-label">保单到期</text>
+            <picker mode="date" value="{{extForm.policy_expire_date}}" bindchange="onExtPolicyExpireDateChange">
+              <text class="field-value {{extForm.policy_expire_date ? '' : 'field-auto'}}">{{extForm.policy_expire_date || '请选择'}}</text>
+            </picker>
+          </view>
+        </block>
+      </view>
+      <!-- 扩展信息保存按钮 -->
+      <view class="save-bar" wx:if="{{isEditExtended}}">
+        <button class="save-btn" bindtap="onSaveExtended">保存</button>
+      </view>
+
+    </view>
+
+    <!-- ===== 保单 Tab ===== -->
+    <view wx:if="{{activeTab === 'policy'}}">
+
+      <!-- 保单价值组 -->
+      <view class="section-card" wx:if="{{!isNew && derived.policy_count > 0}}">
+        <view class="section-header">
+          <text class="section-title">保单价值</text>
+        </view>
+        <view class="profile-grid policy-value-grid">
+          <view class="grid-cell">
+            <text class="grid-label">保单数</text>
+            <view class="pv-num-row">
+              <text class="pv-num">{{derived.policy_count}}</text>
+              <text class="pv-unit">份</text>
+            </view>
+          </view>
+          <view class="grid-cell">
+            <text class="grid-label">年缴总保费</text>
+            <view class="pv-num-row">
+              <text class="pv-num">{{derived.total_premium_display}}</text>
+              <text class="pv-unit">{{derived.total_premium_unit}}</text>
+            </view>
+          </view>
+          <view class="grid-cell">
+            <text class="grid-label">平均保费</text>
+            <view class="pv-num-row">
+              <text class="pv-num">{{derived.avg_premium_display}}</text>
+              <text class="pv-unit">{{derived.avg_premium_unit}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 保单区块 -->
+      <view class="section-card" wx:if="{{!isNew}}">
+        <view class="section-header">
+          <text class="section-title">保单</text>
+          <view class="edit-btn" bindtap="onAddPolicy">
+            <text>+ 添加</text>
+          </view>
+        </view>
+
+        <view wx:if="{{showHistoryBackfillTip}}" class="backfill-tip">
+          <text>检测到 {{historyDealCount}} 条历史成交记录未录入保单，可手动添加</text>
+        </view>
+
+        <view wx:if="{{policies.length === 0}}" class="empty-hint">
+          <text>暂无保单记录</text>
+        </view>
+
+        <view class="policy-list" wx:else>
+          <view class="policy-item" wx:for="{{policies}}" wx:key="id">
+            <view class="policy-item-main">
+              <view class="policy-item-header">
+                <text class="policy-product-name">{{item.productName || item.productType}}</text>
+                <text class="policy-source-tag {{item.isSelf ? 'source-self' : 'source-external'}}">
+                  {{item.isSelf ? '我成交' : '他渠道'}}
+                </text>
+              </view>
+              <view class="policy-item-sub" wx:if="{{item.productName}}">
+                <text class="policy-type-label">{{item.productType}}</text>
+              </view>
+              <view class="policy-meta">
+                <text class="policy-meta-item">年缴 {{item.premium}}元</text>
+                <text class="policy-meta-sep">·</text>
+                <text class="policy-meta-item">生效 {{item.effectiveDate}}</text>
+                <block wx:if="{{item.expireDate}}">
+                  <text class="policy-meta-sep">·</text>
+                  <text class="policy-meta-item">到期 {{item.expireDate}}</text>
+                </block>
+              </view>
+            </view>
+            <view class="policy-action-btn"
+                  data-id="{{item.id}}" data-is-self="{{item.isSelf}}"
+                  bindtap="onPolicyAction">
+              <text>···</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 保障状态组 -->
+      <view class="section-card" wx:if="{{!isNew}}">
+        <view class="section-header">
+          <text class="section-title">保障状态</text>
+          <text class="section-hint">点击切换（已配置不可改）</text>
+        </view>
+        <view class="coverage-status-grid">
+          <view class="coverage-chip coverage-chip-{{item.value}} {{item.value === 'configured' ? 'coverage-chip-disabled' : ''}}"
+                wx:for="{{coverageStatusList}}" wx:key="key"
+                data-key="{{item.key}}"
+                bindtap="onCoverageStatusChange">
+            <text class="coverage-chip-key">{{item.key}}</text>
+            <text class="coverage-chip-val">{{item.value === 'configured' ? '已配置' : item.value === 'gap' ? '有缺口' : item.value === 'none' ? '不需要' : '未知'}}</text>
+          </view>
+        </view>
+      </view>
+
     </view>
 
     <!-- ===== 沟通 Tab ===== -->
@@ -254,45 +413,6 @@
               <text class="obj-note-count" wx:if="{{item.noteCount > 0}}">{{item.noteCount}}条备注</text>
             </view>
           </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- ===== 需求 Tab ===== -->
-    <view wx:if="{{activeTab === 'needs'}}">
-      <view class="section-card">
-        <view class="section-header">
-          <text class="section-title">保障需求</text>
-          <view class="edit-btn" bindtap="onEditNeedsTap" wx:if="{{!isEditNeeds}}">
-            <text>编辑</text>
-          </view>
-        </view>
-
-        <!-- 非编辑态：原有列表 -->
-        <view class="needs-list" wx:if="{{!isEditNeeds}}">
-          <view class="need-item" wx:for="{{coverageNeedKeys}}" wx:key="*this">
-            <text class="need-key">{{item}}</text>
-            <text class="{{coverageNeedClasses[index]}}">{{coverageNeeds[item] || '待了解'}}</text>
-          </view>
-        </view>
-
-        <!-- 编辑态：inline-picker 列表 -->
-        <block wx:else>
-          <inline-picker
-            wx:for="{{coverageNeedKeys}}" wx:key="*this"
-            wx:for-index="idx"
-            label="{{item}}"
-            options="{{coverageNeedOptions}}"
-            value="{{coverageNeedIndexes[idx]}}"
-            disabled="{{false}}"
-            data-idx="{{idx}}"
-            bindchange="onNeedIndexChange"
-            noTopBorder="{{idx === 0}}"
-          />
-        </block>
-
-        <view class="save-bar-inline" wx:if="{{isEditNeeds}}">
-          <button class="save-btn-sm" bindtap="onSaveNeeds">保存需求</button>
         </view>
       </view>
     </view>

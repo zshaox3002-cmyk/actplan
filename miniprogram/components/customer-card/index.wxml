@@ -4,9 +4,11 @@
       bindtouchmove="onTouchMove"
       bindtouchend="onTouchEnd">
 
-  <!-- 删除按钮 -->
-  <view class="delete-btn" catchtap="onDeleteTap" data-id="{{customer.id}}">
-    <text class="delete-text">删除</text>
+  <!-- 左滑操作区：预约 / 随手记 / 删除 -->
+  <view class="swipe-actions">
+    <view class="swipe-btn swipe-btn-plan" catchtap="onAddPlan">预约</view>
+    <view class="swipe-btn swipe-btn-record" catchtap="onAddRecord">随手记</view>
+    <view class="swipe-btn swipe-btn-delete" catchtap="onDeleteTap" data-id="{{customer.id}}">删除</view>
   </view>
 
   <!-- 卡片主体 -->
@@ -15,9 +17,10 @@
         catchtap="onCardTap"
         data-id="{{customer.id}}">
 
-    <!-- 头部：姓名 + 阶段标签同行 -->
+    <!-- 头部：姓名 + 交情 + 阶段标签 -->
     <view class="card-header">
       <text class="customer-name">{{customer.name}}</text>
+      <text class="customer-intimacy" wx:if="{{customer.intimacy}}">{{customer.intimacy}}</text>
       <view class="stage-tag stage-{{_stageClass}}" wx:if="{{customer.stage}}">
         <text>{{customer.stage}}</text>
       </view>
@@ -31,19 +34,8 @@
       <text class="priority-reasons {{customer._isOverdue ? 'overdue' : ''}}" wx:if="{{customer._priorityReasons}}">{{customer._priorityReasons}}</text>
     </view>
 
-    <!-- 客户属性标签 -->
-    <view class="custom-tags" wx:if="{{customer.tags && customer.tags.length > 0}}">
-      <view class="custom-tag" wx:for="{{customer.tags}}" wx:key="*this">
-        <text>{{item}}</text>
-      </view>
-    </view>
-
-    <!-- meta 信息：上下两行 -->
+    <!-- meta 信息：下次跟进 -->
     <view class="card-meta">
-      <view class="meta-row">
-        <text class="meta-label">上次沟通</text>
-        <text class="meta-value">{{customer._lastVisitText}}</text>
-      </view>
       <view class="meta-row {{customer._isOverdue ? 'overdue' : ''}}">
         <text class="meta-label">下次跟进</text>
         <text class="meta-value">{{customer._nextFollowText}}</text>
@@ -53,12 +45,6 @@
     <!-- 摘要 -->
     <view class="last-summary" wx:if="{{customer._lastSummary}}">
       <text>上次摘要：{{customer._lastSummary}}</text>
-    </view>
-
-    <!-- 操作按钮 -->
-    <view class="card-actions">
-      <view class="action-btn" catchtap="onAddPlan" data-id="{{customer.id}}" data-name="{{customer.name}}">预约</view>
-      <view class="action-btn" catchtap="onAddRecord" data-id="{{customer.id}}" data-name="{{customer.name}}">随手记</view>
     </view>
 
   </view>
