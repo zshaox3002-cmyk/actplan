@@ -215,7 +215,7 @@ function update(id, data) {
 }
 
 /**
- * 删除客户（级联清理关联的拜访计划和拜访记录）
+ * 删除客户（级联清理关联的拜访计划、拜访记录和异议数据）
  * @param {number} id - 客户 ID
  * @returns {boolean} 是否成功
  */
@@ -238,6 +238,60 @@ function deleteCustomer(id) {
     var remainingRecords = records.filter(function (r) { return r.customer_id !== id; });
     if (remainingRecords.length < records.length) {
       storage.setTable('visit_record', remainingRecords);
+    }
+
+    // 级联删除异议相关数据
+    var objNotes = storage.getTable('objection_note');
+    var customerNotes = objNotes.filter(function (n) { return n.customer_id === id; });
+
+    // 统计需要从 objection_links 中移除的预置异议条目数
+    var presetRemoveCount = {};
+    customerNotes.forEach(function (n) {
+      if (typeof n.objection_id === 'string' && n.objection_id.indexOf('preset_') === 0) {
+        presetRemoveCount[n.objection_id] = (presetRemoveCount[n.objection_id] || 0) + 1;
+      }
+    });
+
+    // 从 objection_links 中移除对应条目
+    if (Object.keys(presetRemoveCount).length > 0) {
+      var links = storage.getTable('objection_links');
+      var removedCount = {};
+      var remainingLinks = links.filter(function (l) {
+        var pid = l.presetId;
+        if (presetRemoveCount[pid] && (removedCount[pid] || 0) < presetRemoveCount[pid]) {
+          removedCount[pid] = (removedCount[pid] || 0) + 1;
+          return false;
+        }
+        return true;
+      });
+      storage.setTable('objection_links', remainingLinks);
+    }
+
+    // 删除该客户的 objection_note 行
+    var remainingNotes = objNotes.filter(function (n) { return n.customer_id !== id; });
+    if (remainingNotes.length < objNotes.length) {
+      storage.setTable('objection_note', remainingNotes);
+    }
+
+    // 对自建异议（数字 ID）减少出现次数，并删除该客户自建的异议行
+    var customObjDecrements = {};
+    customerNotes.forEach(function (n) {
+      if (typeof n.objection_id === 'number') {
+        customObjDecrements[n.objection_id] = (customObjDecrements[n.objection_id] || 0) + 1;
+      }
+    });
+    var objections = storage.getTable('objection');
+    var needObjWrite = false;
+    var remainingObjections = objections.filter(function (o) {
+      if (o.customer_id === id) { needObjWrite = true; return false; }
+      if (customObjDecrements[o.id] !== undefined) {
+        o.count = Math.max(0, (o.count || 0) - customObjDecrements[o.id]);
+        needObjWrite = true;
+      }
+      return true;
+    });
+    if (needObjWrite) {
+      storage.setTable('objection', remainingObjections);
     }
 
     return true;

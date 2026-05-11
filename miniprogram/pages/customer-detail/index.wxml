@@ -37,10 +37,12 @@
 
       <!-- 快捷操作 -->
       <view class="quick-actions">
-        <view class="quick-btn quick-btn-primary" bindtap="onAddPlan">
+        <view class="quick-btn quick-btn-primary {{isNew ? 'disabled' : ''}}"
+              bindtap="{{isNew ? '' : 'onAddPlan'}}">
           <text>预约</text>
         </view>
-        <view class="quick-btn quick-btn-secondary" bindtap="onAddRecord">
+        <view class="quick-btn quick-btn-secondary {{isNew ? 'disabled' : ''}}"
+              bindtap="{{isNew ? '' : 'onAddRecord'}}">
           <text>随手记</text>
         </view>
       </view>
@@ -88,35 +90,42 @@
                  data-field="name" bindinput="onFieldChange"/>
         </view>
 
-        <!-- 非编辑态：3列网格 -->
+        <!-- 非编辑态：2列网格 -->
         <view wx:if="{{!isEditProfile}}">
           <view class="profile-grid">
             <view class="grid-cell">
               <text class="grid-label">性别</text>
-              <text class="grid-value">{{profileGender || '-'}}</text>
+              <text class="grid-value {{!profileGender ? 'grid-empty' : ''}}">{{profileGender || '未填写'}}</text>
             </view>
             <view class="grid-cell">
               <text class="grid-label">年龄</text>
-              <text class="grid-value">{{profileAgeRange || '-'}}</text>
+              <text class="grid-value {{!profileAgeRange ? 'grid-empty' : ''}}">{{profileAgeRange || '未填写'}}</text>
             </view>
             <view class="grid-cell">
               <text class="grid-label">职业</text>
-              <text class="grid-value">{{profileOccupation || '-'}}</text>
+              <text class="grid-value {{!profileOccupation ? 'grid-empty' : ''}}">{{profileOccupation || '未填写'}}</text>
             </view>
             <view class="grid-cell">
               <text class="grid-label">收入</text>
-              <text class="grid-value">{{profileIncome || '-'}}</text>
+              <text class="grid-value {{!profileIncome ? 'grid-empty' : ''}}">{{profileIncome || '未填写'}}</text>
             </view>
             <view class="grid-cell">
               <text class="grid-label">婚姻</text>
-              <text class="grid-value">{{profileMarital || '-'}}</text>
+              <text class="grid-value {{!profileMarital ? 'grid-empty' : ''}}">{{profileMarital || '未填写'}}</text>
             </view>
             <view class="grid-cell">
               <text class="grid-label">家庭</text>
-              <text class="grid-value">{{profileFamily || '-'}}</text>
+              <text class="grid-value {{!profileFamily ? 'grid-empty' : ''}}">{{profileFamily || '未填写'}}</text>
+            </view>
+            <view class="grid-cell">
+              <text class="grid-label">交情</text>
+              <text class="grid-value {{!profileIntimacy ? 'grid-empty' : ''}}">{{profileIntimacy || '未填写'}}</text>
+            </view>
+            <view class="grid-cell">
+              <text class="grid-label">来源</text>
+              <text class="grid-value {{!profileRelation ? 'grid-empty' : ''}}">{{profileRelation || '未填写'}}</text>
             </view>
           </view>
-          <text class="profile-meta" wx:if="{{profileIntimacy || profileRelation}}">交情：{{profileIntimacy || '-'}} · 来源：{{profileRelation || '-'}}</text>
         </view>
 
         <!-- 编辑态：列表式字段 -->
@@ -163,7 +172,7 @@
         </block>
 
         <!-- 客户标签：非编辑态常显，编辑态可编辑 -->
-        <view class="field-row field-row-full" wx:if="{{!isEditProfile}}">
+        <view class="field-row field-row-full field-row-tags" wx:if="{{!isEditProfile}}">
           <text class="field-label">客户标签</text>
           <view wx:if="{{tags.length > 0}}" class="tag-list tag-list-readonly">
             <view class="tag-item" wx:for="{{tags}}" wx:key="*this">
@@ -191,7 +200,7 @@
 
       <!-- 保存按钮 -->
       <view class="save-bar" wx:if="{{isEditProfile}}">
-        <button class="save-btn" bindtap="onSaveProfile">保存</button>
+        <button class="save-btn" disabled="{{isSaving}}" bindtap="onSaveProfile">{{isSaving ? '保存中...' : '保存'}}</button>
       </view>
 
       <!-- 扩展字段组 -->
@@ -214,11 +223,11 @@
           </view>
           <view class="grid-cell">
             <text class="grid-label">生日</text>
-            <text class="grid-value">{{birthday || '-'}}</text>
+            <text class="grid-value {{!birthday ? 'grid-empty' : ''}}">{{birthday || '未填写'}}</text>
           </view>
           <view class="grid-cell">
             <text class="grid-label">保单到期</text>
-            <text class="grid-value">{{policyExpireDate || '-'}}</text>
+            <text class="grid-value {{!policyExpireDate ? 'grid-empty' : ''}}">{{policyExpireDate || '未填写'}}</text>
           </view>
         </view>
         <!-- 编辑态 -->
@@ -249,7 +258,7 @@
       </view>
       <!-- 扩展信息保存按钮 -->
       <view class="save-bar" wx:if="{{isEditExtended}}">
-        <button class="save-btn" bindtap="onSaveExtended">保存</button>
+        <button class="save-btn" disabled="{{isSaving}}" bindtap="onSaveExtended">{{isSaving ? '保存中...' : '保存'}}</button>
       </view>
 
     </view>
@@ -278,10 +287,10 @@
             </view>
           </view>
           <view class="grid-cell">
-            <text class="grid-label">平均保费</text>
+            <text class="grid-label">本年待缴</text>
             <view class="pv-num-row">
-              <text class="pv-num">{{derived.avg_premium_display}}</text>
-              <text class="pv-unit">{{derived.avg_premium_unit}}</text>
+              <text class="pv-num">{{derived.yearly_pending_display}}</text>
+              <text class="pv-unit">{{derived.yearly_pending_unit}}</text>
             </view>
           </view>
         </view>
@@ -309,27 +318,40 @@
             <view class="policy-item-main">
               <view class="policy-item-header">
                 <text class="policy-product-name">{{item.productName || item.productType}}</text>
-                <text class="policy-source-tag {{item.isSelf ? 'source-self' : 'source-external'}}">
-                  {{item.isSelf ? '我成交' : '他渠道'}}
-                </text>
+                <view class="policy-type-chip">
+                  <text>{{item.productType}}</text>
+                </view>
               </view>
-              <view class="policy-item-sub" wx:if="{{item.productName}}">
-                <text class="policy-type-label">{{item.productType}}</text>
+              <view class="policy-summary-row" wx:if="{{item.policySummary}}">
+                <text class="policy-summary-text">{{item.policySummary}}</text>
               </view>
-              <view class="policy-meta">
-                <text class="policy-meta-item">年缴 {{item.premium}}元</text>
-                <text class="policy-meta-sep">·</text>
-                <text class="policy-meta-item">生效 {{item.effectiveDate}}</text>
-                <block wx:if="{{item.expireDate}}">
-                  <text class="policy-meta-sep">·</text>
-                  <text class="policy-meta-item">到期 {{item.expireDate}}</text>
-                </block>
+              <view class="policy-completion-tip" wx:if="{{item.needsCompletion}}">
+                <text class="policy-completion-text">待补充关键信息</text>
+              </view>
+              <view wx:else>
+                <view class="policy-meta">
+                  <text class="policy-meta-item">年缴 {{item.premium}}元</text>
+                </view>
+                <view class="policy-event-row">
+                  <text class="policy-event-days policy-color-{{item.cardColorClass}}">
+                    {{item.cardDaysText}}
+                  </text>
+                  <text class="policy-event-date" wx:if="{{item.cardEventDate}}">
+                    {{item.cardEventDate}}
+                  </text>
+                </view>
               </view>
             </view>
-            <view class="policy-action-btn"
-                  data-id="{{item.id}}" data-is-self="{{item.isSelf}}"
-                  bindtap="onPolicyAction">
-              <text>···</text>
+            <view class="policy-item-right">
+              <view class="policy-status-badge policy-status-{{item.cardColorClass}}"
+                    wx:if="{{item.cardStatus !== 'normal'}}">
+                <text>{{item.cardStatusLabel}}</text>
+              </view>
+              <view class="policy-action-btn"
+                    data-id="{{item.id}}"
+                    bindtap="onPolicyAction">
+                <text>···</text>
+              </view>
             </view>
           </view>
         </view>
@@ -410,7 +432,6 @@
             <text class="obj-content">{{item.content}}</text>
             <view class="obj-footer">
               <text class="obj-solution" wx:if="{{item.solution}}">话术：{{item.solution}}</text>
-              <text class="obj-note-count" wx:if="{{item.noteCount > 0}}">{{item.noteCount}}条备注</text>
             </view>
           </view>
         </view>

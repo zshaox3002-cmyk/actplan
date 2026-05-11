@@ -1,6 +1,14 @@
 # 微信开发者工具
 miniprogram/project.private.config.json
 
+# 依赖目录
+node_modules/
+miniprogram/node_modules/
+miniprogram/miniprogram_npm/
+
+# Claude Code 配置
+.claude/
+
 # AI 工具配置
 .workbuddy/
 claude.md

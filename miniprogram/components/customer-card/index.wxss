@@ -68,19 +68,18 @@
   margin-bottom: 12rpx;
 }
 
-/* 优先级标签：实心色块，白色文字 */
+/* 优先级标签：浅色底+深色字 */
 .priority-tag {
   padding: 4rpx 14rpx;
   border-radius: var(--radius-badge);
   font-size: 22rpx;
   font-weight: 500;
-  color: #fff;
   flex-shrink: 0;
 }
-.priority-P0 { background: var(--priority-p0-bg); }
-.priority-P1 { background: var(--priority-p1-bg); }
-.priority-P2 { background: var(--priority-p2-bg); }
-.priority-P3 { background: var(--priority-p3-bg); }
+.priority-P0 { background: var(--priority-p0-bg); color: var(--priority-p0-text); }
+.priority-P1 { background: var(--priority-p1-bg); color: var(--priority-p1-text); }
+.priority-P2 { background: var(--priority-p2-bg); color: var(--priority-p2-text); }
+.priority-P3 { background: var(--priority-p3-bg); color: var(--priority-p3-text); }
 
 /* 驱动因素文字 */
 .priority-reasons {

@@ -61,6 +61,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
+  "cloudfunctionRoot": "cloudfunctions/",
   "appid": "wxf13c665b312cc105",
   "projectname": "aia-agent-activity",
   "libVersion": "3.3.4",

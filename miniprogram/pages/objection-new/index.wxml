@@ -186,8 +186,8 @@
       <view class="btn-secondary" bindtap="onPrevStep">
         <text class="btn-text-gray">上一步</text>
       </view>
-      <view class="btn-primary action-flex" bindtap="onSubmit">
-        <text class="btn-text-white">确认提交</text>
+      <view class="btn-primary action-flex {{isSaving ? 'btn-disabled' : ''}}" bindtap="{{isSaving ? '' : 'onSubmit'}}">
+        <text class="btn-text-white">{{isSaving ? '提交中...' : '确认提交'}}</text>
       </view>
     </view>
   </view>

@@ -58,6 +58,7 @@ Page({
     colorOptions: COLOR_OPTIONS,
     colorLabels: COLOR_LABELS,
     rules: [],          // [{ field, op, value, _fieldLabel, _opLabel, _valueLabel }]
+    ruleMatch: 'AND',   // 系统预设规则逻辑类型展示用
     sortField: 'total_premium',
     sortFieldLabel: '累计保费',
     sortOrder: 'desc',
@@ -80,7 +81,10 @@ Page({
     ruleValue: '',
     ruleFieldType: '',
     ruleOpOptions: [],
-    ruleValueOptions: []
+    ruleValueOptions: [],
+
+    // 保存防重复
+    isSaving: false
   },
 
   _previewTimer: null,
@@ -105,6 +109,7 @@ Page({
             name: seg.name,
             color: seg.color || 'gold',
             rules: that._deserializeRules(seg.rules ? seg.rules.rules : []),
+            ruleMatch: seg.rules && seg.rules.match ? seg.rules.match : 'AND',
             sortField: seg.sort ? seg.sort.field : 'total_premium',
             sortFieldLabel: (function (key) {
               for (var i = 0; i < SORT_FIELD_OPTIONS.length; i++) {
@@ -372,13 +377,21 @@ Page({
   },
 
   onSave: function () {
+    if (this._saving) return;
+    this._saving = true;
+    this.setData({ isSaving: true });
+
     var name = (this.data.name || '').trim();
     if (!name) {
       wx.showToast({ title: '请填写视图名称', icon: 'none' });
+      this._saving = false;
+      this.setData({ isSaving: false });
       return;
     }
     if (name.length > 12) {
       wx.showToast({ title: '视图名最长 12 字', icon: 'none' });
+      this._saving = false;
+      this.setData({ isSaving: false });
       return;
     }
 
@@ -400,6 +413,8 @@ Page({
       setTimeout(function () { wx.navigateBack(); }, 600);
     } catch (e) {
       toast.fail(e.message || '保存失败');
+      this._saving = false;
+      this.setData({ isSaving: false });
     }
   },
 

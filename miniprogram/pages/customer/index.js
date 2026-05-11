@@ -37,7 +37,10 @@ Page({
     planSheetDate: '',
     planSheetTime: '',
     planSheetVisitWay: '面对面',
-    planSheetVisitWayOptions: []
+    planSheetVisitWayOptions: [],
+
+    // 保存防重复
+    isSaving: false
   },
 
   /** 缓存富化后的全量客户列表，用于视图切换时快速过滤 */
@@ -254,7 +257,13 @@ Page({
       wx.showToast({ title: '自建视图已达上限（10个）', icon: 'none' });
       return;
     }
-    wx.navigateTo({ url: '/pages/segment-edit/index' });
+    if (this._navigating) return;
+    this._navigating = true;
+    var self = this;
+    wx.navigateTo({
+      url: '/pages/segment-edit/index',
+      complete: function () { self._navigating = false; }
+    });
   },
 
   onCustomerTap: function (e) {
@@ -310,23 +319,24 @@ Page({
   },
 
   onPlanSheetConfirm: function () {
-    if (!this.data.planSheetTime) {
-      toast.fail('请选择计划时间');
-      return;
-    }
+    if (this.data.isSaving) return;
+    this.setData({ isSaving: true });
+
     var result = planRepo.create({
       customer_id: this.data.planSheetCustomerId,
       plan_date: this.data.planSheetDate,
-      plan_time: this.data.planSheetTime,
+      plan_time: this.data.planSheetTime || null,
       visit_way: this.data.planSheetVisitWay
     });
     if (result.conflict) {
       toast.fail('该客户当日已有计划');
-    } else {
-      toast.success('添加成功');
-      this.setData({ showPlanSheet: false });
-      this._loadList();
+      this.setData({ isSaving: false });
+      return;
     }
+    toast.success('添加成功');
+    this.setData({ showPlanSheet: false });
+    this._loadList();
+    this.setData({ isSaving: false });
   },
 
   onAddRecord: function (e) {

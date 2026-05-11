@@ -52,7 +52,6 @@
     <text class="empty-desc">添加第一位客户后，这里将展示今日拜访和跟进提醒</text>
     <view class="empty-actions">
       <van-button type="primary" block bindtap="onGoAddCustomer">+ 添加第一位客户</van-button>
-      <van-button type="default" plain bindtap="onGoAddPlan">或先创建拜访计划</van-button>
     </view>
   </view>
 

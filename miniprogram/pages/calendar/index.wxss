@@ -260,7 +260,7 @@
   min-width: 60rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-secondary);
   text-align: right;
   flex-shrink: 0;
 }
@@ -294,33 +294,33 @@
 }
 
 .stage-badge.stage-meet {
-  background-color: #F3F4F6;
-  color: #6B7280;
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
 }
 
 .stage-badge.stage-comm {
-  background-color: #DBEAFE;
-  color: #0284C7;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .stage-badge.stage-present {
-  background-color: #FEF3C7;
-  color: #D97706;
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
 }
 
 .stage-badge.stage-closing {
-  background-color: #FED7AA;
-  color: #EA580C;
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
 }
 
 .stage-badge.stage-deal {
-  background-color: #DCFCE7;
-  color: #15803D;
+  background-color: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .stage-badge.stage-lost {
-  background-color: #FEE2E2;
-  color: #DC2626;
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
 }
 
 .event-way {
@@ -367,6 +367,6 @@
 }
 
 .status-badge.adhoc {
-  background-color: #F1F5F9;
-  color: #475569;
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-secondary);
 }

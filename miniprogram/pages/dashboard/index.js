@@ -12,7 +12,6 @@
 
 var stats = require('../../utils/stats');
 var planRepo = require('../../utils/repository/plan.repo');
-var customerRepo = require('../../utils/repository/customer.repo');
 var dateUtil = require('../../utils/date');
 var storage = require('../../utils/storage');
 var Toast = require('@vant/weapp/toast/toast');
@@ -57,7 +56,6 @@ Page({
 
   onLoad: function () {
     this._updatePeriodDisplay();
-    this._safeRefresh();
   },
 
   onShow: function () {
@@ -104,9 +102,13 @@ Page({
       var todayPlans = planRepo.list(todayStr).filter(function (p) {
         return p.status === '待执行';
       });
-      // 补充客户名
+      // 补充客户名（用 snapshot 避免 N 次 getTable 深拷贝）
+      var customerMap = {};
+      for (var ci = 0; ci < snapshot.customer.length; ci++) {
+        customerMap[snapshot.customer[ci].id] = snapshot.customer[ci];
+      }
       todayPlans = todayPlans.map(function (p) {
-        var c = customerRepo.get(p.customer_id);
+        var c = customerMap[p.customer_id];
         return Object.assign({}, p, { customerName: c ? c.name : '', customerStage: c ? c.stage : '' });
       });
 

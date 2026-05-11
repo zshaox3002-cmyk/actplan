@@ -43,6 +43,8 @@ Page({
   },
 
   onShow: function () {
+    // selectedDate 未初始化时说明 onLoad 的异步回调还没执行，跳过
+    if (!this.data.selectedDate) return;
     this._loadData();
   },
 
@@ -167,10 +169,20 @@ Page({
       return r.visit_date === date;
     });
 
+    // 已完成计划若有对应记录，只显示记录，不重复显示计划
+    var recordPlanIds = {};
+    dayRecords.forEach(function (r) {
+      if (r.plan_id !== null && r.plan_id !== undefined) {
+        recordPlanIds[r.plan_id] = true;
+      }
+    });
+
     var today = dateUtil.today();
 
-    // 构建计划事件
+    // 构建计划事件（跳过已有对应记录的已完成计划）
     dayPlans.forEach(function (plan) {
+      if (recordPlanIds[plan.id]) return;
+
       var customer = self._customerMap[plan.customer_id];
       if (!customer) return;
 
@@ -186,7 +198,7 @@ Page({
         type: 'plan',
         planId: plan.id,
         customerId: plan.customer_id,
-        time: plan.plan_time || '全天',
+        time: plan.plan_time || '-',
         customerName: customer.name,
         stage: customer.stage,
         stageClass: constants.STAGE_CLASS_MAP[customer.stage] || '',
@@ -202,28 +214,29 @@ Page({
       var customer = self._customerMap[record.customer_id];
       if (!customer) return;
 
-      var status = record.record_type === 'adhoc' ? 'adhoc' : 'completed';
+      var isAdhoc = record.record_type === 'adhoc';
+      var status = isAdhoc ? 'adhoc' : 'completed';
 
       events.push({
         id: 'record_' + record.id,
         type: 'record',
         recordId: record.id,
         customerId: record.customer_id,
-        time: record.visit_time || '全天',
+        time: record.visit_time || '-',
         customerName: customer.name,
         stage: customer.stage,
         stageClass: constants.STAGE_CLASS_MAP[customer.stage] || '',
         visitWay: safeDecodeURIComponent(record.visit_way) || '',
         status: status,
-        statusText: status === 'adhoc' ? '临时' : '已完成',
-        statusColor: status === 'adhoc' ? '#64748B' : '#10B981'
+        statusText: isAdhoc ? '随手记' : '已完成',
+        statusColor: isAdhoc ? '#64748B' : '#10B981'
       });
     });
 
-    // 按时间排序
+    // 按时间排序（无时间的排最后）
     events.sort(function (a, b) {
-      var timeA = a.time === '全天' ? '24:00' : a.time;
-      var timeB = b.time === '全天' ? '24:00' : b.time;
+      var timeA = a.time === '-' ? '99:99' : a.time;
+      var timeB = b.time === '-' ? '99:99' : b.time;
       return timeA.localeCompare(timeB);
     });
 
@@ -237,8 +250,10 @@ Page({
     var mode = e.currentTarget.dataset.mode;
     if (mode === this.data.viewMode) return;
 
-    this.setData({ viewMode: mode });
-    this._refreshCalendarView();
+    var self = this;
+    this.setData({ viewMode: mode }, function () {
+      self._loadData();
+    });
   },
 
   /**
@@ -251,8 +266,10 @@ Page({
       ? dateUtil.shiftWeek(anchorDate, -1)
       : dateUtil.shiftMonth(anchorDate, -1);
 
-    this.setData({ anchorDate: newAnchor });
-    this._refreshCalendarView();
+    var self = this;
+    this.setData({ anchorDate: newAnchor }, function () {
+      self._loadData();
+    });
   },
 
   /**
@@ -265,8 +282,10 @@ Page({
       ? dateUtil.shiftWeek(anchorDate, 1)
       : dateUtil.shiftMonth(anchorDate, 1);
 
-    this.setData({ anchorDate: newAnchor });
-    this._refreshCalendarView();
+    var self = this;
+    this.setData({ anchorDate: newAnchor }, function () {
+      self._loadData();
+    });
   },
 
   /**
@@ -274,9 +293,10 @@ Page({
    */
   onDateTap: function (e) {
     var date = e.currentTarget.dataset.date;
-    this.setData({ selectedDate: date });
-    this._refreshCalendarView();
-    this._loadDayEvents(date);
+    var self = this;
+    this.setData({ selectedDate: date }, function () {
+      self._loadData();
+    });
   },
 
   /**
@@ -291,9 +311,9 @@ Page({
     if (!event) return;
 
     if (event.type === 'plan') {
-      // 跳转到客户详情，在那里可以执行或编辑计划
+      // 跳转到客户详情计划 tab，在那里可以执行或编辑计划
       wx.navigateTo({
-        url: '/pages/customer-detail/index?id=' + event.customerId
+        url: '/pages/customer-detail/index?id=' + event.customerId + '&tab=plan'
       });
     } else if (event.type === 'record') {
       // 跳转到拜访记录详情

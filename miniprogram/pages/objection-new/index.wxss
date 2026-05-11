@@ -285,6 +285,11 @@
   font-weight: var(--font-weight-medium);
 }
 
+.btn-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 /* ---- AI 提示词卡片 ---- */
 .ai-prompt-card {
   background: var(--color-primary-light);

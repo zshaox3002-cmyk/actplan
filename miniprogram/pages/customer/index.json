@@ -2,8 +2,7 @@
   "navigationBarTitleText": "客户",
   "usingComponents": {
     "search-bar": "../../components/search-bar/index",
-    "filter-bar": "../../components/filter-bar/index",
-    "customer-card": "../../components/customer-card/index",
+"customer-card": "../../components/customer-card/index",
     "fab-button": "/components/fab-button/index",
     "empty-state": "/components/empty-state/index",
     "skeleton": "/components/skeleton/index"

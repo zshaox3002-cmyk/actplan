@@ -462,3 +462,25 @@
   background: var(--color-bg-page);
   box-sizing: border-box;
 }
+
+.deal-date-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+.deal-date-picker {
+  flex: 1;
+  padding: 10rpx 16rpx;
+  background: var(--color-bg-page);
+  border: 2rpx solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-size-helper);
+  color: var(--color-text-primary);
+}
+.deal-date-empty text { color: var(--color-text-placeholder); }
+.deal-date-sep {
+  font-size: var(--font-size-helper);
+  color: var(--color-text-placeholder);
+  flex-shrink: 0;
+}

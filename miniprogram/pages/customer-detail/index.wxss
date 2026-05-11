@@ -132,6 +132,10 @@
   color: var(--color-primary-dark);
   border-color: var(--color-primary-dark);
 }
+.quick-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
 
 /* ---- Tab 导航 ---- */
 .tab-nav {
@@ -466,30 +470,38 @@
 .profile-grid {
   display: flex;
   flex-wrap: wrap;
-  padding: 12rpx 0 4rpx;
+  padding: 16rpx 0 8rpx;
+  gap: 0;
 }
 .grid-cell {
-  width: 33.33%;
-  padding: 10rpx 0;
+  width: 50%;
+  padding: 16rpx 0;
+  padding-right: 24rpx;
+  box-sizing: border-box;
 }
 .grid-label {
   font-size: 22rpx;
-  color: var(--color-text-secondary);
-  margin-bottom: 4rpx;
+  color: var(--color-text-placeholder);
+  margin-bottom: 6rpx;
   display: block;
+  line-height: 1.3;
 }
 .grid-value {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: var(--color-text-primary);
   font-weight: 400;
   display: block;
+  line-height: 1.4;
 }
-.profile-meta {
-  font-size: 22rpx;
-  color: var(--color-text-secondary);
-  padding: 10rpx 0 16rpx;
+.grid-empty {
+  color: var(--color-text-placeholder);
+  font-size: 26rpx;
+}
+
+/* 客户标签行：独占整行 */
+.field-row-tags {
   border-top: 1rpx solid var(--color-border);
-  display: block;
+  margin-top: 4rpx;
 }
 
 /* ---- 必填标记 ---- */
@@ -714,18 +726,24 @@
   font-size: var(--font-size-helper);
   color: var(--color-text-placeholder);
 }
-.policy-source-tag {
-  font-size: 20rpx;
-  line-height: 1;
-  padding: 5rpx 10rpx;
-  border-radius: var(--radius-custom-tag);
-  flex-shrink: 0;
-}
-.source-self { background: var(--color-primary-light); color: var(--color-primary); }
-.source-external { background: var(--color-secondary-light); color: var(--color-secondary); }
 .policy-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8rpx; }
 .policy-meta-item { font-size: var(--font-size-helper); color: var(--color-text-placeholder); }
 .policy-meta-sep { font-size: 20rpx; color: var(--color-neutral); }
+.policy-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+.policy-expiry-badge {
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-helper);
+  font-weight: var(--font-weight-medium);
+}
+.policy-expiry-expired { background: var(--color-danger-light); color: var(--color-danger); }
+.policy-expiry-expiring { background: var(--color-warning-light); color: var(--color-warning); }
 .policy-action-btn {
   padding: 8rpx 16rpx;
   font-size: 28rpx;
@@ -810,6 +828,57 @@
   border-radius: var(--radius-badge);
   padding: 12rpx 16rpx;
   margin-bottom: 12rpx;
+  font-size: var(--font-size-helper);
+  color: var(--color-warning);
+}
+
+/* ---- 保单卡片新样式（v1.3 双轴时间模型） ---- */
+.policy-type-chip {
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  background: var(--color-secondary-light);
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-helper);
+  color: var(--color-secondary);
+  flex-shrink: 0;
+}
+
+.policy-summary-row { margin: 4rpx 0 6rpx; }
+.policy-summary-text { font-size: var(--font-size-helper); color: var(--color-text-secondary); }
+
+.policy-event-row { display: flex; align-items: center; gap: 12rpx; margin-top: 6rpx; }
+.policy-event-days { font-size: var(--font-size-helper); font-weight: 500; }
+.policy-event-date { font-size: var(--font-size-helper); color: var(--color-text-placeholder); }
+
+.policy-color-danger  { color: var(--color-danger); }
+.policy-color-warning { color: var(--color-warning); }
+.policy-color-caution { color: var(--color-caution, #CA8A04); }
+.policy-color-info    { color: var(--color-primary); }
+.policy-color-neutral { color: var(--color-text-placeholder); }
+.policy-color-expired { color: var(--color-disabled); }
+
+.policy-status-badge {
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-helper);
+  font-weight: 500;
+}
+.policy-status-danger  { background: var(--color-danger-light);  color: var(--color-danger); }
+.policy-status-warning { background: var(--color-warning-light, #FFF7E6); color: var(--color-warning); }
+.policy-status-caution { background: #FFFBE6; color: var(--color-caution, #CA8A04); }
+.policy-status-info    { background: var(--color-primary-light); color: var(--color-primary); }
+.policy-status-neutral { background: var(--color-bg-muted);      color: var(--color-text-placeholder); }
+.policy-status-expired { background: var(--color-bg-muted);      color: var(--color-disabled); }
+
+/* ---- 保单待补充提示 ---- */
+.policy-completion-tip {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+  padding: 8rpx 14rpx;
+  background: var(--color-warning-light, #FFF7E6);
+  border-radius: var(--radius-xs);
+}
+.policy-completion-text {
   font-size: var(--font-size-helper);
   color: var(--color-warning);
 }

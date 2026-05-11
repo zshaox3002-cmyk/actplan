@@ -103,8 +103,8 @@
         <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">
           <text class="plan-sheet-btn-text">取消</text>
         </view>
-        <view class="plan-sheet-btn plan-sheet-btn-confirm" bindtap="onPlanSheetConfirm">
-          <text class="plan-sheet-btn-text">确认添加</text>
+        <view class="plan-sheet-btn plan-sheet-btn-confirm {{isSaving ? 'disabled' : ''}}" bindtap="{{isSaving ? '' : 'onPlanSheetConfirm'}}">
+          <text class="plan-sheet-btn-text">{{isSaving ? '保存中...' : '确认添加'}}</text>
         </view>
       </view>
     </view>

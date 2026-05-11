@@ -1,8 +1,7 @@
-# 保险代理人活动管理小程序 — 开发架构设计 v1.2
+# 保险代理人活动管理小程序 — 开发架构设计 v1.3
 
-> 基于 PRD v1.1 + UI_SPEC v1.0 + rules.md 约束
-> 设计日期：2026-04-23
-> 设计角色：Dev 💻
+> 基于 PRD v1.1 + UI_SPEC v1.0 + rules.md 约束  
+> 设计日期：2026-04-23 | 最后更新：2026-05-11（v1.3 云同步 + 双轴时间模型）
 
 ---
 
@@ -11,10 +10,10 @@
 | 原则 | 说明 |
 |------|------|
 | **Simplicity First** | 最小代码解决问题，不引入未请求的抽象和配置 |
-| **本地优先** | 所有数据本地存储（wx.getStorageSync），零后端依赖 |
+| **本地优先** | 所有读写走本地 Storage（同步），云端为异步备份，不阻塞主流程 |
 | **组件复用** | 高频 UI 模式抽取为组件，避免重复实现 |
-| **可测试** | 核心业务逻辑（苹果分级、统计计算）独立为纯函数，便于单元测试 |
-| **分层解耦** | Repository 层屏蔽存储细节，未来可平滑切换到 IndexedDB 或后端 |
+| **可测试** | 核心业务逻辑（苹果分级、统计计算、视图规则）独立为纯函数 |
+| **分层解耦** | Repository 层屏蔽存储细节；CloudSync 层封装云开发细节 |
 
 ---
 
@@ -24,10 +23,10 @@
 |------|---------|---------|
 | **框架** | 微信小程序原生开发 | PRD 无跨平台需求，原生开发 bundle 最小、调试最直接 |
 | **UI 语言** | WXML + WXSS | 原生方案，与 UI_SPEC 的 CSS 变量体系直接对应 |
-| **本地存储** | `wx.getStorageSync` + JSON 序列化 | 微信开发者工具不支持 WebAssembly，sql.js 无法调试；改用原生存储 API，零依赖、零兼容性问题；数据量（预估 <500 客户）完全在 Storage 限制内（单 key 1MB / 总量 10MB） |
-| **图表** | 自定义 Canvas 2D 绘图 | 饼图/柱状图逻辑简单，自研成本可控；避免第三方图表库引入包体积压力 |
-| **图标** | 微信小程序内置图标 + 少量自定义 SVG | UI_SPEC 要求线性图标，内置图标足够覆盖 Tab 栏和基础场景 |
-| **状态管理** | 页面 data + App 全局数据 + EventChannel | 无需 Redux/MobX,小程序原生能力足够（Simplicity First） |
+| **本地存储** | `wx.getStorageSync` + JSON 序列化 | 零依赖、零兼容性问题；数据量（预估 <500 客户）完全在 Storage 限制内 |
+| **云存储** | 微信云开发（`wx.cloud`）+ `table_backup` 集合 | 官方方案，无需额外后端；用于跨设备备份，不在主读写路径上 |
+| **图表** | 自定义 Canvas 2D 绘图 | 饼图/柱状图逻辑简单，自研成本可控 |
+| **状态管理** | 页面 data + App 全局数据 + EventChannel | 无需 Redux/MobX，小程序原生能力足够 |
 | **构建工具** | 微信开发者工具 | 官方支持，开箱即用 |
 
 ---
@@ -36,211 +35,137 @@
 
 ```
 miniprogram/
-├── app.js                    # 应用入口：初始化 Storage、全局状态
-├── app.json                  # 全局配置：页面路由、TabBar、导航栏
+├── app.js                    # 应用入口：初始化 Storage、云同步、去重
+├── app.json                  # 全局配置：页面路由（16个）、TabBar（5项）、Vant 组件
 ├── app.wxss                  # 全局样式：引入 CSS 变量、工具类
-├── sitemap.json              # 搜索配置
+├── sitemap.json
 │
-├── pages/                    # 页面
-│   ├── dashboard/            # 数据概览
-│   ├── customer/             # 客户列表
-│   ├── customer-detail/      # 客户详情（整页编辑）
-│   ├── plan/                 # 拜访计划
-│   ├── plan-select/          # 添加计划-客户选择
+├── pages/
+│   ├── dashboard/            # 概览
+│   ├── customer/             # 客户列表（视图 Chip 替代原 filter-bar）
+│   ├── customer-detail/      # 客户详情（5 Tab：画像/沟通/异议/需求/计划）
+│   ├── calendar/             # 日历看板（周/月视图）
 │   ├── record/               # 拜访记录列表
 │   ├── record-new/           # 新建拜访记录
-│   └── objection/            # 异议池
+│   ├── visit-record/detail/  # 拜访记录详情
+│   ├── plan-select/          # 添加计划-客户选择
+│   ├── objection/            # 异议池列表
+│   ├── objection/select/     # 异议批量选择（从拜访记录页进入）
+│   ├── objection-new/        # 新建异议（4 步流程）
+│   ├── objection-detail/     # 异议详情
+│   ├── segment-edit/         # 客户视图编辑器（规则配置 + 实时预览）
+│   ├── policy-edit/          # 他渠道保单录入/编辑
+│   ├── review/               # 复盘
+│   └── rhythm/               # 节奏分析
 │
-├── components/               # 可复用组件
-│   ├── customer-card/
-│   ├── plan-card/
-│   ├── record-card/
-│   ├── objection-card/
-│   ├── apple-badge/
-│   ├── stage-badge/
-│   ├── chart-pie/            # Canvas 2D
-│   ├── chart-bar/            # Canvas 2D
-│   ├── week-calendar/
-│   ├── filter-bar/
-│   ├── fab-button/
-│   ├── step-indicator/
-│   ├── form-field/
-│   ├── tag-selector/
-│   ├── search-bar/
-│   ├── metric-card/
-│   ├── empty-state/
-│   └── skeleton/
+├── components/
+│   ├── customer-card/        # 客户卡片
+│   ├── record-card/          # 拜访记录卡片
+│   ├── objection-card/       # 异议卡片
+│   ├── chart-pie/            # Canvas 2D 饼图
+│   ├── chart-bar/            # Canvas 2D 柱状图
+│   ├── metric-card/          # 指标卡片
+│   ├── search-bar/           # 搜索栏
+│   ├── form-field/           # 表单字段（label + 各类输入控件）
+│   ├── tag-selector/         # 标签选择器（多选 Chip）
+│   ├── inline-picker/        # 内联下拉选择
+│   ├── step-indicator/       # 步骤指示器
+│   ├── fab-button/           # FAB 浮动按钮
+│   ├── empty-state/          # 空状态
+│   └── skeleton/             # 骨架屏
 │
-├── utils/                    # 工具函数
-│   ├── storage.js            # 存储底层封装：init、getTable、setTable、transaction、waitReady
-│   ├── id.js                 # 自增主键生成器（替代 SQL AUTOINCREMENT）
-│   ├── repository/           # 业务 CRUD 层（接口稳定，底层可替换）
+├── utils/
+│   ├── storage.js            # Storage 封装（事务 + 容量预警 + CloudSync 钩子）
+│   ├── cloud-sync.js         # 云端备份/恢复（本地优先，防抖 3s 上传）
+│   ├── dedup-records.js      # 一次性去重（启动时执行，meta 守卫防重复）
+│   ├── repository/           # 数据访问层（唯一可操作 storage 的层）
 │   │   ├── customer.repo.js
 │   │   ├── plan.repo.js
 │   │   ├── record.repo.js
 │   │   ├── objection.repo.js
+│   │   ├── policy.repo.js    # v1.1+，v1.3 扩展双轴时间模型
+│   │   ├── segment.repo.js   # v1.1+
 │   │   └── log.repo.js
-│   ├── constants.js          # 枚举值、配置项
+│   ├── priority.js           # P0–P3 优先级评分引擎
+│   ├── segment.js            # 视图规则引擎（内存过滤，支持嵌套 OR 子组）
+│   ├── stats.js              # Dashboard 统计快照
+│   ├── review-stats.js       # 复盘统计
+│   ├── rhythm.js             # 节奏分析
+│   ├── insight.js            # AI 洞察文字（规则模板生成）
+│   ├── policy-templates.js   # 险种模板配置与格式化（纯函数）
+│   ├── policy-compute.js     # 保单派生字段计算（到期日、下次缴费日等，纯函数）
 │   ├── apple-rank.js         # 苹果分级算法（纯函数）
-│   ├── stats.js              # 统计计算
-│   ├── validators.js         # 表单校验
 │   ├── date.js               # 日期工具
-│   └── toast.js              # 轻提示封装
+│   ├── id.js                 # 自增主键生成器
+│   ├── constants.js          # 全局枚举常量（STAGE_CLASS_MAP 等）
+│   ├── validators.js         # 表单校验
+│   ├── toast.js              # Toast 封装
+│   ├── chart.js              # Canvas 图表绘制工具
+│   ├── objection-preset.js   # 预置异议库（不入 storage）
+│   └── seed.js               # 开发种子数据
 │
-├── styles/
-│   └── variables.wxss        # UI_SPEC CSS 变量
+├── cloudfunctions/
+│   └── login/                # 获取 openid（云同步初始化用）
 │
-└── images/                   # 静态资源
-    ├── icons/
-    └── apple/
+└── styles/
+    └── variables.wxss        # UI_SPEC CSS 变量（所有颜色/间距/圆角的唯一来源）
 ```
 
 ---
 
-## 四、数据架构（wx.getStorageSync + JSON）
+## 四、数据架构
 
 ### 4.1 存储模型总览
 
 所有业务表数据以 JSON 数组形式存入 Storage，每张"表"一个 key：
 
-| Storage Key | 对应实体 | 数据结构 |
-|------|------|------|
-| `db_customer` | 客户 | `Customer[]` |
-| `db_visit_record` | 拜访记录 | `VisitRecord[]` |
-| `db_plan` | 拜访计划 | `Plan[]` |
-| `db_objection` | 异议 | `Objection[]` |
-| `db_objection_note` | 异议追加备注 | `ObjectionNote[]` |
-| `db_operation_log` | 操作日志 | `OperationLog[]` |
-| `db_meta` | 元数据（id 池、版本号） | `{ nextId: {...}, version: 1 }` |
+| Storage Key | 对应实体 | 说明 |
+|-------------|---------|------|
+| `db_customer` | Customer | 客户信息 |
+| `db_visit_record` | VisitRecord | 拜访记录 |
+| `db_plan` | Plan | 拜访计划 |
+| `db_objection` | Objection | 用户自建异议 |
+| `db_objection_note` | ObjectionNote | 异议追加备注 |
+| `db_objection_links` | ObjectionLink | 预置异议引用计数 |
+| `db_operation_log` | OperationLog | 字段变更日志 |
+| `db_policy` | Policy | 保单（v1.1+） |
+| `db_segment` | Segment | 客户视图（v1.1+） |
+| `db_meta` | — | `{ nextId, version, segment_index, derived_cache, dedup_v1_done, dedup_objection_v1_done }` |
 
-### 4.2 实体字段结构
+详细字段定义见 [DATA_RELATIONSHIP.md](DATA_RELATIONSHIP.md)。
 
-#### Customer
-
-| 字段名 | 类型 | 默认值 | 说明 |
-|--------|------|------|------|
-| `id` | number | - | 自增主键，由 id.js 生成 |
-| `name` | string | - | 业务唯一，写入前查重 |
-| `gender` | string | `''` | 男/女 |
-| `relation` | string | `''` | 同事/朋友/亲戚/其他 |
-| `income` | string | `''` | 收入范围 |
-| `age_range` | string | `''` | 年龄段 |
-| `occupation` | string | `''` | 职业 |
-| `house_type` | string | `''` | 居住类型 |
-| `marriage` | string | `''` | 婚姻状况 |
-| `friendship` | string | `''` | 交情程度 |
-| `stage` | string | `'需求沟通'` | 需求沟通/已拒绝/已成交 |
-| `stage_updated_at` | string\|null | `null` | ISO 时间字符串，stage 变更时写入 |
-| `follow_date` | string\|null | `null` | 跟进时间 |
-| `todo_task` | string | `''` | 代办任务 |
-| `objection_legacy` | string | `''` | 飞书遗留异议字段 |
-| `apple_rank` | string | `'待定'` | 红苹果/青苹果/烂苹果/待定 |
-| `apple_rank_overridden` | 0\|1 | `0` | 是否手动覆盖 |
-| `has_need` | string | `'不确定'` | 是/否/不确定 |
-| `has_budget` | string | `'不确定'` | 是/否/不确定 |
-| `is_decider` | string | `'不确定'` | 是/否/不确定 |
-| `family` | string[] | `[]` | 家庭成员数组 |
-| `coverage` | string[] | `[]` | 已有保障数组 |
-| `gap` | string[] | `[]` | 保障缺口数组 |
-| `last_visit` | string\|null | `null` | 最近拜访日期（自动写入） |
-| `visit_count` | number | `0` | 累计拜访次数（自动累加） |
-| `created_at` | string | 当前 ISO | 创建时间 |
-| `updated_at` | string | 当前 ISO | 更新时间 |
-
-#### VisitRecord
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| `id` | number | 主键 |
-| `customer_id` | number | 关联客户 |
-| `plan_id` | number\|null | 关联计划（可空） |
-| `visit_date` | string | 拜访日期 |
-| `visit_way` | string | 面对面/电话/微信 |
-| `duration` | number\|null | 时长（分钟） |
-| `summary` | string | 沟通摘要（必填） |
-| `updated_fields` | string[] | 本次更新的客户字段 |
-| `is_deal` | string | 签单成交/暂未成交 |
-| `next_follow_date` | string\|null | 下次跟进日期 |
-| `has_objection` | 0\|1 | 是否关联异议 |
-| `created_at` | string | 创建时间 |
-
-#### Plan
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| `id` | number | 主键 |
-| `customer_id` | number | 关联客户 |
-| `plan_date` | string | 计划日期 |
-| `visit_way` | string | 拜访方式 |
-| `status` | string | `'待执行'` / `'已完成'` |
-| `created_at` | string | 创建时间 |
-
-> **无唯一约束：​** 同一客户同一天可多次添加（不同拜访方式）；业务层检测同日冲突并弹窗提示。
-
-#### Objection
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| `id` | number | 主键 |
-| `customer_id` | number | 关联客户（首次创建时） |
-| `content` | string | 异议原话 |
-| `category` | string | 价格/必要性/时机/产品对比/信任/其他 |
-| `solution` | string | 应对话术 |
-| `count` | number | 出现次数，追加时 +1 |
-| `created_at` | string | 创建时间 |
-
-#### ObjectionNote（异议追加备注）
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| `id` | number | 主键 |
-| `objection_id` | number | 关联异议 |
-| `customer_id` | number | 本次追加关联的客户 |
-| `note` | string | 追加的具体备注内容 |
-| `created_at` | string | 追加时间 |
-
-#### OperationLog
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| `id` | number | 主键 |
-| `customer_id` | number | 关联客户 |
-| `field` | string | 修改字段 |
-| `old_value` | string | 旧值 |
-| `new_value` | string | 新值 |
-| `created_at` | string | 时间 |
-
-### 4.3 索引策略
+### 4.2 索引策略
 
 Storage 无原生索引，采用**全量加载 + 内存过滤/排序**：
 
 ```javascript
-// 示例：按苹果等级筛选 + 按最近拜访排序
-const all = storage.getTable('customer');
-return all
-  .filter(c => c.apple_rank === '红苹果')
-  .sort((a, b) => (b.last_visit || '').localeCompare(a.last_visit || ''));
+// 示例：按视图规则过滤 + 派生字段排序
+var enriched = policyRepo.getDerivedAll(customers);
+return segment.applySegment(enriched, activeSeg.rules, activeSeg.sort);
 ```
 
-预估数据规模（客户 <500、记录 <5000、异议 <200）下，单次全量加载 + 过滤均在 5ms 内。
+预估数据规模（客户 <500、记录 <5000、异议 <200）下，单次全量加载 + 过滤均在 10ms 内。
 
-### 4.4 事务策略
+### 4.3 事务策略
 
-Storage 无原生事务，采用**快照 + 失败回滚**机制：
+`storage.transaction(fn)` 实现快照 + 失败回滚：
 
 ```javascript
 storage.transaction(() => {
-  const customers = storage.getTable('customer');
   const records = storage.getTable('visit_record');
-  // ... 修改内存对象
-  storage.setTable('customer', customers);
+  const customers = storage.getTable('customer');
+  const plans = storage.getTable('plan');
+  const policies = storage.getTable('policy');
+  // 修改内存对象...
   storage.setTable('visit_record', records);
+  storage.setTable('customer', customers);
+  storage.setTable('plan', plans);
+  storage.setTable('policy', policies);
+  // 任一 setTable 失败则用快照回滚所有已写入的表
 });
 ```
 
-`transaction()` 内部实现：开始时对涉及表做快照，任一步抛异常时用快照回滚所有已写入的表。
-
-### 4.5 自增 id 生成
+### 4.4 自增 ID 生成
 
 ```javascript
 // utils/id.js
@@ -249,132 +174,133 @@ nextId('customer')  // 从 db_meta.nextId.customer 读取，+1 写回，返回�
 
 单线程同步调用，无并发问题。
 
-### 4.6 数据初始化流程
+### 4.5 数据初始化流程
 
 ```
 app.js onLaunch
+  ├── cloudSync.init()               # 并行初始化云同步（失败不阻塞主流程）
   └── storage.init()
         ├── 检查 db_meta 是否存在
         │     ├── 不存在 → 初始化 db_meta、各空表
-        │     └── 存在   → 检查 version，执行迁移（预留）
+        │     └── 存在   → 检查 version，执行迁移（version < 2 → migrate_v2）
+        ├── setCloudSync(cloudSync)  # 注册云同步钩子
         └── 设置 dbReady = true，resolve waitReady Promise
+  └── 执行一次性去重（dedup_v1_done / dedup_objection_v1_done 守卫）
 ```
 
-### 4.7 Storage API 契约
+### 4.6 Storage API 契约
 
 ```javascript
 // utils/storage.js 对外接口（Repository 层唯一依赖）
 storage.init()
 storage.waitReady()              // 返回 Promise
 storage.getTable(name)           // 返回数组（深拷贝）
-storage.setTable(name, data)     // 整表写回
-storage.transaction(fn)          // 事务执行
-```
-
-Repository 层接口稳定：
-
-```javascript
-customerRepo.list(filters)
-customerRepo.get(id)
-customerRepo.create(data)
-customerRepo.update(id, data)
-customerRepo.delete(id)
+storage.setTable(name, data)     // 整表写回，触发 CloudSync dirty 标记
+storage.transaction(fn)          // 事务执行，失败回滚
+storage.getMeta()                // 直接返回 meta 引用（修改后需 persistMeta）
+storage.persistMeta()            // 将 meta 写回 Storage
+storage.setCloudSync(sync)       // 注入云同步对象
 ```
 
 ---
 
-## 五、核心算法设计
+## 五、云同步架构（v1.3 新增）
 
-### 5.1 苹果分级算法（`utils/apple-rank.js`）
+### 5.1 整体架构
 
-```javascript
-function calculateAppleRank(dimensions) {
-  const { has_need, has_budget, is_decider } = dimensions;
-
-  if (has_need === '不确定' || has_budget === '不确定' || is_decider === '不确定') {
-    return '待定';
-  }
-
-  const yesCount = [has_need, has_budget, is_decider].filter(v => v === '是').length;
-  if (yesCount === 3) return '红苹果';
-  if (yesCount === 2) return '青苹果';
-  return '烂苹果';
-}
-
-function canAutoRank(customer) {
-  return customer.has_need !== '不确定'
-    && customer.has_budget !== '不确定'
-    && customer.is_decider !== '不确定';
-}
+```
+本地 storage.setTable()
+  └── 触发 cloudSync.markDirty(tableName, data)
+        └── 防抖 3s → cloudSync.upload(tableName, data) → 云数据库 table_backup
 ```
 
-### 5.2 Dashboard 统计（`utils/stats.js`）
+**失败重试**：App `onHide` / `onShow` 时调用 `cloudSync.flushDirty()`，遍历所有 dirty 表重新上传。
 
-```javascript
-function getStatsSnapshot() {
-  return {
-    customers: storage.getTable('customer'),
-    plans: storage.getTable('plan'),
-    records: storage.getTable('visit_record'),
-    objections: storage.getTable('objection'),
-  };
-}
+**数据恢复**：App 启动时，若本地数据为空，从云端 `table_backup` 拉取全量数据写入本地 Storage。
 
-function getDashboardMetrics(period, anchorDate = new Date()) {
-  const { customers, records } = getStatsSnapshot();
-  const [start, end] = period === 'week'
-    ? getWeekRange(anchorDate)
-    : getMonthRange(anchorDate);
+### 5.2 云开发资源
 
-  return {
-    totalCustomers: customers.length,
-    newCustomers: customers.filter(c => c.created_at >= start && c.created_at <= end).length,
-    visitCount: records.filter(r => r.visit_date >= start && r.visit_date <= end).length,
-    dealCount: customers.filter(c =>
-      c.stage === '已成交' &&
-      c.stage_updated_at &&
-      c.stage_updated_at >= start &&
-      c.stage_updated_at <= end
-    ).length
-  };
-}
-
-function getAppleDistribution() {
-  const groups = {};
-  storage.getTable('customer').forEach(c => {
-    groups[c.apple_rank] = (groups[c.apple_rank] || 0) + 1;
-  });
-  return Object.entries(groups).map(([name, value]) => ({ name, value }));
-}
-
-function getObjectionDistribution() {
-  const groups = {};
-  storage.getTable('objection').forEach(o => {
-    groups[o.category] = (groups[o.category] || 0) + o.count;
-  });
-  return Object.entries(groups).map(([name, value]) => ({ name, value }));
-}
-
-function getVisitTrend(anchorDate) {
-  // 遍历周一至周日，分别统计 plan 和 visit_record
-  // 返回 [{date, planCount, visitCount}, ...]
-}
-```
+| 资源 | 说明 |
+|------|------|
+| 环境 ID | `pro-d1g97lgrm3a7cf83a` |
+| 集合 | `table_backup`，文档结构：`{ _openid, table_name, data, updated_at }` |
+| 云函数 | `login`，返回当前用户 openid |
 
 ---
 
-## 六、状态管理设计
+## 六、核心算法设计
 
-### 6.1 全局状态（`app.js`）
+### 6.1 苹果分级（`utils/apple-rank.js`）
+
+基于 `has_need / has_ability / is_decider` 三项判断：
+- 全部为「是」→ `red`（红苹果）
+- 两项为「是」→ `green`（青苹果）
+- 不足两项为「是」→ `rotten`（烂苹果）
+- 任一项为「不确定」→ `pending`（待定）
+
+### 6.2 客户优先级（`utils/priority.js`）
+
+`score = I（意向度）+ U（紧迫度）+ R（活跃度）`，满分 100。
+
+| 组成 | 满分 | 主要规则 |
+|------|------|---------|
+| 意向度 I | 40 | 待促成=40、方案讲解=30、需求沟通=20、初步认识=10 |
+| 紧迫度 U | 35 | 逾期 3 天+=35、今天=25、明天=18 |
+| 活跃度 R | 25 | 3 天内=25、7 天内=18、14 天内=10 |
+
+优先级映射：P0 ≥ 80 / P1 ≥ 60 / P2 ≥ 35 / P3 < 35。已成交/已流失不参与评分。
+
+### 6.3 视图规则引擎（`utils/segment.js`）
+
+支持嵌套 AND/OR 组合：
+
+```javascript
+// 规则示例（JSON 存入 segment.rules）
+{
+  "version": 1,
+  "match": "AND",
+  "rules": [
+    { "field": "total_premium", "op": "gte", "value": 50000 },
+    { "match": "OR", "rules": [
+      { "field": "policy_count", "op": "gte", "value": 2 },
+      { "field": "is_hnw", "op": "eq", "value": true }
+    ]}
+  ]
+}
+```
+
+支持的操作符：`eq / neq / gt / gte / lt / lte / in / nin / exists`。  
+`field` 支持 `coverage_status.养老` 等点分路径，以及 `total_premium`、`policy_count` 等派生字段（需先通过 `policyRepo.getDerivedAll()` 富化客户列表）。
+
+### 6.4 保单模板与计算（`policy-templates.js` + `policy-compute.js`）
+
+`policy-templates.js`：纯配置，7 种险种的默认 `coverage_term` / `payment_term`，以及 `product_type`（中文）↔ `category`（英文）双向映射。
+
+`policy-compute.js`：纯函数，根据 `effective_date + coverage_term / payment_term` 计算：
+- `computeExpiryDate()`：到期日（`to_age` 类型因无出生年无法推导，返回 null）
+- `computeNextPaymentDate()`：下次缴费周年日
+- `computePaymentEndDate()`：缴费结束日
+
+### 6.5 节奏分析（`utils/rhythm.js`）
+
+| 类型 | 判断规则 |
+|------|---------|
+| 升温中 | 最近 14 天拜访 ≥ 2 次，且近期频率 / 基线频率 ≥ 1.5× |
+| 降温中 | 距上次拜访 ≥ 14 天，或近期频率 / 基线频率 ≤ 0.5× |
+| 卡住了 | 在当前阶段停留超过阈值（初步认识/需求沟通 21 天，方案讲解 14 天，待促成 7 天） |
+
+---
+
+## 七、状态管理设计
+
+### 7.1 全局状态（`app.js`）
 
 ```javascript
 App({
   globalData: {
     storageReady: false,
     currentPeriod: 'week',
-    filters: { appleRank: '全部', stage: '全部' }
   },
-
   async onLaunch() {
     await storage.init();
     this.globalData.storageReady = true;
@@ -382,15 +308,16 @@ App({
 });
 ```
 
-### 6.2 页面间通信
+### 7.2 页面间通信
 
 | 场景 | 方案 |
 |------|------|
-| 计划卡片「执行」→ 新建记录 | `wx.navigateTo` + `EventChannel` 传递 plan 对象 |
-| 新建记录提交成功 → 刷新列表 | `getCurrentPages()` 回调或 `onShow` 重载 |
-| 客户详情编辑 → 列表更新 | 返回上一页携带 `refresh=true` |
+| 计划卡片「执行」→ 新建记录 | `navigateTo` + `EventChannel` 传递 plan 对象 |
+| 新建记录提交成功 → 刷新列表 | `onShow` 重载（简单场景） |
+| 异议选择 → 回传选中列表 | `EventChannel.emit('selected', ids)` |
+| 客户详情编辑 → 列表更新 | 返回触发 `onShow`，重新 loadData |
 
-### 6.3 存储访问规范
+### 7.3 存储访问规范
 
 - 页面 js **不得直接调用** `wx.getStorageSync/setStorageSync`
 - 所有读写走 `utils/repository/*.repo.js`
@@ -399,148 +326,77 @@ App({
 
 ---
 
-## 七、页面路由设计
+## 八、页面路由设计
 
-### 7.1 TabBar 页面（4 个主入口）
+### 8.1 TabBar（5 个主入口）
 
 ```json
-{
-  "tabBar": {
-    "list": [
-      { "pagePath": "pages/dashboard/index", "text": "概览" },
-      { "pagePath": "pages/customer/index", "text": "客户" },
-      { "pagePath": "pages/plan/index", "text": "计划" },
-      { "pagePath": "pages/record/index", "text": "记录" }
-    ]
-  }
-}
+[
+  { "pagePath": "pages/dashboard/index",  "text": "概览" },
+  { "pagePath": "pages/customer/index",   "text": "客户" },
+  { "pagePath": "pages/calendar/index",   "text": "日历" },
+  { "pagePath": "pages/rhythm/index",     "text": "节奏" },
+  { "pagePath": "pages/review/index",     "text": "复盘" }
+]
 ```
 
-> 异议池作为记录页内入口或独立页面（非 Tab）。
-
-### 7.2 非 Tab 子页面
+### 8.2 非 Tab 子页面
 
 | 页面路径 | 入口 | 功能 |
 |---------|------|------|
-| `pages/customer-detail/index?id=123` | 客户卡片点击 | 客户详情 + 整页编辑 |
-| `pages/plan-select/index?date=2026-04-23` | 计划页「添加」按钮 | 选择客户添加计划 |
-| `pages/record-new/index?customer_id=1&plan_id=2` | 计划卡片「执行」/ 记录页 FAB | 新建拜访记录 |
-| `pages/objection/index` | 记录页入口 / 新建异议跳转 | 异议池列表 + 新建 |
-
----
-
-## 八、组件拆分详单
-
-### 8.1 业务组件
-
-| 组件 | 复用位置 | Props |
-|------|---------|-------|
-| `customer-card` | 客户列表、计划选择、记录列表 | `customer`, `showStage` |
-| `plan-card` | 计划页列表 | `plan`, `onExecute`, `onDelete` |
-| `record-card` | 记录列表 | `record` |
-| `objection-card` | 异议池列表 | `objection` |
-
-### 8.2 纯 UI 组件
-
-| 组件 | 复用位置 | Props |
-|------|---------|-------|
-| `apple-badge` | 客户卡片、详情页 | `rank` |
-| `stage-badge` | 客户卡片、详情页 | `stage` |
-| `metric-card` | Dashboard 2×2 网格 | `value`, `label` |
-| `chart-pie` | Dashboard 苹果分布 | `data` |
-| `chart-bar` | Dashboard 异议分布、拜访趋势 | `data`, `series` |
-| `week-calendar` | 计划页 | `selectedDate`, `markedDates`, `onSelect` |
-| `filter-bar` | 客户列表、计划选择 | `filters`, `onChange` |
-| `fab-button` | 计划页、记录页 | `onTap` |
-| `step-indicator` | 新建拜访记录 | `steps`, `current` |
-| `tag-selector` | 新建记录、客户详情 | `options`, `value`, `onChange` |
-| `form-field` | 客户详情编辑、新建记录 | `label`, `type`, `value` |
-| `search-bar` | 客户列表 | `value`, `onSearch` |
-| `empty-state` | 各列表页 | `icon`, `text`, `action` |
-| `skeleton` | 各列表页 | `rows` |
+| `pages/customer-detail/index?id=N` | 客户卡片点击 | 客户详情 5 Tab |
+| `pages/plan-select/index?date=DATE` | 客户详情计划 Tab | 选择客户添加计划 |
+| `pages/record-new/index?customer_id=N&plan_id=M` | 计划执行 / FAB | 新建拜访记录 |
+| `pages/visit-record/detail/index?id=N` | 日历/记录列表点击 | 拜访记录详情 |
+| `pages/objection/index` | 新建记录 / 客户详情 | 异议池 |
+| `pages/objection/select/index` | 新建记录选择异议 | 批量选择关联异议 |
+| `pages/objection-new/index?step=0` | 异议池 FAB | 新建异议 4 步流程 |
+| `pages/objection-detail/index?id=N` | 异议卡片 | 异议详情 |
+| `pages/segment-edit/index?id=N` | 客户列表视图管理 | 视图规则编辑 |
+| `pages/policy-edit/index?customer_id=N` | 客户详情需求 Tab | 他渠道保单录入 |
 
 ---
 
 ## 九、关键交互实现方案
 
-### 9.1 拜访计划「执行」→ 新建记录联动
+### 9.1 新建拜访记录事务（成交场景）
 
-```javascript
-// plan-card.js
-onExecute() {
-  const { plan } = this.properties;
-  wx.navigateTo({
-    url: `/pages/record-new/index?customer_id=${plan.customer_id}&plan_id=${plan.id}&visit_way=${plan.visit_way}`,
-    success: (res) => {
-      res.eventChannel.emit('preloadPlan', { plan });
-    }
-  });
-}
+```
+record-new onSave()
+  └── storage.transaction()
+        ├── 插入 visit_record
+        ├── 更新 customer.last_visit / visit_count
+        ├── 若 comm_result='deal' → 更新 customer.stage='已成交'
+        ├── 若有 plan_id → 更新 plan.status='已完成'
+        └── 若 comm_result='deal' → 为每个 deal_products 创建 policy(source='self')
+                                  → 更新 customer.coverage_status[险种]='configured'
 ```
 
-### 9.2 拜访记录提交事务
+### 9.2 客户列表视图切换
 
-```javascript
-// record.repo.js create()
-storage.transaction(() => {
-  const records = storage.getTable('visit_record');
-  const customers = storage.getTable('customer');
-  const plans = storage.getTable('plan');
-
-  // 1. 插入拜访记录
-  records.push({
-    id: nextId('visit_record'),
-    ...data,
-    created_at: nowISO()
-  });
-
-  // 2. 更新客户最近拜访日期和累计次数
-  const customer = customers.find(c => c.id === data.customer_id);
-  customer.last_visit = data.visit_date;
-  customer.visit_count += 1;
-  customer.updated_at = nowISO();
-
-  // 3. 若成交，更新跟进阶段 + 阶段变更时间
-  if (data.is_deal === '签单成交') {
-    customer.stage = '已成交';
-    customer.stage_updated_at = nowISO();
-  }
-
-  // 4. 若由计划触发，更新计划状态
-  if (data.plan_id) {
-    const plan = plans.find(p => p.id === data.plan_id);
-    if (plan) plan.status = '已完成';
-  }
-
-  storage.setTable('visit_record', records);
-  storage.setTable('customer', customers);
-  storage.setTable('plan', plans);
-});
+```
+customer/index onShow()
+  ├── customerRepo.list() → 全量客户
+  ├── policyRepo.getDerivedAll(customers) → 富化派生字段
+  ├── segmentRepo.listAll() → 全部视图定义
+  ├── 对每个视图调用 segment.applySegment() → 计算命中数 segmentCounts
+  └── 当前选中视图 → segment.applySegment(enriched, rules, sort) → 渲染列表
 ```
 
-### 9.3 苹果分级实时计算
+### 9.3 保单派生字段（`policyRepo.listWithComputed()`）
 
-```javascript
-// customer-detail/index.js
-onDimensionChange(e) {
-  const { field, value } = e.detail;
-  this.setData({ [field]: value });
+每条保单附加以下 `_` 前缀派生字段（不持久化，仅用于展示）：
 
-  const { has_need, has_budget, is_decider, apple_rank_overridden } = this.data;
-  if (apple_rank_overridden) return;  // 已手动覆盖，不自动重算
-
-  const autoRank = calculateAppleRank({ has_need, has_budget, is_decider });
-  this.setData({ apple_rank: autoRank });
-}
-
-onAppleRankManualChange(e) {
-  this.setData({
-    apple_rank: e.detail.value,
-    apple_rank_overridden: 1
-  });
-  // 保存时一并写入 Storage
-}
-```
+| 字段 | 说明 |
+|------|------|
+| `_category` | 归一化 category（兼容旧 product_type） |
+| `_coverage_term` | 归一化 coverage_term |
+| `_payment_term` | 归一化 payment_term |
+| `_payment_end_date` | 缴费结束日（policy-compute.js 推导） |
+| `_card_status` | 展示状态（缴费中/已缴清/终身等） |
+| `_policy_year` | 保单年度（距生效的年数） |
+| `_policy_summary` | 保障/缴费期摘要文字 |
+| `_needs_completion` | 是否需要补全信息 |
 
 ---
 
@@ -548,18 +404,34 @@ onAppleRankManualChange(e) {
 
 ### 10.1 全局样式分层
 
-```css
-/* app.wxss */
-@import "styles/variables.wxss";
+```
+styles/variables.wxss    → 唯一 CSS 变量来源（颜色/间距/圆角）
+app.wxss                 → @import variables + 全局工具类（.card .flex .text-primary 等）
+各页面/组件 .wxss        → 仅引用变量，禁止写死色值
+```
 
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.text-primary { color: var(--color-text-primary); }
-.text-secondary { color: var(--color-text-secondary); }
-.bg-page { background-color: var(--color-bg-page); }
-.card {
-  background: var(--color-bg-card);
-  border-radius:
+### 10.2 关键 CSS 变量分类
 
+| 类别 | 前缀 | 示例 |
+|------|------|------|
+| 颜色-主题 | `--color-primary` | 品牌色、次要色、背景色 |
+| 颜色-文字 | `--color-text-*` | primary / secondary / tertiary / disabled |
+| 颜色-功能 | `--color-success/warning/danger` | 状态色 |
+| 颜色-优先级 | `--priority-p0/p1/p2/p3-*` | 优先级标签背景、文字色 |
+| 颜色-阶段 | `--stage-meet/comm/present/closing/deal/lost-*` | 阶段标签边框、文字色 |
+| 间距 | `--spacing-*` | xs / sm / md / lg / xl |
+| 圆角 | `--radius-*` | card / badge / button |
+
+---
+
+## 十一、平台限制应对
+
+| 限制 | 应对策略 |
+|------|---------|
+| Storage 单 key 1MB / 总 10MB | 内置 800KB warn / 950KB critical 预警；云同步作为溢出安全网 |
+| WXML 不支持复杂 JS 表达式 | JS 层预计算布尔/映射字段，WXML 只做简单绑定 |
+| `setData` 丢弃 `_` 前缀属性 | 运行时标记用页面实例属性（`this._flag`），不经过 setData |
+| `dataset` 将 id 转为字符串 | 读取后手动 `parseInt` 还原类型 |
+| `navigateTo` 层级上限 10 | 深层页面使用 `redirectTo`，避免深层跳转链 |
+| Canvas 2D 需 dpr 适配 | 参照 `chart-pie/index.js` 的 `dpr + scale` 模式 |
+| `onLoad` options 均为字符串 | id 存在性判断用 `options.id !== undefined && options.id !== ''` |

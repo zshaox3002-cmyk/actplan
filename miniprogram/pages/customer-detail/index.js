@@ -48,6 +48,18 @@ function fmtWan(n) {
 }
 function fmtWanUnit(n) { return n >= 10000 ? '万元' : '元'; }
 
+/**
+ * @param {string} expireDate - YYYY-MM-DD
+ * @returns {'' | 'expiring' | 'expired'}
+ */
+function computeExpiryStatus(expireDate) {
+  if (!expireDate) return '';
+  var today = dateUtil.today();
+  if (expireDate < today) return 'expired';
+  var diff = Math.round((new Date(expireDate) - new Date(today)) / 86400000);
+  return diff <= 90 ? 'expiring' : '';
+}
+
 Page({
   data: {
     loading: true,
@@ -143,7 +155,10 @@ Page({
     planSheetDate: '',
     planSheetTime: '',
     planSheetVisitWay: '面对面',
-    planSheetVisitWayOptions: []
+    planSheetVisitWayOptions: [],
+
+    // 保存防重复
+    isSaving: false
   },
 
   onLoad: function (options) {
@@ -237,7 +252,6 @@ Page({
         content: obj.content || '',
         solution: obj.solution || '',
         count: obj.count || 1,
-        noteCount: notes.length,
         latestResult: latestResult,
         resultClass: latestResult === '已化解' ? 'resolved' : latestResult === '仍在考虑' ? 'pending' : 'unresolved'
       };
@@ -251,18 +265,24 @@ Page({
       return Object.assign({}, p, { isOverdue: p.plan_date < ts });
     });
 
-    // 保单列表
-    var rawPolicies = policyRepo.list(id);
+    // 保单列表（附带运行时计算字段）
+    var rawPolicies = policyRepo.listWithComputed(id);
     var policies = rawPolicies.map(function (p) {
       return {
         id: p.id,
         productType: p.product_type,
         productName: p.product_name || '',
+        category: p._category,
         premium: p.premium,
         effectiveDate: p.effective_date || '',
-        expireDate: p.expire_date || '',
-        source: p.source,
-        isSelf: p.source === 'self'
+        policySummary: p._policy_summary,
+        cardStatus: p._card_status.status,
+        cardStatusLabel: p._card_status.label,
+        cardDaysText: p._card_status.daysText,
+        cardEventDate: p._card_status.eventDate,
+        cardColorClass: p._card_status.colorClass,
+        policyYear: p._policy_year,
+        needsCompletion: p._needs_completion
       };
     });
 
@@ -279,9 +299,12 @@ Page({
     }).length;
     var showHistoryBackfillTip = historyDealCount > 0 && policies.length === 0;
 
+    wx.disableAlertBeforeUnload();
+
     var initData = {
       loading: false,
       isNew: false,
+      isEditProfile: false,
       id: id,
       customerName: customer.name || '',
       priorityLevel: pri ? pri.level : '',
@@ -328,12 +351,12 @@ Page({
       derived: {
         policy_count: customer.policy_count || 0,
         total_premium: customer.total_premium || 0,
-        avg_premium: customer.avg_premium || 0,
+        yearly_pending_premium: customer.yearly_pending_premium || 0,
         first_policy_date: customer.first_policy_date || '',
         total_premium_display: fmtWan(customer.total_premium || 0),
         total_premium_unit: fmtWanUnit(customer.total_premium || 0),
-        avg_premium_display: fmtWan(customer.avg_premium || 0),
-        avg_premium_unit: fmtWanUnit(customer.avg_premium || 0)
+        yearly_pending_display: fmtWan(customer.yearly_pending_premium || 0),
+        yearly_pending_unit: fmtWanUnit(customer.yearly_pending_premium || 0)
       },
       coverageStatusList: coverageStatusList,
       isHnw: customer.is_hnw || false,
@@ -368,6 +391,10 @@ Page({
 
   /** +计划：底部弹窗 */
   onAddPlan: function () {
+    if (this.data.isNew) {
+      toast.fail('请先保存客户信息');
+      return;
+    }
     this.setData({
       showPlanSheet: true,
       planSheetMode: 'add',
@@ -403,57 +430,65 @@ Page({
   },
 
   onPlanSheetConfirm: function () {
+    if (this.data.isSaving) return;
+    this.setData({ isSaving: true });
+
     var d = this.data;
-    if (d.planSheetMode === 'edit') {
-      planRepo.update(d.planSheetPlanId, {
-        plan_date: d.planSheetDate,
-        plan_time: d.planSheetTime || null,
-        visit_way: d.planSheetVisitWay
-      });
-      toast.success('已保存');
+    try {
+      if (d.planSheetMode === 'edit') {
+        planRepo.update(d.planSheetPlanId, {
+          plan_date: d.planSheetDate,
+          plan_time: d.planSheetTime || null,
+          visit_way: d.planSheetVisitWay
+        });
+        toast.success('已保存');
+      } else {
+        if (!d.planSheetTime) {
+          toast.fail('请选择计划时间');
+          return;
+        }
+        var result = planRepo.create({
+          customer_id: d.id,
+          plan_date: d.planSheetDate,
+          plan_time: d.planSheetTime,
+          visit_way: d.planSheetVisitWay
+        });
+        if (result.conflict) {
+          toast.fail('该客户当日已有计划');
+          return;
+        }
+        toast.success('添加成功');
+      }
       var allPlans = planRepo.listAll();
       var id = this.data.id;
       var customerPlans = allPlans.filter(function (p) {
-      return p.customer_id === id && p.status === '待执行';
-    }).map(function (p) {
-      var td = new Date(); var ts = td.getFullYear() + '-' + String(td.getMonth()+1).padStart(2,'0') + '-' + String(td.getDate()).padStart(2,'0');
-      return Object.assign({}, p, { isOverdue: p.plan_date < ts });
-    });
-      this.setData({ showPlanSheet: false, customerPlans: customerPlans });
-    } else {
-      if (!d.planSheetTime) {
-        toast.fail('请选择计划时间');
-        return;
-      }
-      var result = planRepo.create({
-        customer_id: d.id,
-        plan_date: d.planSheetDate,
-        plan_time: d.planSheetTime,
-        visit_way: d.planSheetVisitWay
+        return p.customer_id === id && p.status === '待执行';
+      }).map(function (p) {
+        var td = new Date(); var ts = td.getFullYear() + '-' + String(td.getMonth()+1).padStart(2,'0') + '-' + String(td.getDate()).padStart(2,'0');
+        return Object.assign({}, p, { isOverdue: p.plan_date < ts });
       });
-      if (result.conflict) {
-        toast.fail('该客户当日已有计划');
-      } else {
-        toast.success('添加成功');
-        var allPlans = planRepo.listAll();
-        var id = this.data.id;
-        var customerPlans = allPlans.filter(function (p) {
-      return p.customer_id === id && p.status === '待执行';
-    }).map(function (p) {
-      var td = new Date(); var ts = td.getFullYear() + '-' + String(td.getMonth()+1).padStart(2,'0') + '-' + String(td.getDate()).padStart(2,'0');
-      return Object.assign({}, p, { isOverdue: p.plan_date < ts });
-    });
-        this.setData({ showPlanSheet: false, customerPlans: customerPlans });
-      }
+      this.setData({ showPlanSheet: false, customerPlans: customerPlans });
+    } catch (e) {
+      toast.fail('操作失败：' + e.message);
+    } finally {
+      this.setData({ isSaving: false });
     }
   },
 
   /** +记录：跳转 record-new（adhoc 模式） */
   onAddRecord: function () {
+    if (this.data.isNew) {
+      toast.fail('请先保存客户信息');
+      return;
+    }
+    if (this._navigating) return;
+    this._navigating = true;
+    var self = this;
     wx.navigateTo({
       url: '/pages/record-new/index?customer_id=' + this.data.id +
            '&customer_name=' + encodeURIComponent(this.data.customerName) +
-           '&record_type=adhoc'
+           '&record_type=adhoc',
+      complete: function () { self._navigating = false; }
     });
   },
 
@@ -506,9 +541,13 @@ Page({
 
   /** 保存画像 */
   onSaveProfile: function () {
+    if (this.data.isSaving) return;
+    this.setData({ isSaving: true });
+
     var form = this.data.form;
     if (!form.name || !form.name.trim()) {
       toast.fail('请输入客户姓名');
+      this.setData({ isSaving: false });
       return;
     }
 
@@ -534,7 +573,9 @@ Page({
 
     try {
       if (this.data.isNew) {
-        customerRepo.create(customerData);
+        var created = customerRepo.create(customerData);
+        // 立即翻转状态，防止 setTimeout 期间重复点击再次触发 create
+        this.setData({ isNew: false, id: created.id });
         toast.success('创建成功');
         setTimeout(function () { wx.navigateBack(); }, 1000);
       } else {
@@ -558,6 +599,8 @@ Page({
     } catch (e) {
       toast.fail('保存失败：' + e.message);
       wx.enableAlertBeforeUnload({ message: '当前有未保存的修改，确认放弃？' });
+    } finally {
+      this.setData({ isSaving: false });
     }
   },
 
@@ -610,6 +653,8 @@ Page({
   },
 
   onObjSheetCreateNew: function() {
+    if (this._navigating) return;
+    this._navigating = true;
     var that = this;
     this.setData({ showObjSheet: false });
     wx.navigateTo({
@@ -620,7 +665,8 @@ Page({
           objections.push({ id: data.id, category: data.category, content: data.content || '', count: 0 });
           that.setData({ customerObjections: objections });
         }
-      }
+      },
+      complete: function () { that._navigating = false; }
     });
   },
 
@@ -689,30 +735,39 @@ Page({
 
   /** 跳转 policy-edit 新建保单 */
   onAddPolicy: function () {
-    wx.navigateTo({ url: '/pages/policy-edit/index?customer_id=' + this.data.id });
+    if (this._navigating) return;
+    this._navigating = true;
+    var self = this;
+    wx.navigateTo({
+      url: '/pages/policy-edit/index?customer_id=' + this.data.id,
+      complete: function () { self._navigating = false; }
+    });
   },
 
-  /** 保单卡片操作菜单（编辑/删除） */
+  /** 保单卡片操作菜单（编辑/标记断保/删除） */
   onPolicyAction: function (e) {
     var policyId = parseInt(e.currentTarget.dataset.id);
-    var isSelf = e.currentTarget.dataset.isSelf === 'true';
     var self = this;
     wx.showActionSheet({
-      itemList: ['编辑', '删除'],
+      itemList: ['编辑', '标记断保', '删除'],
       success: function (res) {
         if (res.tapIndex === 0) {
           wx.navigateTo({
             url: '/pages/policy-edit/index?customer_id=' + self.data.id + '&policy_id=' + policyId
           });
         } else if (res.tapIndex === 1) {
-          self._deletePolicy(policyId, isSelf);
+          policyRepo.update(policyId, { status: 'expired' });
+          self._loadDetail(self.data.id);
+          toast.success('已标记断保');
+        } else if (res.tapIndex === 2) {
+          self._deletePolicy(policyId);
         }
       }
     });
   },
 
-  /** 删除保单，self 保单需二次确认，删后回滚 coverage_status */
-  _deletePolicy: function (policyId, isSelf) {
+  /** 删除保单，删后回滚 coverage_status */
+  _deletePolicy: function (policyId) {
     var self = this;
     var doDelete = function () {
       var result = policyRepo.remove(policyId);
@@ -730,7 +785,7 @@ Page({
     };
     wx.showModal({
       title: '确认删除',
-      content: isSelf ? '这是自成交保单，删除后无法恢复。' : '删除后无法恢复。',
+      content: '删除后无法恢复。',
       confirmColor: '#EF4444',
       success: function (res) { if (res.confirm) doDelete(); }
     });
@@ -783,6 +838,9 @@ Page({
   },
 
   onSaveExtended: function() {
+    if (this.data.isSaving) return;
+    this.setData({ isSaving: true });
+
     var d = this.data;
     var isHnw = d.hnwOptions[d.hnwIndex] === '是';
     var referralCount = parseInt(d.extForm.referral_count) || 0;
@@ -803,6 +861,8 @@ Page({
       toast.success('保存成功');
     } catch(err) {
       toast.fail('保存失败：' + err.message);
+    } finally {
+      this.setData({ isSaving: false });
     }
   },
 

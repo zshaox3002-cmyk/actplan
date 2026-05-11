@@ -1,8 +1,7 @@
 /* ============================================================
- * variables.wxss — Design System v4.0 (灰蓝燕麦·掌控感)
- * 视觉个性：灰蓝墨迹落在燕麦纸上——克制、通透、有掌控感
- * 参考：Things 3 留白 / Apple Music 大标题 / Flomo 微描边 /
- *       Craft 连续圆角 / MUJI 低饱和灰蓝
+ * variables.wxss — Design System v5.0 (活力清爽·掌控感)
+ * 视觉个性：活力蓝为核心，冷灰背景衬托，明亮清爽有层次
+ * 参考：Ant Design 5.0 / ByteDance Arco / Apple HIG
  * 所有颜色、字号、间距、圆角、阴影均在此定义
  * 页面和组件禁止写死数值，必须引用 var(--xxx)
  * ============================================================ */
@@ -10,12 +9,12 @@
 page {
 
   /* ================================================================
-   * 主色 — 深灰蓝（掌控感核心）
-   * #3B5268 on #FFFFFF 对比度 8.1:1，WCAG AAA ✓
+   * 主色 — 活力蓝
+   * #1677FF on #FFFFFF 对比度 4.6:1，WCAG AA ✓
    * ================================================================ */
-  --color-primary: #3B5268;
-  --color-primary-light: #E8EEF4;
-  --color-primary-dark: #2A3D52;
+  --color-primary: #1677FF;
+  --color-primary-light: #E6F4FF;
+  --color-primary-dark: #0958D9;
 
   /* ================================================================
    * 强调色 — 燕麦金（核心数据数字专用）
@@ -33,39 +32,40 @@ page {
   /* ================================================================
    * 语义色
    * ================================================================ */
-  --color-success: #5A8A6A;
-  --color-success-light: #E8F2EC;
-  --color-warning: #B8956A;
-  --color-warning-light: #F5EDD8;
-  --color-danger: #C0392B;
-  --color-danger-light: #FAEAE9;
+  --color-success: #389E0D;
+  --color-success-light: #F6FFED;
+  --color-warning: #D46B08;
+  --color-warning-light: #FFF7E6;
+  --color-caution: #CA8A04;
+  --color-danger: #EF4444;
+  --color-danger-light: #FEE2E2;
 
   /* ================================================================
    * 中性色阶（全系统骨架）
    * ================================================================ */
-  --color-text-primary: #1A1A1A;
-  --color-text-secondary: #6B6B6B;
-  --color-text-placeholder: #9B9B9B;
-  --color-text-meta-label: #9B9B9B;
-  --color-text-meta-value: #6B6B6B;
-  --color-border: #E5E2DC;
-  --color-disabled: #C8C5C0;
-  --color-neutral: #C8C5C0;
-  --color-bg-muted: #F0EDE8;
-  --color-bg-page: #FAFAF8;
+  --color-text-primary: #1D2129;
+  --color-text-secondary: #4E5969;
+  --color-text-placeholder: #86909C;
+  --color-text-meta-label: #86909C;
+  --color-text-meta-value: #4E5969;
+  --color-border: #E8EBF0;
+  --color-disabled: #C9CDD4;
+  --color-neutral: #C9CDD4;
+  --color-bg-muted: #F0F2F5;
+  --color-bg-page: #F4F6F9;
   --color-bg-card: #FFFFFF;
 
   /* ================================================================
    * 跟进优先级标签色（实心色块，白色文字）
    * ================================================================ */
-  --priority-p0-bg: #C0392B;
-  --priority-p0-text: #FFFFFF;
-  --priority-p1-bg: #B8956A;
-  --priority-p1-text: #FFFFFF;
-  --priority-p2-bg: #7B9E87;
-  --priority-p2-text: #FFFFFF;
-  --priority-p3-bg: #C8C5C0;
-  --priority-p3-text: #FFFFFF;
+  --priority-p0-bg: #FFF1F0;
+  --priority-p0-text: #F5222D;
+  --priority-p1-bg: #FFF7E6;
+  --priority-p1-text: #D46B08;
+  --priority-p2-bg: #F6FFED;
+  --priority-p2-text: #389E0D;
+  --priority-p3-bg: #F2F3F5;
+  --priority-p3-text: #4E5969;
 
   /* ================================================================
    * 客户阶段标签色（描边，无背景）
@@ -84,9 +84,19 @@ page {
   --stage-lost-text: #C8C5C0;
 
   /* ================================================================
+   * 左滑操作菜单（Swipe Action Menu）
+   * ================================================================ */
+  --swipe-book-bg: #1677FF;      /* 预约 — 活力蓝（主操作） */
+  --swipe-note-bg: #6B7280;      /* 随手记 — 中性灰（次要操作） */
+  --swipe-delete-bg: #EF4444;    /* 删除 — 明亮警示红（危险操作） */
+  --swipe-btn-text: #FFFFFF;
+  --swipe-btn-width: 160rpx;
+  --swipe-btn-font-size: 26rpx;
+
+  /* ================================================================
    * 图表色
    * ================================================================ */
-  --color-chart-actual: #3B5268;
+  --color-chart-actual: #1677FF;
   --color-chart-plan: #C8C5C0;
 
   /* ================================================================
@@ -100,10 +110,10 @@ page {
   /* ================================================================
    * Tab 切换
    * ================================================================ */
-  --color-tab-bg: #F0EDE8;
+  --color-tab-bg: #F0F2F5;
   --color-tab-active-bg: #FFFFFF;
-  --color-tab-active-text: #3B5268;
-  --color-tab-inactive-text: #9B9B9B;
+  --color-tab-active-text: #1677FF;
+  --color-tab-inactive-text: #86909C;
 
   /* ================================================================
    * 客户节奏状态色
@@ -122,14 +132,14 @@ page {
   /* ================================================================
    * Chip 筛选栏
    * ================================================================ */
-  --chip-inactive-bg: #F0EDE8;
+  --chip-inactive-bg: #F0F2F5;
   --chip-inactive-text: var(--color-text-secondary);
 
   /* ================================================================
    * 次级操作按钮
    * ================================================================ */
-  --btn-secondary-bg: #F0EDE8;
-  --btn-secondary-text: #6B6B6B;
+  --btn-secondary-bg: #F0F2F5;
+  --btn-secondary-text: #4E5969;
 
   /* ================================================================
    * 字号阶梯（rpx，750rpx = 375px 设备宽度）
@@ -229,13 +239,13 @@ page {
   --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.10);
   --shadow-xl: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
-  --shadow-fab: 0 4rpx 16rpx rgba(59, 82, 104, 0.28);
+  --shadow-fab: 0 4rpx 16rpx rgba(22, 119, 255, 0.28);
 
   /* 向后兼容别名 */
   --shadow-card: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   --shadow-card-elevated: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   --shadow-tab-active: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
-  --shadow-fab-brand: 0 4rpx 16rpx rgba(59, 82, 104, 0.28);
+  --shadow-fab-brand: 0 4rpx 16rpx rgba(22, 119, 255, 0.28);
 
   /* ================================================================
    * 尺寸

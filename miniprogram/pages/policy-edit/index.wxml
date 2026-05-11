@@ -1,64 +1,134 @@
 <!-- pages/policy-edit/index.wxml -->
 <view class="page-wrap">
 
-  <!-- 险种（self 保单置灰） -->
+  <!-- 草稿提示条 -->
+  <view class="draft-tip-bar" wx:if="{{showDraftTip}}">
+    <text>来自 {{visitRecordDate}} 拜访记录，请补全保单信息</text>
+  </view>
+
+  <!-- 险种 -->
   <view class="section-card">
     <view class="field-label-row">
       <text class="field-label">险种</text>
       <text class="required-mark">*</text>
     </view>
-    <picker wx:if="{{!isSelf}}"
-            mode="selector"
-            range="{{productTypeOptions}}"
-            value="{{productTypeIndex}}"
-            bindchange="onProductTypeChange">
+    <picker mode="selector"
+            range="{{categoryOptions}}"
+            value="{{categoryIndex}}"
+            bindchange="onCategoryChange">
       <view class="picker-row">
-        <text class="picker-value">{{productType || '请选择险种'}}</text>
+        <text class="picker-value">{{categoryOptions[categoryIndex] || '请选择险种'}}</text>
         <text class="picker-arrow">▾</text>
       </view>
     </picker>
-    <view wx:else class="picker-row disabled">
-      <text class="picker-value">{{productType}}</text>
-      <text class="picker-hint">自成交保单不可修改险种</text>
-    </view>
   </view>
 
-  <!-- 产品名（self 保单置灰） -->
+  <!-- 产品名 -->
   <view class="section-card">
     <view class="field-label-row">
       <text class="field-label">产品名</text>
-      <text wx:if="{{!isSelf}}" class="field-label-sub">选填</text>
+      <text class="required-mark">*</text>
     </view>
-    <input wx:if="{{!isSelf}}"
-           class="text-input"
+    <input class="text-input"
            value="{{productName}}"
            bindinput="onProductNameInput"
            placeholder="如：友邦传世盈佳"/>
-    <view wx:else class="disabled-value">
-      <text>{{productName || '—'}}</text>
-    </view>
   </view>
 
-  <!-- 保费（self 保单置灰） -->
+  <!-- 生效日期 -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">生效日期</text>
+      <text class="required-mark">*</text>
+    </view>
+    <picker mode="date" value="{{effectiveDate}}" bindchange="onEffectiveDateChange">
+      <view class="picker-row">
+        <text class="picker-value {{effectiveDate ? '' : 'placeholder'}}">{{effectiveDate || '请选择生效日期'}}</text>
+        <text class="picker-arrow">▾</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 保费 -->
   <view class="section-card">
     <view class="field-label-row">
       <text class="field-label">年缴保费（元）</text>
-      <text wx:if="{{!isSelf}}" class="required-mark">*</text>
+      <text class="required-mark">*</text>
     </view>
-    <input wx:if="{{!isSelf}}"
-           class="text-input"
+    <input class="text-input"
            type="digit"
            value="{{premium}}"
            bindinput="onPremiumInput"
            placeholder="年缴金额"/>
-    <view wx:else class="disabled-value">
-      <text>{{premium}}</text>
-    </view>
   </view>
 
-  <!-- 保存按钮（self 保单全只读，无需保存） -->
-  <view class="save-bar" wx:if="{{!isSelf}}">
-    <button class="save-btn" bindtap="onSave">保存</button>
+  <!-- 自动填充区分隔 -->
+  <view class="auto-fill-divider">
+    <text>── 自动填充，点击可改 ──</text>
+  </view>
+
+  <!-- 保障期限（折叠展开） -->
+  <view class="section-card">
+    <view class="term-row" bindtap="onToggleCoverageTermEdit">
+      <text class="field-label">保障期限</text>
+      <view class="term-row-right">
+        <text class="term-display-text">{{coverageTermDisplay}}</text>
+        <text class="picker-arrow">{{coverageTermEditing ? '▴' : '▾'}}</text>
+      </view>
+    </view>
+    <block wx:if="{{coverageTermEditing}}">
+      <view class="term-edit-block">
+        <picker mode="selector"
+                range="{{coverageTermTypeOptions}}"
+                value="{{coverageTermTypeIndex}}"
+                bindchange="onCoverageTermTypeChange">
+          <view class="picker-row">
+            <text class="picker-value">{{coverageTermTypeOptions[coverageTermTypeIndex]}}</text>
+            <text class="picker-arrow">▾</text>
+          </view>
+        </picker>
+        <input wx:if="{{coverageTerm.type !== 'lifetime'}}"
+               class="text-input term-value-input"
+               type="number"
+               value="{{coverageTerm.value}}"
+               bindinput="onCoverageTermValueInput"
+               placeholder="请输入数值（年/岁）"/>
+      </view>
+    </block>
+  </view>
+
+  <!-- 缴费期限（折叠展开，部分险种隐藏） -->
+  <view class="section-card" wx:if="{{showPaymentTerm}}">
+    <view class="term-row" bindtap="onTogglePaymentTermEdit">
+      <text class="field-label">缴费期限</text>
+      <view class="term-row-right">
+        <text class="term-display-text">{{paymentTermDisplay}}</text>
+        <text class="picker-arrow">{{paymentTermEditing ? '▴' : '▾'}}</text>
+      </view>
+    </view>
+    <block wx:if="{{paymentTermEditing}}">
+      <view class="term-edit-block">
+        <picker mode="selector"
+                range="{{paymentTermTypeOptions}}"
+                value="{{paymentTermTypeIndex}}"
+                bindchange="onPaymentTermTypeChange">
+          <view class="picker-row">
+            <text class="picker-value">{{paymentTermTypeOptions[paymentTermTypeIndex]}}</text>
+            <text class="picker-arrow">▾</text>
+          </view>
+        </picker>
+        <input wx:if="{{paymentTerm.type === 'years'}}"
+               class="text-input term-value-input"
+               type="number"
+               value="{{paymentTerm.value}}"
+               bindinput="onPaymentTermValueInput"
+               placeholder="请输入缴费年数"/>
+      </view>
+    </block>
+  </view>
+
+  <view class="save-bar">
+    <button class="save-btn" disabled="{{isSaving}}" bindtap="onSave">{{isSaving ? '保存中...' : '保存'}}</button>
   </view>
 
 </view>

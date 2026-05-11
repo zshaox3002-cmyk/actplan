@@ -197,6 +197,10 @@ function getObjectionSummary(snapshot, ranges) {
     var note = notes[i];
     var noteDate = (note.created_at || '').substring(0, 10);
     if (noteDate < start || noteDate > end) continue;
+
+    var customer = _findCustomer(snapshot, note.customer_id);
+    if (!customer) continue;
+
     total++;
 
     var objection = _findObjection(snapshot, note.objection_id);
@@ -212,7 +216,6 @@ function getObjectionSummary(snapshot, ranges) {
       resolvedTotal++;
     }
 
-    var customer = _findCustomer(snapshot, note.customer_id);
     catMap[cat].items.push({
       content: objection ? (objection.content || '') : '',
       customerName: customer ? (customer.name || '') : '',

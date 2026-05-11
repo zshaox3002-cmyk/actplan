@@ -81,12 +81,10 @@ function listCustomerIdsInWeek(anchorDate) {
 function create(data) {
   var all = storage.getTable('plan');
 
-  // 检测同客户同日是否已有计划
-  var conflict = false;
+  // 检测同客户同日是否已有计划，冲突时直接返回，不写入
   for (var i = 0; i < all.length; i++) {
     if (all[i].customer_id === data.customer_id && all[i].plan_date === data.plan_date) {
-      conflict = true;
-      break;
+      return { id: null, conflict: true };
     }
   }
 
@@ -106,7 +104,7 @@ function create(data) {
   all.push(plan);
   storage.setTable('plan', all);
 
-  return { id: newId, conflict: conflict };
+  return { id: newId, conflict: false };
 }
 
 /**

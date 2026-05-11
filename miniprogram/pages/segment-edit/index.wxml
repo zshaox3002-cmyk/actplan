@@ -37,7 +37,7 @@
     <view class="field-label-row">
       <text class="field-label">筛选规则</text>
       <text class="field-label-sub" wx:if="{{!isSystem}}">AND 关系，最多 8 条</text>
-      <text class="field-label-sub" wx:if="{{isSystem}}">系统预设，不可修改</text>
+      <text class="field-label-sub" wx:if="{{isSystem}}">{{ruleMatch}} 关系 · 系统预设</text>
     </view>
     <view class="rule-list">
       <view class="rule-item" wx:for="{{rules}}" wx:key="index">
@@ -98,7 +98,7 @@
 
   <!-- 保存按钮（系统预设不显示） -->
   <view class="save-bar" wx:if="{{!isSystem}}">
-    <button class="save-btn" bindtap="onSave">保存</button>
+    <button class="save-btn" disabled="{{isSaving}}" bindtap="onSave">{{isSaving ? '保存中...' : '保存'}}</button>
   </view>
 
   <!-- 规则编辑弹窗：wrapper 全屏覆盖，mask 和 sheet 同级 -->

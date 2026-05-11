@@ -1,6 +1,6 @@
 # 数据关系表 — actplan 微信小程序
 
-> **生成时间**：2026-04-27 | **最后更新**：2026-05-06（v1.1 金子客户挖掘模块）  
+> **生成时间**：2026-04-27 | **最后更新**：2026-05-11（v1.3 双轴时间模型 + 云同步）  
 > **更新规则**：修改数据结构时请同步更新此表；需要重新扫描时由人类指令触发
 
 ---
@@ -161,26 +161,43 @@
 | `new_value` | string | `''` | 新值 |
 | `created_at` | string | nowISO() | 创建时间 |
 
-### 2.8 policy（v1.1 新增）
+### 2.8 policy（v1.1 新增，v1.3 双轴时间模型扩展）
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `id` | number | id.nextId() | 主键 |
 | `customer_id` | number | — | 关联客户 ID |
-| `product_type` | string | — | 险种枚举：`重疾`/`医疗`/`教育金`/`养老`/`意外`/`寿险` |
+| `product_type` | string | — | 旧险种枚举（中文）：`重疾`/`医疗`/`教育金`/`养老`/`意外`/`寿险`；v1.3 后优先使用 `category` |
+| `category` | string | 由 product_type 推导 | **v1.3 新增**。险种英文枚举：`medical`/`critical_illness`/`term_life`/`whole_life`/`annuity`/`accident`/`education` |
 | `product_name` | string | `''` | 产品名（可空，如"友邦传世盈佳"） |
 | `premium` | number | — | 年缴保费（元，必填） |
 | `effective_date` | string | — | 生效日期 YYYY-MM-DD（必填） |
-| `expire_date` | string\|null | `null` | 到期日（可空，终身寿险不填） |
+| `expire_date` | string\|null | `null` | 保留向后兼容，新数据由 `coverage_term` 自动推导 |
+| `coverage_term` | Object | 由险种模板默认 | **v1.3 新增**。保障期：`{ type: 'lifetime'|'years'|'to_age'|'same_as_coverage', value: number|null }` |
+| `payment_term` | Object | 由险种模板默认 | **v1.3 新增**。缴费期：`{ type: 'years'|'single'|'same_as_coverage', value: number|null }` |
+| `status` | string | `'active'` | **v1.3 新增**。保单状态：`draft`/`active`/`expired` |
 | `source` | string | — | 来源：`self`（我成交）/`external`（他渠道） |
 | `visit_record_id` | number\|null | `null` | source='self' 时关联成交拜访记录 ID；external 为 null |
 | `created_at` | number | Date.now() | 创建时间戳 |
+
+**险种模板默认值**（`policy-templates.js`）：
+
+| category | coverage_term | payment_term |
+|----------|--------------|--------------|
+| `medical` | `years:1` | `same_as_coverage` |
+| `critical_illness` | `lifetime` | `years:20` |
+| `term_life` | `to_age:60` | `years:20` |
+| `whole_life` | `lifetime` | `years:10` |
+| `annuity` | `lifetime` | `single` |
+| `accident` | `years:1` | `same_as_coverage` |
+| `education` | `to_age:18` | `years:10` |
 
 **关键规则**：
 - source='self' 的保单由成交拜访记录事务性自动创建，不可手动新建
 - source='external' 的保单通过 policy-edit 页面手动录入
 - 删除 self 保单时，若该险种无其他保单记录，自动将 customer.coverage_status[险种] 回滚为 unknown
 - 写入任意保单后，对应险种的 customer.coverage_status 自动更新为 configured
+- `policyRepo.listWithComputed()` 返回附加派生字段（`_category`/`_coverage_term`/`_payment_term`/`_payment_end_date`/`_card_status`/`_policy_year`/`_policy_summary`/`_needs_completion`），以 `_` 前缀标识，不持久化
 
 ### 2.9 segment（v1.1 新增）
 
@@ -306,10 +323,11 @@ segment ── 独立表，不与业务实体关联  [v1.1]
 | `plan-card` | plan: id, customer_id, plan_date, visit_way, status | 通过 properties.plan 传入 |
 | `record-card` | visit_record: id 等; customer.name | 通过 properties.record/customerName 传入 |
 | `objection-card` | objection: id, category, content, count, isPreset | 通过 properties.objection 传入 |
-| `filter-bar` | customer: apple_grade (筛选), stage (筛选) | 通过 properties 传入筛选值 |
 | `chart-pie` | 通用 [{name, value, color}] | Dashboard 苹果分布/异议分布 |
 | `chart-bar` | 通用 [{name, value}] 或 [{label, planCount, visitCount}] | Dashboard 异议分布/拜访趋势 |
 | 其他组件 | 无直接数据模型关联 | 纯 UI 组件 |
+
+> **已删除组件**：`filter-bar` — v1.1 后客户页筛选区改为 segment 视图 Chip，filter-bar 组件已移除。
 
 ---
 
@@ -391,6 +409,32 @@ segment ── 独立表，不与业务实体关联  [v1.1]
 | 5 | **stage 旧格式兼容** | customer-card/index.js | STAGE_DISPLAY 映射包含 need/touch/deal/1/2/3 等旧值 |
 | 6 | **coverage_needs 废弃字段** | customer 表 | v1.1 迁移后 coverage_needs 字段废弃，由 coverage_status 替代；旧数据按映射规则迁移（关注中/有兴趣/待了解→gap，暂不考虑→none，未填写→unknown） |
 | 7 | **派生字段禁止自行聚合** | 所有读取 policy_count 等字段的页面 | 必须通过 `customerRepo.getCustomerWithDerived(id)` 统一获取，禁止页面直接读 db_policy 聚合 |
+
+---
+
+---
+
+## 12. 云同步架构（v1.3 新增）
+
+### 12.1 总体架构
+
+`utils/cloud-sync.js` 实现本地优先 + 云端备份模式：
+
+- **写入路径**：本地写入（同步）→ 标记 dirty → 防抖 3s 后上传云端
+- **失败处理**：保留 dirty 标记，onHide/onShow 时自动 flush 重试
+- **恢复路径**：App 启动时本地为空 → 从云端 `table_backup` 拉取全量数据
+
+**云开发环境**：`pro-d1g97lgrm3a7cf83a`  
+**云数据库集合**：`table_backup`，文档结构 `{ _openid, table_name, data, updated_at }`  
+**云函数**：`login`（获取 openid）
+
+### 12.2 去重工具（`utils/dedup-records.js`）
+
+一次性清理工具，在 App 启动时执行，用 `db_meta.dedup_v1_done` 守卫防重复：
+
+- **去重键**：`customer_id + visit_date + visit_time + summary`（完全相同才视为重复）
+- **策略**：保留 id 最小（最早创建）的那条，删除后续重复 record 及其关联 policy
+- **异议去重**：`runObjectionDedup()`，用 `db_meta.dedup_objection_v1_done` 守卫
 
 ---
 

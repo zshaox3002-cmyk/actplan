@@ -23,7 +23,8 @@ Page({
     showConfirm: false,
     isEditMode: false,
     editPlanId: null,
-    isCustomerPrefilled: false
+    isCustomerPrefilled: false,
+    isSaving: false
   },
 
   onLoad: function (options) {
@@ -158,6 +159,7 @@ Page({
 
   /** 确认添加计划 */
   onConfirmAdd: function () {
+    if (this.data.isSaving) return;
     if (!this.data.selectedCustomerId) {
       toast.fail('请选择客户');
       return;
@@ -167,25 +169,32 @@ Page({
       return;
     }
 
-    if (this.data.isEditMode) {
-      planRepo.update(this.data.editPlanId, {
-        plan_time: this.data.planTime,
-        visit_way: this.data.selectedVisitWay
-      });
-      toast.success('修改成功');
-    } else {
-      var result = planRepo.create({
-        customer_id: this.data.selectedCustomerId,
-        plan_date: this.data.planDate,
-        plan_time: this.data.planTime,
-        visit_way: this.data.selectedVisitWay
-      });
-
-      if (result.conflict) {
-        toast.fail('该客户当日已有计划');
+    this.setData({ isSaving: true });
+    try {
+      if (this.data.isEditMode) {
+        planRepo.update(this.data.editPlanId, {
+          plan_time: this.data.planTime,
+          visit_way: this.data.selectedVisitWay
+        });
+        toast.success('修改成功');
       } else {
-        toast.success('添加成功');
+        var result = planRepo.create({
+          customer_id: this.data.selectedCustomerId,
+          plan_date: this.data.planDate,
+          plan_time: this.data.planTime,
+          visit_way: this.data.selectedVisitWay
+        });
+
+        if (result.conflict) {
+          toast.fail('该客户当日已有计划');
+        } else {
+          toast.success('添加成功');
+        }
       }
+    } catch (e) {
+      toast.fail('操作失败：' + e.message);
+    } finally {
+      this.setData({ isSaving: false });
     }
 
     // 延迟返回，让 Toast 显示完

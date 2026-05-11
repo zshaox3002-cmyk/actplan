@@ -63,7 +63,7 @@
 /* Tab 切换 */
 .tab-bar {
   display: flex;
-  background: #F1F5F9;
+  background: var(--color-bg-muted);
   border-radius: 40rpx;
   padding: 4rpx;
   margin-bottom: var(--spacing-section);

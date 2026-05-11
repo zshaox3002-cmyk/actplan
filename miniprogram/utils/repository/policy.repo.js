@@ -1,10 +1,13 @@
 /**
- * policy.repo.js — 保单数据 CRUD（v1.1 新增）
- * 管理 db_policy 表，source='self' 由成交流程自动创建，source='external' 由用户手动录入
+ * policy.repo.js — 保单数据 CRUD（v1.1 新增，v1.3 双轴时间模型扩展）
+ * 管理 db_policy 表
  */
 
 var storage = require('../storage');
 var id = require('../id');
+var templates = require('../policy-templates');
+var policyCompute = require('../policy-compute');
+var dateUtil = require('../date');
 
 /**
  * 获取指定客户的全部保单，按 effective_date 降序
@@ -24,12 +27,15 @@ function list(customerId) {
  * 新建保单记录
  * @param {Object} data
  * @param {number} data.customer_id
- * @param {string} data.product_type - 险种枚举（重疾/医疗/教育金/养老/意外/寿险）
+ * @param {string} [data.product_type] - 旧险种枚举，与 category 二选一
+ * @param {string} [data.category] - 险种 enum（优先使用）
  * @param {string} [data.product_name]
  * @param {number} data.premium - 年缴保费（元）
  * @param {string} data.effective_date - YYYY-MM-DD
- * @param {string} [data.expire_date]
- * @param {string} data.source - 'self' | 'external'
+ * @param {string} [data.expire_date] - 保留向后兼容，通常为 null
+ * @param {Object} [data.coverage_term]
+ * @param {Object} [data.payment_term]
+ * @param {string} [data.status] - draft/active/expired
  * @param {number|null} [data.visit_record_id]
  * @returns {Object} 新建的保单记录
  */
@@ -37,15 +43,21 @@ function create(data) {
   var all = storage.getTable('policy');
   var newId = id.nextId('policy');
 
+  var category = data.category || templates.inferCategoryFromProductType(data.product_type || '');
+  var tmpl = templates.getTemplate(category);
+
   var policy = {
     id: newId,
     customer_id: data.customer_id,
-    product_type: data.product_type,
+    product_type: data.product_type || templates.getCoverageKey(category),
+    category: category,
     product_name: data.product_name || '',
     premium: data.premium,
     effective_date: data.effective_date,
     expire_date: data.expire_date || null,
-    source: data.source,
+    coverage_term: data.coverage_term || tmpl.coverage_term,
+    payment_term: data.payment_term || tmpl.payment_term,
+    status: data.status || 'active',
     visit_record_id: data.visit_record_id || null,
     created_at: Date.now()
   };
@@ -61,8 +73,6 @@ function create(data) {
 
 /**
  * 更新保单
- * - source='external'：可更新 product_name / premium / effective_date / expire_date / product_type
- * - source='self'：仅可更新 product_name
  * @param {number} policyId
  * @param {Object} fields
  * @returns {boolean}
@@ -74,18 +84,14 @@ function update(policyId, fields) {
   for (var i = 0; i < all.length; i++) {
     if (all[i].id === policyId) {
       var policy = all[i];
-      if (policy.source === 'self') {
-        // self 保单只允许更新 product_name
-        if (fields.product_name !== undefined) {
-          policy.product_name = fields.product_name;
-        }
-      } else {
-        // external 保单可更新核心字段
-        var editableFields = ['product_name', 'product_type', 'premium', 'effective_date', 'expire_date'];
-        for (var k = 0; k < editableFields.length; k++) {
-          var f = editableFields[k];
-          if (fields[f] !== undefined) policy[f] = fields[f];
-        }
+      var editableFields = [
+        'product_name', 'product_type', 'category',
+        'premium', 'effective_date', 'expire_date',
+        'coverage_term', 'payment_term', 'status'
+      ];
+      for (var k = 0; k < editableFields.length; k++) {
+        var f = editableFields[k];
+        if (fields[f] !== undefined) policy[f] = fields[f];
       }
       found = true;
       break;
@@ -149,7 +155,8 @@ function getDerived(customerId) {
     policy_count: count,
     total_premium: total,
     avg_premium: count > 0 ? Math.round(total / count) : 0,
-    first_policy_date: firstDate
+    first_policy_date: firstDate,
+    yearly_pending_premium: policyCompute.computeYearlyPendingPremium(policies, dateUtil.today())
   };
 
   // 写入缓存
@@ -191,7 +198,47 @@ function getDerivedAll() {
 }
 
 /**
- * 失效指定客户的派生字段缓存
+ * 获取保单列表并附加运行时计算字段（供 customer-detail 使用）
+ * @param {number} customerId
+ * @returns {Array<Object>} 每条保单附加 _category/_coverage_term/_payment_term/
+ *   _expiry_date/_next_payment_date/_payment_end_date/_card_status/_policy_year/_policy_summary
+ */
+function listWithComputed(customerId) {
+  var policies = list(customerId);
+  var today = dateUtil.today();
+
+  return policies.map(function (p) {
+    var cat = p.category || templates.inferCategoryFromProductType(p.product_type || '');
+    var tmpl = templates.getTemplate(cat);
+    var ct = p.coverage_term || tmpl.coverage_term;
+    var pt = p.payment_term || tmpl.payment_term;
+
+    var expiryDate = policyCompute.computeExpiryDate(p.effective_date, ct);
+    var nextPaymentDate = policyCompute.computeNextPaymentDate(p.effective_date, pt);
+    var paymentEndDate = policyCompute.computePaymentEndDate(p.effective_date, pt);
+    var cardStatus = policyCompute.computePolicyCardStatus(p, today);
+    var policyYear = policyCompute.computePolicyYear(p.effective_date);
+    var policySummary = templates.formatPolicySummary(ct, pt, tmpl.show_payment_term);
+    // 通过完成记录快速录入的保单缺少 effective_date，需在卡片提示补充
+    var needsCompletion = !p.effective_date || !p.premium;
+
+    var result = {};
+    for (var k in p) { result[k] = p[k]; }
+    result._category = cat;
+    result._coverage_term = ct;
+    result._payment_term = pt;
+    result._expiry_date = expiryDate;
+    result._next_payment_date = nextPaymentDate;
+    result._payment_end_date = paymentEndDate;
+    result._card_status = cardStatus;
+    result._policy_year = policyYear;
+    result._policy_summary = policySummary;
+    result._needs_completion = needsCompletion;
+    return result;
+  });
+}
+
+/**
  * @param {number} customerId
  * @private
  */
@@ -205,6 +252,7 @@ function _invalidateDerivedCache(customerId) {
 
 module.exports = {
   list: list,
+  listWithComputed: listWithComputed,
   create: create,
   update: update,
   remove: remove,

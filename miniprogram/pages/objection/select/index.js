@@ -26,7 +26,8 @@ Page({
     selectedIds: [],
     currentCat: 'all',
     keyword: '',
-    categories: CATEGORIES
+    categories: CATEGORIES,
+    isSaving: false
   },
 
   // 页面实例属性（不经过 setData，不受序列化影响）
@@ -153,24 +154,30 @@ Page({
 
   /** 确认回传 */
   onConfirm: function () {
+    if (this.data.isSaving) return;
     if (this.data.selectedIds.length === 0) return;
 
-    var selected = this.data.allObjections.filter(function (o) {
-      return this.data.selectedIds.indexOf(o.id) >= 0;
-    }.bind(this));
+    this.setData({ isSaving: true });
+    try {
+      var selected = this.data.allObjections.filter(function (o) {
+        return this.data.selectedIds.indexOf(o.id) >= 0;
+      }.bind(this));
 
-    // 诊断日志
-    console.warn('[ObjectionSelect] onConfirm: selectedIds=' + JSON.stringify(this.data.selectedIds));
-    console.warn('[ObjectionSelect] onConfirm: _justCreatedIds=' + JSON.stringify(this._justCreatedIds));
-    console.warn('[ObjectionSelect] onConfirm: selected items id list=' + JSON.stringify(selected.map(function(o) { return o.id; })));
+      // 诊断日志
+      console.warn('[ObjectionSelect] onConfirm: selectedIds=' + JSON.stringify(this.data.selectedIds));
+      console.warn('[ObjectionSelect] onConfirm: _justCreatedIds=' + JSON.stringify(this._justCreatedIds));
+      console.warn('[ObjectionSelect] onConfirm: selected items id list=' + JSON.stringify(selected.map(function(o) { return o.id; })));
 
-    // 回传：把 justCreatedIds 作为独立字段传出去（不依赖对象属性）
-    // 注意：计数修改统一在 record-new onSave 中处理，选择确认不修改任何数据
-    if (this._channel && this._channel.emit) {
-      this._channel.emit('onSelected', {
-        items: selected,
-        justCreatedIds: this._justCreatedIds.slice()
-      });
+      // 回传：把 justCreatedIds 作为独立字段传出去（不依赖对象属性）
+      // 注意：计数修改统一在 record-new onSave 中处理，选择确认不修改任何数据
+      if (this._channel && this._channel.emit) {
+        this._channel.emit('onSelected', {
+          items: selected,
+          justCreatedIds: this._justCreatedIds.slice()
+        });
+      }
+    } finally {
+      this.setData({ isSaving: false });
     }
 
     wx.navigateBack();

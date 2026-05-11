@@ -60,14 +60,14 @@
       </view>
     </view>
 
-    <!-- 每个已选险种对应产品名 + 保费 -->
+    <!-- 每个已选险种对应产品名 + 保费 + 日期 -->
     <view wx:if="{{dealProducts.length > 0}}" class="deal-premiums">
       <view class="deal-premium-row" wx:for="{{dealProducts}}" wx:key="*this">
         <input class="deal-product-name-input"
                value="{{dealProductNames[item]}}"
                data-type="{{item}}"
                bindinput="onDealProductNameInput"
-               placeholder="产品名称（选填）"/>
+               placeholder="产品名称（必填）"/>
         <input class="deal-premium-input"
                type="digit"
                value="{{dealPremiums[item]}}"
@@ -145,7 +145,7 @@
 
   <!-- 保存按钮 -->
   <view class="save-bar">
-    <button class="save-btn" bindtap="onSave">保存</button>
+    <button class="save-btn" disabled="{{isSaving}}" bindtap="onSave">{{isSaving ? '保存中...' : '保存'}}</button>
   </view>
 
   <!-- 预约弹窗 -->
@@ -184,8 +184,8 @@
         <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">
           <text class="plan-sheet-btn-text">取消</text>
         </view>
-        <view class="plan-sheet-btn plan-sheet-btn-confirm" bindtap="onPlanSheetConfirm">
-          <text class="plan-sheet-btn-text">确认添加</text>
+        <view class="plan-sheet-btn plan-sheet-btn-confirm {{isSaving ? 'disabled' : ''}}" bindtap="{{isSaving ? '' : 'onPlanSheetConfirm'}}">
+          <text class="plan-sheet-btn-text">{{isSaving ? '保存中...' : '确认添加'}}</text>
         </view>
       </view>
     </view>

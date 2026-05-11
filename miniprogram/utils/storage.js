@@ -14,6 +14,9 @@ var KEY_PREFIX = 'db_';
 /** 内存数据缓存 */
 var _tables = null;
 
+/** 云同步模块（由 app.js 通过 setCloudSync 注入） */
+var _cloudSync = null;
+
 /** 初始化就绪标志 */
 var _ready = false;
 
@@ -127,6 +130,9 @@ function setTable(name, data) {
 
   // 写入后检查容量
   _checkCapacity(name);
+
+  // 云端同步（异步，不阻塞主流程）
+  if (_cloudSync) _cloudSync.uploadTable(name, data);
 }
 
 /**
@@ -138,19 +144,8 @@ function setTable(name, data) {
 function _checkCapacity(name) {
   try {
     var json = JSON.stringify(_tables[name]);
-    // 估算字节数（UTF-16 编码，每字符 2 字节，但中文占 3 字节 UTF-8）
-    var byteLength = 0;
-    for (var i = 0; i < json.length; i++) {
-      var code = json.charCodeAt(i);
-      if (code <= 0x7F) {
-        byteLength += 1;
-      } else if (code <= 0x7FF) {
-        byteLength += 2;
-      } else {
-        byteLength += 3;
-      }
-    }
-
+    // Worst-case UTF-8: 3 bytes per character (avoids O(n) char loop)
+    var byteLength = json.length * 3;
     var kbSize = (byteLength / 1024).toFixed(1);
 
     if (byteLength > 950 * 1024) {
@@ -183,13 +178,25 @@ function onCapacityWarning(callback) {
 var _onCapacityWarning = null;
 
 /**
+ * 注入云同步模块
+ * @param {Object} module - cloud-sync.js 导出的对象
+ */
+function setCloudSync(module) {
+  _cloudSync = module;
+}
+
+/**
  * v1.0 → v1.1 数据迁移
  * 仅当 db_meta.version < 2 时执行，执行后写入 version=2
  * @private
  */
 function _migrate() {
   var meta = _tables._meta;
-  if ((meta.version || 1) >= 2) return;
+  // 如果已经是 v2 或以上，直接跳到后续迁移
+  if ((meta.version || 1) >= 2) {
+    _migrateV3();
+    return;
+  }
 
   console.log('[Storage] 执行 v1.1 数据迁移...');
 
@@ -258,7 +265,7 @@ function _migrate() {
         is_system: true,
         rules: {
           version: 1,
-          match: 'OR',
+          match: 'AND',
           rules: [
             { field: 'is_hnw', op: 'eq', value: true },
             { field: 'intimacy', op: 'gte', value: 4 },
@@ -295,6 +302,67 @@ function _migrate() {
   meta.version = 2;
   wx.setStorageSync(_key('meta'), meta);
   console.log('[Storage] v1.1 迁移完成 ✓');
+
+  // v1.2 → v1.3 迁移紧接执行（version 已设为 2，_migrateV3 会继续检查）
+  _migrateV3();
+}
+
+/**
+ * v1.2 → v1.3 数据迁移：policy 表补充双轴时间模型字段
+ * 仅当 db_meta.version < 3 时执行，执行后写入 version=3
+ * @private
+ */
+function _migrateV3() {
+  var meta = _tables._meta;
+  if ((meta.version || 1) >= 3) return;
+
+  console.log('[Storage] 执行 v1.3 数据迁移（policy 表双轴时间模型）...');
+
+  // 内联映射，保持 storage.js 独立（不 require policy-templates）
+  var PRODUCT_TYPE_TO_CATEGORY = {
+    '重疾': 'critical_illness',
+    '医疗': 'medical',
+    '教育金': 'education',
+    '养老': 'annuity',
+    '意外': 'accident',
+    '寿险': 'whole_life'
+  };
+  var CATEGORY_TEMPLATES = {
+    medical:            { coverage_term: { type: 'years', value: 1 },          payment_term: { type: 'same_as_coverage', value: null } },
+    critical_illness:   { coverage_term: { type: 'lifetime', value: null },     payment_term: { type: 'years', value: 20 } },
+    term_life:          { coverage_term: { type: 'to_age', value: 60 },         payment_term: { type: 'years', value: 20 } },
+    whole_life:         { coverage_term: { type: 'lifetime', value: null },     payment_term: { type: 'years', value: 10 } },
+    annuity:            { coverage_term: { type: 'lifetime', value: null },     payment_term: { type: 'single', value: null } },
+    accident:           { coverage_term: { type: 'years', value: 1 },          payment_term: { type: 'same_as_coverage', value: null } },
+    education:          { coverage_term: { type: 'to_age', value: 18 },        payment_term: { type: 'years', value: 10 } }
+  };
+
+  var today = '';
+  try {
+    var now = new Date();
+    var m = now.getMonth() + 1;
+    var d = now.getDate();
+    today = now.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
+  } catch (e) { today = '2026-01-01'; }
+
+  var policies = _tables.policy;
+  for (var i = 0; i < policies.length; i++) {
+    var rec = policies[i];
+    if (!rec.category) {
+      rec.category = PRODUCT_TYPE_TO_CATEGORY[rec.product_type] || 'critical_illness';
+    }
+    var tmpl = CATEGORY_TEMPLATES[rec.category] || CATEGORY_TEMPLATES.critical_illness;
+    if (!rec.coverage_term) rec.coverage_term = tmpl.coverage_term;
+    if (!rec.payment_term) rec.payment_term = tmpl.payment_term;
+    if (!rec.status) {
+      rec.status = (rec.expire_date && rec.expire_date < today) ? 'expired' : 'active';
+    }
+  }
+  wx.setStorageSync(_key('policy'), policies);
+
+  meta.version = 3;
+  wx.setStorageSync(_key('meta'), meta);
+  console.log('[Storage] v1.3 迁移完成 ✓');
 }
 
 /**
@@ -311,6 +379,9 @@ function getMeta() {
  */
 function persistMeta() {
   wx.setStorageSync(_key('meta'), _tables._meta);
+
+  // 云端同步 meta
+  if (_cloudSync) _cloudSync.uploadTable('_meta', _tables._meta);
 }
 
 /**
@@ -357,5 +428,6 @@ module.exports = {
   getMeta: getMeta,
   persistMeta: persistMeta,
   transaction: transaction,
-  onCapacityWarning: onCapacityWarning
+  onCapacityWarning: onCapacityWarning,
+  setCloudSync: setCloudSync
 };

@@ -100,6 +100,9 @@ Page({
     // 选择异议 sheet
     showObjSheet: false,
     objSheetList: [],
+
+    // 保存防重复
+    isSaving: false
   },
 
   _justCreatedIds: null,
@@ -343,9 +346,13 @@ Page({
   },
 
   onPlanSheetConfirm: function() {
+    if (this.data.isSaving) return;
+    this.setData({ isSaving: true });
+
     var d = this.data;
     if (!d.planSheetDate) {
       wx.showToast({ title: '请选择日期', icon: 'none' });
+      this.setData({ isSaving: false });
       return;
     }
     var result = planRepo.create({
@@ -358,20 +365,26 @@ Page({
     });
     if (result && result.conflict) {
       wx.showToast({ title: '该客户当日已有计划', icon: 'none' });
+      this.setData({ isSaving: false });
       return;
     }
     var text = d.planSheetDate + ' · ' + d.planSheetVisitWay;
     if (d.planSheetTime) text += ' · ' + d.planSheetTime;
     this.setData({ showPlanSheet: false, nextPlanCreated: true, nextPlanText: text });
+    this.setData({ isSaving: false });
   },
 
   /** 保存记录 */
   onSave: function () {
+    if (this.data.isSaving) return;
+    this.setData({ isSaving: true });
+
     var d = this.data;
     var summary = (d.summary || '').trim();
 
     if (!summary) {
       wx.showToast({ title: '请填写沟通摘要', icon: 'none' });
+      this.setData({ isSaving: false });
       return;
     }
 
@@ -381,12 +394,19 @@ Page({
     if (d.showDealBlock) {
       if (!d.dealProducts || d.dealProducts.length === 0) {
         wx.showToast({ title: '请选择成交险种', icon: 'none' });
+        this.setData({ isSaving: false });
         return;
       }
       for (var k = 0; k < d.dealProducts.length; k++) {
         var pt = d.dealProducts[k];
         if (!d.dealPremiums[pt] || isNaN(parseFloat(d.dealPremiums[pt]))) {
           wx.showToast({ title: '请填写' + pt + '的保费金额', icon: 'none' });
+          this.setData({ isSaving: false });
+          return;
+        }
+        if (!d.dealProductNames[pt] || !d.dealProductNames[pt].trim()) {
+          wx.showToast({ title: '请填写' + pt + '的产品名称', icon: 'none' });
+          this.setData({ isSaving: false });
           return;
         }
       }
@@ -439,7 +459,6 @@ Page({
 
       // 4. 成交时为每个险种创建保单记录，并更新 coverage_status
       if (d.showDealBlock && newRecordId) {
-        var today = new Date().toISOString().slice(0, 10);
         var newCoverageStatus = {};
 
         for (var j = 0; j < d.dealProducts.length; j++) {
@@ -449,9 +468,8 @@ Page({
             product_type: productType,
             product_name: d.dealProductNames[productType] || '',
             premium: parseFloat(d.dealPremiums[productType] || 0),
-            effective_date: today,
+            effective_date: null,
             expire_date: null,
-            source: 'self',
             visit_record_id: newRecordId
           });
           newCoverageStatus[productType] = 'configured';
@@ -465,6 +483,7 @@ Page({
       setTimeout(function () { wx.navigateBack(); }, 800);
     } catch (e) {
       toast.fail('保存失败：' + (e.message || ''));
+      this.setData({ isSaving: false });
     }
   }
 });

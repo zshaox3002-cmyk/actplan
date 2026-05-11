@@ -1,9 +1,10 @@
 /**
  * app.js — 应用入口
- * 职责：初始化数据存储、基础库版本检测、Storage 容量预警
+ * 职责：初始化数据存储、基础库版本检测、Storage 容量预警、云端备份/恢复
  */
 
 var storage = require('./utils/storage');
+var cloudSync = require('./utils/cloud-sync');
 var toast = require('./utils/toast');
 /* DISABLED: seed-dev-tool — 发布时排除 seed.js，开发时取消注释即可恢复
 var seed = require('./utils/seed');
@@ -27,12 +28,33 @@ App({
     // 1. 基础库版本检测
     this._checkSDKVersion();
 
-    // 2. 初始化存储
+    // 2. 初始化本地存储
     storage.init();
     this.globalData.storageReady = true;
     console.log('[App] Storage Ready ✓');
 
-    // 3. 注册 Storage 容量预警
+    // 3. 注入云同步模块
+    storage.setCloudSync(cloudSync);
+
+    // 3.1 & 3.2 一次性去重历史脏数据
+    var meta = storage.getMeta();
+    var dedup = require('./utils/dedup-records');
+
+    if (!meta.dedup_v1_done) {
+      var dedupResult = dedup.run();
+      console.log('[App] 去重完成: 记录 -' + dedupResult.removedRecords + ', 保单 -' + dedupResult.removedPolicies);
+      meta.dedup_v1_done = true;
+      storage.persistMeta();
+    }
+
+    if (!meta.dedup_objection_v1_done) {
+      var r2 = dedup.runObjectionDedup();
+      console.log('[App] 异议去重完成: 异议 -' + r2.removedObjections + ', 备注 -' + r2.removedNotes);
+      meta.dedup_objection_v1_done = true;
+      storage.persistMeta();
+    }
+
+    // 4. 注册 Storage 容量预警
     var that = this;
     storage.onCapacityWarning(function (level, tableName, kbSize) {
       if (level === 'critical') {
@@ -47,8 +69,115 @@ App({
       }
     });
 
-    // 4. 启动时检查一次总容量
+    // 5. 启动时检查一次总容量
     this._checkTotalCapacity();
+
+    // 6. 云开发初始化 + 数据恢复
+    this._initCloud();
+  },
+
+  onShow: function () {
+    // 重试上次失败的云端上传
+    if (cloudSync.isReady()) {
+      cloudSync.flushDirty(this._getAllTableData);
+    }
+  },
+
+  onHide: function () {
+    // 兜底：用户离开时强制上传所有 dirty 表
+    if (cloudSync.isReady()) {
+      cloudSync.flushDirty(this._getAllTableData);
+    }
+  },
+
+  /**
+   * 获取所有表的当前数据（供 flushDirty 使用）
+   * @returns {Object} { tableName: data }
+   * @private
+   */
+  _getAllTableData: function () {
+    var tableNames = ['customer', 'visit_record', 'plan', 'objection',
+      'objection_note', 'objection_links', 'operation_log', 'policy', 'segment'];
+    var result = {};
+    tableNames.forEach(function (name) {
+      result[name] = storage.getTable(name);
+    });
+    result['_meta'] = storage.getMeta();
+    return result;
+  },
+
+  /**
+   * 初始化云开发，若本地为空则从云端恢复数据
+   * @private
+   */
+  _initCloud: function () {
+    var meta = storage.getMeta();
+    var restoreStatus = meta.restore_status;
+    var isEmpty = storage.getTable('customer').length === 0;
+
+    cloudSync.init().then(function () {
+      // 本地有数据且不是待重试状态，静默就绪
+      if (!isEmpty && restoreStatus !== 'pending') {
+        return;
+      }
+
+      // 本地有数据但之前恢复失败过（pending），且用户已录入新数据 → 跳过恢复，不覆盖
+      if (!isEmpty && restoreStatus === 'pending') {
+        console.log('[App] 本地已有数据，跳过云端恢复，标记 skipped');
+        meta.restore_status = 'skipped';
+        storage.persistMeta();
+        return;
+      }
+
+      // 本地为空，标记 pending 后尝试恢复
+      meta.restore_status = 'pending';
+      storage.persistMeta();
+
+      console.log('[App] 本地数据为空，尝试云端恢复...');
+      return cloudSync.restoreAll().then(function (backup) {
+        if (!backup) {
+          // 云端也没有数据，确认是新用户
+          meta.restore_status = 'done';
+          storage.persistMeta();
+          return;
+        }
+
+        var tableNames = ['customer', 'visit_record', 'plan', 'objection',
+          'objection_note', 'objection_links', 'operation_log', 'policy', 'segment'];
+
+        // Disable cloud sync during restore to avoid re-uploading data just downloaded
+        storage.setCloudSync(null);
+        tableNames.forEach(function (name) {
+          if (backup.tables[name] && Array.isArray(backup.tables[name])) {
+            storage.setTable(name, backup.tables[name]);
+          }
+        });
+        storage.setCloudSync(cloudSync);
+
+        if (backup.meta) {
+          Object.assign(meta, backup.meta);
+        }
+        meta.restore_status = 'done';
+        storage.persistMeta();
+
+        console.log('[App] 云端数据恢复完成 ✓');
+        wx.showToast({ title: '数据已恢复', icon: 'success', duration: 1500 });
+        setTimeout(function () {
+          wx.reLaunch({ url: '/pages/dashboard/index' });
+        }, 1600);
+      }).catch(function (e) {
+        // 本地为空 + 恢复失败，提示用户，保留 pending 状态下次重试
+        console.warn('[App] 云端恢复失败，下次启动重试:', e);
+        wx.showModal({
+          title: '数据恢复失败',
+          content: '云端数据拉取失败，请检查网络后重启小程序重试。如继续使用，数据将从空白开始。',
+          showCancel: false,
+          confirmText: '知道了'
+        });
+      });
+    }).catch(function (e) {
+      console.error('[App] 云开发初始化异常:', e);
+    });
   },
 
   /**

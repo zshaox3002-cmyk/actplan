@@ -51,7 +51,10 @@ Page({
     submitMode: 'create',         // 'create' | 'append'
 
     // AI 提示词
-    aiPrompt: ''
+    aiPrompt: '',
+
+    // 保存防重复
+    isSaving: false
   },
 
   /** 构造喂给 Chat AI 的提示词（按官方四步话术格式） */
@@ -237,19 +240,25 @@ Page({
 
   /** 提交 */
   onSubmit: function () {
+    if (this._saving) return;
+    this._saving = true;
+    this.setData({ isSaving: true });
+
     var form = this.data.form;
 
-    if (this.data.submitMode === 'append') {
-      // 追加模式：校验备注
-      var err = validators.validate([
-        { check: function () { return validators.required(form.note, '追加备注'); } }
-      ]);
-      if (err) {
-        toast.fail(err);
-        return;
-      }
+    try {
+      if (this.data.submitMode === 'append') {
+        // 追加模式：校验备注
+        var err = validators.validate([
+          { check: function () { return validators.required(form.note, '追加备注'); } }
+        ]);
+        if (err) {
+          toast.fail(err);
+          this._saving = false;
+          this.setData({ isSaving: false });
+          return;
+        }
 
-      try {
         objectionRepo.appendNote(
           this.data.selectedObjectionId,
           form.customer_id,
@@ -259,21 +268,19 @@ Page({
         setTimeout(function () {
           wx.navigateBack();
         }, 1000);
-      } catch (e) {
-        toast.fail('追加失败：' + e.message);
-      }
 
-    } else {
-      // 新建模式：校验话术
-      var err2 = validators.validate([
-        { check: function () { return validators.required(form.solution, '应对话术'); } }
-      ]);
-      if (err2) {
-        toast.fail(err2);
-        return;
-      }
+      } else {
+        // 新建模式：校验话术
+        var err2 = validators.validate([
+          { check: function () { return validators.required(form.solution, '应对话术'); } }
+        ]);
+        if (err2) {
+          toast.fail(err2);
+          this._saving = false;
+          this.setData({ isSaving: false });
+          return;
+        }
 
-      try {
         var newObjection = objectionRepo.create({
           customer_id: form.customer_id,
           content: form.content,
@@ -296,9 +303,11 @@ Page({
         setTimeout(function () {
           wx.navigateBack();
         }, 1000);
-      } catch (e) {
-        toast.fail('新建失败：' + e.message);
       }
+    } catch (e) {
+      toast.fail('提交失败：' + e.message);
+      this._saving = false;
+      this.setData({ isSaving: false });
     }
   },
 
