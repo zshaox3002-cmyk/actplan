@@ -157,6 +157,14 @@
           <inline-picker label="关系来源" options="{{relationOptions}}"
             value="{{relationIndex}}" disabled="{{false}}"
             bindchange="onRelationChange"/>
+          <!-- 来源为"客户介绍"时展示介绍人选择 -->
+          <view class="field-row" wx:if="{{isEditProfile && relationIndex === 5}}" bindtap="onSelectReferralTap">
+            <text class="field-label">介绍人</text>
+            <view class="field-value">
+              <text style="color: {{referralSourceCustomerName ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)'}}">{{referralSourceCustomerName || '请选择'}}</text>
+              <text wx:if="{{referralSourceCustomerName}}" class="referral-clear" catchtap="onClearReferralSource">×</text>
+            </view>
+          </view>
           <inline-picker label="跟进阶段" options="{{stageOptions}}"
             value="{{stageIndex}}" disabled="{{false}}"
             bindchange="onStageChange"/>
@@ -184,6 +192,14 @@
         <view class="field-row field-row-full" wx:if="{{isEditProfile}}">
           <text class="field-label">客户标签</text>
           <view class="tag-editor">
+            <!-- 预设标签快选 -->
+            <view class="tag-preset-list">
+              <view class="tag-preset-item {{presetTagActive[item] ? 'active' : ''}}"
+                    wx:for="{{presetTags}}" wx:key="*this"
+                    data-tag="{{item}}" bindtap="onPresetTagTap">
+                <text>{{item}}</text>
+              </view>
+            </view>
             <view class="tag-list">
               <view class="tag-item" wx:for="{{tags}}" wx:key="*this">
                 <text>{{item}}</text>
@@ -196,6 +212,16 @@
                    bindconfirm="onTagConfirm"/>
           </view>
         </view>
+        <!-- 转介绍来源：有来源时展示 -->
+        <view class="field-row referral-source-row" wx:if="{{!isEditProfile && !isNew && referralSourceCustomerName}}">
+          <text class="field-label">转介绍来源</text>
+          <text class="field-value referral-link" bindtap="onJumpToReferralSource">{{referralSourceCustomerName}}</text>
+        </view>
+        <!-- 转介绍网络入口 -->
+        <view class="field-row referral-network-row" wx:if="{{!isEditProfile && !isNew && referralCount > 0}}">
+          <text class="field-label">转介绍网络</text>
+          <text class="field-value referral-link" bindtap="onViewReferralNetwork">查看 {{referralCount}} 人 →</text>
+        </view>
       </view>
 
       <!-- 保存按钮 -->
@@ -203,62 +229,24 @@
         <button class="save-btn" disabled="{{isSaving}}" bindtap="onSaveProfile">{{isSaving ? '保存中...' : '保存'}}</button>
       </view>
 
-      <!-- 扩展字段组 -->
-      <view class="section-card" wx:if="{{!isNew}}">
-        <view class="section-header">
-          <text class="section-title">扩展信息</text>
-          <view class="edit-btn" bindtap="onEditExtendedTap" wx:if="{{!isEditExtended}}">
-            <text>编辑</text>
+      <!-- 介绍人选择弹窗 -->
+      <view class="modal-mask" wx:if="{{showReferralPicker}}" bindtap="onReferralPickerClose">
+        <view class="modal-sheet" catchtap="">
+          <view class="modal-header">
+            <text class="modal-title">选择介绍人</text>
+            <text class="modal-close" bindtap="onReferralPickerClose">×</text>
           </view>
+          <scroll-view class="modal-list" scroll-y>
+            <view wx:if="{{referralCandidateList.length === 0}}" class="modal-empty">
+              <text>暂无其他客户</text>
+            </view>
+            <view class="modal-item" wx:for="{{referralCandidateList}}" wx:key="id"
+                  data-index="{{index}}" bindtap="onReferralCustomerSelect">
+              <text class="modal-item-name">{{item.name}}</text>
+              <text class="modal-item-stage stage-tag stage-{{stageClassMap[item.stage]}}">{{item.stage}}</text>
+            </view>
+          </scroll-view>
         </view>
-        <!-- 只读态 -->
-        <view class="profile-grid" wx:if="{{!isEditExtended}}">
-          <view class="grid-cell">
-            <text class="grid-label">高净值</text>
-            <text class="grid-value">{{isHnw ? '是' : '否'}}</text>
-          </view>
-          <view class="grid-cell">
-            <text class="grid-label">转介绍数</text>
-            <text class="grid-value">{{referralCount}}</text>
-          </view>
-          <view class="grid-cell">
-            <text class="grid-label">生日</text>
-            <text class="grid-value {{!birthday ? 'grid-empty' : ''}}">{{birthday || '未填写'}}</text>
-          </view>
-          <view class="grid-cell">
-            <text class="grid-label">保单到期</text>
-            <text class="grid-value {{!policyExpireDate ? 'grid-empty' : ''}}">{{policyExpireDate || '未填写'}}</text>
-          </view>
-        </view>
-        <!-- 编辑态 -->
-        <block wx:if="{{isEditExtended}}">
-          <inline-picker label="高净值" options="{{hnwOptions}}"
-            value="{{hnwIndex}}" disabled="{{false}}"
-            bindchange="onHnwChange"/>
-          <view class="field-row">
-            <text class="field-label">转介绍数</text>
-            <input class="field-input" type="number"
-                   value="{{extForm.referral_count}}"
-                   bindinput="onExtReferralInput"
-                   placeholder="0"/>
-          </view>
-          <view class="field-row">
-            <text class="field-label">生日</text>
-            <picker mode="date" value="{{extForm.birthday}}" bindchange="onExtBirthdayChange">
-              <text class="field-value {{extForm.birthday ? '' : 'field-auto'}}">{{extForm.birthday || '请选择'}}</text>
-            </picker>
-          </view>
-          <view class="field-row">
-            <text class="field-label">保单到期</text>
-            <picker mode="date" value="{{extForm.policy_expire_date}}" bindchange="onExtPolicyExpireDateChange">
-              <text class="field-value {{extForm.policy_expire_date ? '' : 'field-auto'}}">{{extForm.policy_expire_date || '请选择'}}</text>
-            </picker>
-          </view>
-        </block>
-      </view>
-      <!-- 扩展信息保存按钮 -->
-      <view class="save-bar" wx:if="{{isEditExtended}}">
-        <button class="save-btn" disabled="{{isSaving}}" bindtap="onSaveExtended">{{isSaving ? '保存中...' : '保存'}}</button>
       </view>
 
     </view>
@@ -394,6 +382,7 @@
               <view class="timeline-meta">
                 <text class="timeline-date">{{item.date}}{{item.time ? ' ' + item.time : ''}}</text>
                 <text class="timeline-type">{{item.type === 'planned' ? '计划拜访' : '临时沟通'}} · {{item.way}}</text>
+                <text class="timeline-edit-btn" data-id="{{item.id}}" bindtap="onEditRecordTap">编辑</text>
               </view>
               <text class="timeline-summary">{{item.summary}}</text>
               <text class="timeline-stage" wx:if="{{item.stageChange}}">阶段：{{item.stageChange}}</text>
@@ -537,6 +526,27 @@
         </view>
         <view class="obj-sheet-btn-confirm" bindtap="onObjSheetConfirm">
           <text>确认</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <!-- 编辑沟通摘要 sheet -->
+  <view class="plan-sheet" wx:if="{{showRecordEditSheet}}">
+    <view class="plan-sheet-mask" bindtap="onRecordEditCancel"></view>
+    <view class="plan-sheet-content card">
+      <text class="plan-sheet-title">编辑沟通摘要</text>
+      <textarea class="record-edit-textarea"
+                value="{{recordEditSummary}}"
+                placeholder="请输入沟通摘要"
+                bindinput="onRecordEditSummaryInput"
+                auto-height
+                maxlength="500"/>
+      <view class="plan-sheet-actions">
+        <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onRecordEditCancel">
+          <text class="plan-sheet-btn-text">取消</text>
+        </view>
+        <view class="plan-sheet-btn plan-sheet-btn-confirm" bindtap="onRecordEditConfirm">
+          <text class="plan-sheet-btn-text">{{isSaving ? '保存中...' : '保存'}}</text>
         </view>
       </view>
     </view>

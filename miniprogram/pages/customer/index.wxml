@@ -2,12 +2,17 @@
 <view class="page-container" bindtap="onPageTap">
 
   <!-- 搜索栏 -->
-  <search-bar
-    value="{{keyword}}"
-    placeholder="搜索客户姓名 / 标签 / 备注"
-    bind:input="onSearchInput"
-    bind:clear="onSearchClear"
-  />
+  <view class="search-row">
+    <search-bar
+      value="{{keyword}}"
+      placeholder="搜索客户姓名 / 标签 / 备注"
+      bind:input="onSearchInput"
+      bind:clear="onSearchClear"
+    />
+    <view class="data-manage-btn" bindtap="onDataManage">
+      <text class="data-manage-icon">⇅</text>
+    </view>
+  </view>
 
   <!-- 视图切换器（v1.1，替换原优先级/阶段 Chip） -->
   <scroll-view scroll-x class="chip-scroll">

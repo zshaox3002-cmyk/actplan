@@ -1,0 +1,113 @@
+@import "../../styles/variables.wxss";
+@import "../../app.wxss";
+
+.page-container {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+}
+
+.loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) 0;
+}
+.loading-text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- Section ---- */
+.section {
+  margin-bottom: var(--spacing-xs);
+}
+.section-label {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+  display: block;
+}
+
+/* ---- 箭头行 ---- */
+.arrow-row {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-xs) 0;
+}
+.arrow-text {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 客户卡片 ---- */
+.customer-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+}
+.customer-card:active {
+  opacity: 0.8;
+}
+.current-section .current-card {
+  border: 2rpx solid var(--color-primary);
+}
+.upstream-card {
+  background: var(--color-bg-card);
+}
+.customer-name {
+  font-size: var(--font-size-body-md);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* ---- 下游列表 ---- */
+.downstream-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+.downstream-card {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.downstream-main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  justify-content: space-between;
+}
+.downstream-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+.meta-item {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-secondary);
+}
+.meta-sep {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-placeholder);
+}
+.meta-muted {
+  color: var(--color-text-placeholder);
+}
+
+/* ---- 空态 ---- */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-xl) 0;
+}
+.empty-text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-placeholder);
+}

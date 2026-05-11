@@ -358,5 +358,9 @@ Page({
 
   onAddCustomer: function () {
     wx.navigateTo({ url: '/pages/customer-detail/index' });
+  },
+
+  onDataManage: function () {
+    wx.navigateTo({ url: '/pages/data-manage/index' });
   }
 });

@@ -1,0 +1,59 @@
+<view class="page-container">
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading && current}}">
+
+    <!-- 上游来源 -->
+    <view class="section" wx:if="{{upstream}}">
+      <text class="section-label">转介绍来源</text>
+      <view class="customer-card upstream-card" data-id="{{upstream.customer_id}}" bindtap="onTapCustomer">
+        <text class="customer-name">{{upstream.name}}</text>
+        <text class="stage-tag stage-{{stageClassMap[upstream.stage]}}">{{upstream.stage}}</text>
+      </view>
+      <view class="arrow-row">
+        <text class="arrow-text">↓ 介绍</text>
+      </view>
+    </view>
+
+    <!-- 当前客户 -->
+    <view class="section current-section">
+      <view class="customer-card current-card" data-id="{{current.id}}" bindtap="onTapCustomer">
+        <text class="customer-name">{{current.name}}</text>
+        <text class="stage-tag stage-{{stageClassMap[current.stage]}}">{{current.stage}}</text>
+      </view>
+    </view>
+
+    <!-- 下游客户 -->
+    <view class="section" wx:if="{{downstream.length > 0}}">
+      <view class="arrow-row">
+        <text class="arrow-text">↓ 已介绍 {{downstream.length}} 人</text>
+      </view>
+      <view class="downstream-list">
+        <view class="customer-card downstream-card" wx:for="{{downstream}}" wx:key="customer_id"
+              data-id="{{item.customer_id}}" bindtap="onTapCustomer">
+          <view class="downstream-main">
+            <text class="customer-name">{{item.name}}</text>
+            <text class="stage-tag stage-{{stageClassMap[item.stage]}}">{{item.stage}}</text>
+          </view>
+          <view class="downstream-meta">
+            <text class="meta-item">最近沟通 {{item.lastVisitText}}</text>
+            <text class="meta-sep">·</text>
+            <text class="meta-item" wx:if="{{item.policy_count > 0}}">年缴 {{item.premiumText}}</text>
+            <text class="meta-item meta-muted" wx:else>暂无保单</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 无下游 -->
+    <view class="empty-state" wx:if="{{downstream.length === 0}}">
+      <text class="empty-text">该客户暂无转介绍记录</text>
+    </view>
+
+  </block>
+
+</view>

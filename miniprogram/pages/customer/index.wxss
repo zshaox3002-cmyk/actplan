@@ -151,3 +151,28 @@ page { background: var(--color-bg-page); }
   font-weight: var(--font-weight-semibold);
 }
 .plan-sheet-btn-text { font-size: var(--font-size-body); }
+
+/* 搜索栏 + 数据管理入口行 */
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.search-row search-bar {
+  flex: 1;
+}
+.data-manage-btn {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-xs);
+}
+.data-manage-icon {
+  font-size: 36rpx;
+  color: var(--color-primary);
+}

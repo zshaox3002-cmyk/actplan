@@ -11,6 +11,7 @@ var recordRepo = require('../../utils/repository/record.repo');
 var planRepo = require('../../utils/repository/plan.repo');
 var objectionRepo = require('../../utils/repository/objection.repo');
 var logRepo = require('../../utils/repository/log.repo');
+var referralRepo = require('../../utils/repository/referral.repo');
 var storage = require('../../utils/storage');
 var priority = require('../../utils/priority');
 var toast = require('../../utils/toast');
@@ -114,11 +115,20 @@ Page({
     stageOptions: STAGE_OPTIONS,
     stageIndex: 0,
 
+    // 转介绍来源选择
+    referralSourceCustomerId: null,
+    referralSourceCustomerName: '',
+    showReferralPicker: false,
+    referralCandidateList: [],
+
     // 沟通 Tab
     timeline: [],
     timelineVisible: [],
     timelineTotal: 0,
     timelineExpanded: false,
+    showRecordEditSheet: false,
+    recordEditId: null,
+    recordEditSummary: '',
 
     // 异议 Tab
     customerObjections: [],
@@ -129,24 +139,17 @@ Page({
     policies: [],
     derived: { policy_count: 0, total_premium: 0, avg_premium: 0, first_policy_date: '' },
     coverageStatusList: [],
-    isHnw: false,
     referralCount: 0,
-    birthday: null,
-    policyExpireDate: null,
     showHistoryBackfillTip: false,
     historyDealCount: 0,
-
-    // 扩展信息编辑态
-    isEditExtended: false,
-    hnwOptions: ['是', '否'],
-    hnwIndex: 1,
-    extForm: { referral_count: 0, birthday: '', policy_expire_date: '' },
 
     // 计划 Tab
     customerPlans: [],
 
     // 标签输入
     tagInput: '',
+    presetTags: ['高净值', '企业主', '转介绍达人'],
+    presetTagActive: {},
 
     // 添加计划底部 sheet
     showPlanSheet: false,
@@ -359,20 +362,29 @@ Page({
         yearly_pending_unit: fmtWanUnit(customer.yearly_pending_premium || 0)
       },
       coverageStatusList: coverageStatusList,
-      isHnw: customer.is_hnw || false,
       referralCount: customer.referral_count || 0,
-      birthday: customer.birthday || null,
-      policyExpireDate: customer.policy_expire_date || null,
       showHistoryBackfillTip: showHistoryBackfillTip,
-      historyDealCount: historyDealCount,
-      isEditExtended: false,
-      hnwIndex: customer.is_hnw ? 0 : 1,
-      extForm: {
-        referral_count: customer.referral_count || 0,
-        birthday: customer.birthday || '',
-        policy_expire_date: customer.policy_expire_date || ''
-      }
+      historyDealCount: historyDealCount
     };
+
+    // 加载转介绍来源客户名称
+    var referralSourceId = customer.referral_source_customer_id || null;
+    var referralSourceName = '';
+    if (referralSourceId !== null) {
+      var sourceCustomer = customerRepo.get(referralSourceId);
+      referralSourceName = sourceCustomer ? sourceCustomer.name : '';
+    }
+    initData.referralSourceCustomerId = referralSourceId;
+    initData.referralSourceCustomerName = referralSourceName;
+
+    // 计算预设标签激活状态
+    var tags = customer.tags || [];
+    var presetTagActive = {};
+    var presetTags = this.data.presetTags;
+    for (var pi = 0; pi < presetTags.length; pi++) {
+      presetTagActive[presetTags[pi]] = tags.indexOf(presetTags[pi]) !== -1;
+    }
+    initData.presetTagActive = presetTagActive;
 
     this.setData(initData);
   },
@@ -507,7 +519,16 @@ Page({
   },
 
   onGenderChange:     function (e) { this.setData({ genderIndex:     e.detail.value }); },
-  onRelationChange:   function (e) { this.setData({ relationIndex:   e.detail.value }); },
+  onRelationChange:   function (e) {
+    var newIndex = e.detail.value;
+    var update = { relationIndex: newIndex };
+    // 离开"客户介绍"时清空介绍人
+    if (newIndex !== 5) {
+      update.referralSourceCustomerId = null;
+      update.referralSourceCustomerName = '';
+    }
+    this.setData(update);
+  },
   onIncomeChange:     function (e) { this.setData({ incomeIndex:     e.detail.value }); },
   onAgeRangeChange:   function (e) { this.setData({ ageRangeIndex:   e.detail.value }); },
   onOccupationChange: function (e) { this.setData({ occupationIndex: e.detail.value }); },
@@ -536,7 +557,26 @@ Page({
   onTagDelete: function (e) {
     var idx = parseInt(e.currentTarget.dataset.idx);
     var tags = this.data.tags.filter(function (_, i) { return i !== idx; });
-    this.setData({ tags: tags });
+    var presetTagActive = Object.assign({}, this.data.presetTagActive);
+    var removed = this.data.tags[idx];
+    if (removed !== undefined) presetTagActive[removed] = false;
+    this.setData({ tags: tags, presetTagActive: presetTagActive });
+  },
+
+  /** 点击预设标签：已选则移除，未选则添加 */
+  onPresetTagTap: function(e) {
+    var tag = e.currentTarget.dataset.tag;
+    var tags = this.data.tags.slice();
+    var presetTagActive = Object.assign({}, this.data.presetTagActive);
+    var idx = tags.indexOf(tag);
+    if (idx === -1) {
+      tags.push(tag);
+      presetTagActive[tag] = true;
+    } else {
+      tags.splice(idx, 1);
+      presetTagActive[tag] = false;
+    }
+    this.setData({ tags: tags, presetTagActive: presetTagActive });
   },
 
   /** 保存画像 */
@@ -573,13 +613,34 @@ Page({
 
     try {
       if (this.data.isNew) {
-        var created = customerRepo.create(customerData);
+        // 选了"客户介绍"但未选介绍人，拦截
+        if (customerData.relation === '客户介绍' && this.data.referralSourceCustomerId === null) {
+          toast.fail('请选择介绍人');
+          this.setData({ isSaving: false });
+          wx.enableAlertBeforeUnload({ message: '当前有未保存的修改，确认放弃？' });
+          return;
+        }
+        var created = customerRepo.createWithReferral(customerData, this.data.referralSourceCustomerId);
         // 立即翻转状态，防止 setTimeout 期间重复点击再次触发 create
         this.setData({ isNew: false, id: created.id });
         toast.success('创建成功');
         setTimeout(function () { wx.navigateBack(); }, 1000);
       } else {
         customerRepo.update(this.data.id, customerData);
+
+        // 若转介绍来源有变化则同步更新
+        var originalReferralId = this.data.referralSourceCustomerId;
+        var currentCustomer = customerRepo.get(this.data.id);
+        var storedReferralId = currentCustomer ? (currentCustomer.referral_source_customer_id || null) : null;
+        if (originalReferralId !== storedReferralId) {
+          var result = customerRepo.updateReferralSource(this.data.id, originalReferralId);
+          if (!result.ok) {
+            toast.fail(result.error || '转介绍来源更新失败');
+            this.setData({ isSaving: false });
+            return;
+          }
+        }
+
         this.setData({
           isEditProfile: false,
           customerName: customerData.name,
@@ -609,6 +670,60 @@ Page({
   /** 展开全部沟通记录 */
   onExpandTimeline: function () {
     this.setData({ timelineExpanded: true, timelineVisible: this.data.timeline });
+  },
+
+  /** 打开摘要编辑 sheet */
+  onEditRecordTap: function (e) {
+    var recordId = parseInt(e.currentTarget.dataset.id);
+    var record = null;
+    var list = this.data.timeline;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === recordId) { record = list[i]; break; }
+    }
+    if (!record) return;
+    this.setData({
+      showRecordEditSheet: true,
+      recordEditId: recordId,
+      recordEditSummary: record.summary
+    });
+  },
+
+  onRecordEditSummaryInput: function (e) {
+    this.setData({ recordEditSummary: e.detail.value });
+  },
+
+  onRecordEditCancel: function () {
+    this.setData({ showRecordEditSheet: false, recordEditId: null, recordEditSummary: '' });
+  },
+
+  onRecordEditConfirm: function () {
+    if (this.data.isSaving) return;
+    this.setData({ isSaving: true });
+    try {
+      recordRepo.update(this.data.recordEditId, { summary: this.data.recordEditSummary });
+      // 同步更新本地 timeline
+      var update = function (list) {
+        return list.map(function (r) {
+          return r.id === this.data.recordEditId
+            ? Object.assign({}, r, { summary: this.data.recordEditSummary })
+            : r;
+        }.bind(this));
+      }.bind(this);
+      var newTimeline = update(this.data.timeline);
+      var newVisible = update(this.data.timelineVisible);
+      this.setData({
+        timeline: newTimeline,
+        timelineVisible: newVisible,
+        showRecordEditSheet: false,
+        recordEditId: null,
+        recordEditSummary: ''
+      });
+      toast.success('已保存');
+    } catch (e) {
+      toast.fail('保存失败：' + e.message);
+    } finally {
+      this.setData({ isSaving: false });
+    }
   },
 
   // ---- 异议 Tab ----
@@ -815,55 +930,58 @@ Page({
     }
   },
 
-  // ---- 扩展信息编辑 ----
+  // ---- 转介绍来源操作 ----
 
-  onEditExtendedTap: function() {
-    this.setData({ isEditExtended: true });
+  /** 打开介绍人选择器 */
+  onSelectReferralTap: function() {
+    var self = this;
+    var currentId = this.data.id; // 新建时为 null
+    var allCustomers = customerRepo.list({});
+    var candidates = allCustomers.filter(function(c) {
+      return c.id !== currentId; // 排除自身（新建时 currentId 为 null，不会误过滤）
+    }).map(function(c) {
+      return { id: c.id, name: c.name, stage: c.stage };
+    });
+    this.setData({ showReferralPicker: true, referralCandidateList: candidates });
   },
 
-  onHnwChange: function(e) {
-    this.setData({ hnwIndex: e.detail.value });
-  },
-
-  onExtReferralInput: function(e) {
-    this.setData({ 'extForm.referral_count': e.detail.value });
-  },
-
-  onExtBirthdayChange: function(e) {
-    this.setData({ 'extForm.birthday': e.detail.value });
-  },
-
-  onExtPolicyExpireDateChange: function(e) {
-    this.setData({ 'extForm.policy_expire_date': e.detail.value });
-  },
-
-  onSaveExtended: function() {
-    if (this.data.isSaving) return;
-    this.setData({ isSaving: true });
-
-    var d = this.data;
-    var isHnw = d.hnwOptions[d.hnwIndex] === '是';
-    var referralCount = parseInt(d.extForm.referral_count) || 0;
-    try {
-      customerRepo.update(d.id, {
-        is_hnw: isHnw,
-        referral_count: referralCount,
-        birthday: d.extForm.birthday || null,
-        policy_expire_date: d.extForm.policy_expire_date || null
-      });
-      this.setData({
-        isEditExtended: false,
-        isHnw: isHnw,
-        referralCount: referralCount,
-        birthday: d.extForm.birthday || null,
-        policyExpireDate: d.extForm.policy_expire_date || null
-      });
-      toast.success('保存成功');
-    } catch(err) {
-      toast.fail('保存失败：' + err.message);
-    } finally {
-      this.setData({ isSaving: false });
+  /** 选中介绍人 */
+  onReferralCustomerSelect: function(e) {
+    var idx = parseInt(e.currentTarget.dataset.index);
+    var candidate = this.data.referralCandidateList[idx];
+    if (!candidate) return;
+    // 循环检查（仅编辑已有客户时才需要，新建时客户还不存在，无循环风险）
+    if (this.data.id !== null && referralRepo.isCircular(candidate.id, this.data.id)) {
+      toast.fail('不能选择下游客户作为介绍人');
+      return;
     }
+    this.setData({
+      referralSourceCustomerId: candidate.id,
+      referralSourceCustomerName: candidate.name,
+      showReferralPicker: false
+    });
+  },
+
+  /** 关闭介绍人选择器（不选） */
+  onReferralPickerClose: function() {
+    this.setData({ showReferralPicker: false });
+  },
+
+  /** 清空介绍人 */
+  onClearReferralSource: function() {
+    this.setData({ referralSourceCustomerId: null, referralSourceCustomerName: '' });
+  },
+
+  /** 跳转到转介绍来源客户详情 */
+  onJumpToReferralSource: function() {
+    var id = this.data.referralSourceCustomerId;
+    if (id === null) return;
+    wx.navigateTo({ url: '/pages/customer-detail/index?id=' + id });
+  },
+
+  /** 跳转到转介绍网络页 */
+  onViewReferralNetwork: function() {
+    wx.navigateTo({ url: '/pages/referral-network/index?id=' + this.data.id });
   },
 
   // ---- 删除客户 ----

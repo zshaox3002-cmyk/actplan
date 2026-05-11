@@ -15,7 +15,9 @@
     "pages/objection/select/index",
     "pages/visit-record/detail/index",
     "pages/segment-edit/index",
-    "pages/policy-edit/index"
+    "pages/policy-edit/index",
+    "pages/referral-network/index",
+    "pages/data-manage/index"
   ],
   "usingComponents": { 
     "van-button": "@vant/weapp/button/index",
