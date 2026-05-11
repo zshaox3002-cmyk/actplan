@@ -1,119 +1,35 @@
-<view class="page">
+<view class="container">
 
-  <!-- ── 导入 ── -->
-  <view class="section">
-    <view class="section-title">导入数据</view>
-
-    <!-- 类型切换 -->
-    <view class="tab-bar">
-      <view class="tab {{importType === 'customer' ? 'tab--active' : ''}}"
-            data-type="customer" bindtap="switchImportType">客户数据</view>
-      <view class="tab {{importType === 'record' ? 'tab--active' : ''}}"
-            data-type="record" bindtap="switchImportType">拜访记录</view>
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title">客户画像信息</view>
+      <button class="template-btn" bindtap="downloadCustomerTemplate">下载模版</button>
     </view>
-
-    <!-- 填写说明 -->
-    <view class="instructions">
-      <view class="instructions-title">CSV 填写说明</view>
-      <block wx:if="{{importType === 'customer'}}">
-        <view class="instructions-row">
-          <text class="field required">姓名</text>
-          <text class="desc">必填</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field required">手机号</text>
-          <text class="desc">必填，11位手机号，如 13800138000</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field">性别</text>
-          <text class="desc">选填，只能填"男"或"女"</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field">生日</text>
-          <text class="desc">选填，格式 YYYY-MM-DD，如 1990-01-15</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field">职业 / 公司 / 地址 / 备注</text>
-          <text class="desc">选填，自由填写</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field">标签</text>
-          <text class="desc">选填，多个标签用顿号分隔，如：重要客户、转介绍</text>
-        </view>
-        <view class="instructions-note">首行须为列名（顺序不限），# 开头的行会自动忽略。</view>
-      </block>
-      <block wx:else>
-        <view class="instructions-row">
-          <text class="field required">客户手机号</text>
-          <text class="desc">必填，须与客户列表中的手机号一致</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field required">拜访日期</text>
-          <text class="desc">必填，格式 YYYY-MM-DD，如 2024-03-15</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field required">拜访方式</text>
-          <text class="desc">必填，只能填：面对面 / 电话 / 微信 / 视频 / 其他</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field">拜访内容 / 跟进结果</text>
-          <text class="desc">选填，自由填写</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field">下次拜访日期</text>
-          <text class="desc">选填，格式 YYYY-MM-DD</text>
-        </view>
-        <view class="instructions-row">
-          <text class="field">下次拜访备注</text>
-          <text class="desc">选填，自由填写</text>
-        </view>
-        <view class="instructions-note">首行须为列名（顺序不限），# 开头的行会自动忽略。</view>
-      </block>
-    </view>
-
-    <!-- 上传按钮 -->
-    <view class="upload-btn" bindtap="chooseAndImportFile">
-      <text class="upload-icon">📂</text>
-      <text>选择 CSV 文件导入</text>
-    </view>
-
-    <!-- 校验中 -->
-    <view wx:if="{{importStatus === 'validating'}}" class="status-bar status-bar--loading">
-      正在校验数据，请稍候…
-    </view>
-
-    <!-- 错误 -->
-    <view wx:if="{{importStatus === 'error'}}" class="status-bar status-bar--error">
-      <view class="status-bar__title">导入失败，请修正以下问题后重新上传：</view>
-      <view wx:for="{{importErrors}}" wx:key="index" class="error-row">· {{item}}</view>
-    </view>
-
-    <!-- 成功 -->
-    <view wx:if="{{importStatus === 'success'}}" class="status-bar status-bar--success">
-      <text>成功导入 {{importResult.importedCount}} 条</text>
-      <text wx:if="{{importResult.skippedCount > 0}}">，跳过重复 {{importResult.skippedCount}} 条</text>
-      <view wx:if="{{importWarnings.length > 0}}" class="warnings">
-        <view class="warnings-title">以下记录未能导入：</view>
-        <view wx:for="{{importWarnings}}" wx:key="index" class="warning-row">· {{item}}</view>
-      </view>
+    <view class="action-row">
+      <button class="action-btn" bindtap="importCustomers" loading="{{importing}}">导入</button>
+      <button class="action-btn outline" bindtap="exportCustomers" loading="{{exporting}}">导出</button>
     </view>
   </view>
 
-  <!-- ── 导出 ── -->
-  <view class="section">
-    <view class="section-title">导出数据</view>
-    <view class="section-desc">导出 CSV 文件，无数据时自动生成含填写说明的空模板，可直接填写后导入。</view>
-    <view class="export-cards">
-      <view class="export-card" data-type="customer" bindtap="exportData">
-        <text class="export-card__icon">👥</text>
-        <text class="export-card__label">导出客户数据</text>
-        <text class="export-card__hint">CSV 格式</text>
-      </view>
-      <view class="export-card" data-type="record" bindtap="exportData">
-        <text class="export-card__icon">📋</text>
-        <text class="export-card__label">导出拜访记录</text>
-        <text class="export-card__hint">CSV 格式</text>
-      </view>
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title">保单信息</view>
+      <button class="template-btn" bindtap="downloadPolicyTemplate">下载模版</button>
+    </view>
+    <view class="action-row">
+      <button class="action-btn" bindtap="importPolicies" loading="{{importing}}">导入</button>
+      <button class="action-btn outline" bindtap="exportPolicies" loading="{{exporting}}">导出</button>
+    </view>
+  </view>
+
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title">拜访记录</view>
+      <button class="template-btn" bindtap="downloadRecordTemplate">下载模版</button>
+    </view>
+    <view class="action-row">
+      <button class="action-btn" bindtap="importRecords" loading="{{importing}}">导入</button>
+      <button class="action-btn outline" bindtap="exportRecords" loading="{{exporting}}">导出</button>
     </view>
   </view>
 

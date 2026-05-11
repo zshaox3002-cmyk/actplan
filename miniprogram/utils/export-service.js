@@ -1,42 +1,43 @@
 const customerRepo = require('./repository/customer.repo')
 const recordRepo = require('./repository/record.repo')
-const { buildCustomerCSV, buildRecordCSV } = require('./csv-builder')
-
-function formatDate() {
-  const d = new Date()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}${m}${day}`
-}
+const storage = require('./storage')
+const { buildCustomerCSV, buildRecordCSV, buildPolicyCSV } = require('./csv-builder')
 
 function exportCustomers() {
-  const customers = customerRepo.list({})
-  return {
-    content: buildCustomerCSV(customers),
-    filename: `客户数据_${formatDate()}.csv`,
-    count: customers.length,
-  }
+  const customers = customerRepo.list()
+  return buildCustomerCSV(customers)
 }
 
 function exportRecords() {
   const records = recordRepo.list()
-  const customers = customerRepo.list({})
-  const phoneMap = {}
-  for (const c of customers) phoneMap[c.id] = c.phone || ''
-  const enriched = records.map(r => ({
-    customerPhone: phoneMap[r.customer_id] || '',
-    visitDate: r.visit_date || '',
-    visitType: r.visit_way || '',
-    content: r.summary || '',
-    result: r.comm_result || '',
-    nextVisitDate: r.next_follow_date || '',
-    nextVisitRemark: '',
-  }))
-  return {
-    content: buildRecordCSV(enriched),
-    filename: `拜访记录_${formatDate()}.csv`,
-    count: records.length,
-  }
+  const enriched = records.map(function (r) {
+    const customer = customerRepo.findById(r.customer_id)
+    return {
+      customerPhone: customer ? customer.phone : '',
+      visitDate: r.visit_date,
+      visitWay: r.visit_way,
+      content: r.summary,
+      result: r.comm_result,
+      nextVisitDate: r.next_follow_date,
+      nextVisitRemark: r.next_follow_remark
+    }
+  })
+  return buildRecordCSV(enriched)
 }
 
-module.exports = { exportCustomers, exportRecords }
+function exportPolicies() {
+  const policies = storage.getTable('policy')
+  const enriched = policies.map(function (p) {
+    const customer = customerRepo.findById(p.customer_id)
+    return Object.assign({}, p, {
+      customerPhone: customer ? customer.phone : ''
+    })
+  })
+  return buildPolicyCSV(enriched)
+}
+
+module.exports = {
+  exportCustomers,
+  exportRecords,
+  exportPolicies
+}

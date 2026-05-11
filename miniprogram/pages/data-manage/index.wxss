@@ -1,194 +1,64 @@
 .container {
-  padding: 24rpx;
-  background: #f5f6fa;
+  padding: 24rpx 20rpx;
+  background: #f5f5f5;
   min-height: 100vh;
 }
 
-/* Tab bar */
-.tab-bar {
-  display: flex;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 8rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
-}
-
-.tab-item {
-  flex: 1;
-  text-align: center;
-  padding: 16rpx 0;
-  font-size: 28rpx;
-  color: #888;
-  border-radius: 12rpx;
-  transition: all 0.2s;
-}
-
-.tab-item.active {
-  background: #4a90e2;
-  color: #fff;
-  font-weight: 500;
-}
-
-/* Section card */
 .section-card {
   background: #fff;
-  border-radius: 16rpx;
-  padding: 28rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
-}
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #222;
+  border-radius: 12rpx;
+  padding: 28rpx 24rpx;
   margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
 }
 
-/* Instructions */
-.instructions {
-  background: #f0f7ff;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  margin-bottom: 20rpx;
-}
-
-.instructions-title {
-  font-size: 26rpx;
-  font-weight: 500;
-  color: #4a90e2;
-  margin-bottom: 12rpx;
-}
-
-.instruction-row {
-  display: flex;
-  margin-bottom: 8rpx;
-  align-items: flex-start;
-}
-
-.field-name {
-  font-size: 24rpx;
-  color: #333;
-  font-weight: 500;
-  min-width: 140rpx;
-  flex-shrink: 0;
-}
-
-.field-desc {
-  font-size: 24rpx;
-  color: #666;
-  line-height: 1.5;
-}
-
-.field-required {
-  color: #e74c3c;
-  font-size: 20rpx;
-  margin-left: 4rpx;
-}
-
-/* Upload button */
-.upload-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #4a90e2;
-  color: #fff;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  margin-top: 8rpx;
-}
-
-.upload-icon {
-  font-size: 36rpx;
-  margin-right: 12rpx;
-}
-
-/* Status bars */
-.status-bar {
-  border-radius: 12rpx;
-  padding: 16rpx 20rpx;
-  margin-top: 16rpx;
-  font-size: 26rpx;
-}
-
-.status-bar.validating {
-  background: #fff8e1;
-  color: #f59e0b;
-}
-
-.status-bar.error {
-  background: #fef2f2;
-  color: #e74c3c;
-}
-
-.status-bar.success {
-  background: #f0fdf4;
-  color: #16a34a;
-}
-
-.status-title {
-  font-weight: 500;
-  margin-bottom: 8rpx;
-}
-
-.error-item {
-  font-size: 24rpx;
-  padding: 4rpx 0;
-  line-height: 1.5;
-}
-
-.warning-item {
-  font-size: 24rpx;
-  color: #f59e0b;
-  padding: 4rpx 0;
-}
-
-/* Export cards */
-.export-card {
+.section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f8f9fb;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
 }
 
-.export-card:last-child {
-  margin-bottom: 0;
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
 }
 
-.export-info {
-  flex: 1;
-}
-
-.export-name {
-  font-size: 28rpx;
-  font-weight: 500;
-  color: #222;
-}
-
-.export-count {
+.template-btn {
   font-size: 24rpx;
-  color: #888;
-  margin-top: 4rpx;
+  color: #4a90e2;
+  background: #eaf2fd;
+  border: none;
+  border-radius: 6rpx;
+  padding: 0 20rpx;
+  height: 56rpx;
+  line-height: 56rpx;
 }
 
-.export-btn {
+.action-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.action-btn {
+  flex: 1;
+  height: 76rpx;
+  line-height: 76rpx;
+  font-size: 30rpx;
+  border-radius: 8rpx;
   background: #4a90e2;
   color: #fff;
-  font-size: 26rpx;
-  padding: 14rpx 28rpx;
-  border-radius: 10rpx;
-  flex-shrink: 0;
+  border: none;
+  padding: 0;
 }
 
-.export-tip {
-  font-size: 22rpx;
-  color: #aaa;
-  margin-top: 16rpx;
-  line-height: 1.6;
+.action-btn.outline {
+  background: #fff;
+  color: #4a90e2;
+  border: 2rpx solid #4a90e2;
+}
+
+.action-btn[loading] {
+  opacity: 0.6;
 }
