@@ -80,7 +80,7 @@ Page({
       for (var i = 0; i < snapshot.plan.length; i++) {
         var p = snapshot.plan[i];
         if (p.status !== '待执行') continue;
-        if (p.plan_date < today) {
+        if (p.plan_date && p.plan_date < today) {
           kpiOverdue++;
         } else {
           kpiPending++;

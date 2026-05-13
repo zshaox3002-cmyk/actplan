@@ -48,6 +48,24 @@ function get(id) {
 }
 
 /**
+ * 更新拜访记录的指定字段
+ * @param {number} id - 记录 id
+ * @param {Object} fields - 要更新的字段，如 { summary: '...' }
+ */
+function update(id, fields) {
+  storage.transaction(function (ctx) {
+    var all = ctx.getTableRef('visit_record');
+    var idx = -1;
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].id === id) { idx = i; break; }
+    }
+    if (idx === -1) throw new Error('record not found: ' + id);
+    all[idx] = Object.assign({}, all[idx], fields, { updated_at: new Date().toISOString() });
+    ctx.setTable('visit_record', all);
+  });
+}
+
+/**
  * 新建拜访记录（事务）
  * 事务内操作：
  * 1. 插入 visit_record
@@ -149,5 +167,6 @@ module.exports = {
   list: list,
   listByCustomer: listByCustomer,
   get: get,
-  create: create
+  create: create,
+  update: update
 };

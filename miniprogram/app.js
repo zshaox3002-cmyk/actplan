@@ -97,7 +97,8 @@ App({
    */
   _getAllTableData: function () {
     var tableNames = ['customer', 'visit_record', 'plan', 'objection',
-      'objection_note', 'objection_links', 'operation_log', 'policy', 'segment'];
+      'objection_note', 'objection_links', 'operation_log', 'policy', 'segment',
+      'insured_member', 'task_dismiss'];
     var result = {};
     tableNames.forEach(function (name) {
       result[name] = storage.getTable(name);
@@ -143,7 +144,8 @@ App({
         }
 
         var tableNames = ['customer', 'visit_record', 'plan', 'objection',
-          'objection_note', 'objection_links', 'operation_log', 'policy', 'segment'];
+          'objection_note', 'objection_links', 'operation_log', 'policy', 'segment',
+          'insured_member', 'task_dismiss'];
 
         // Disable cloud sync during restore to avoid re-uploading data just downloaded
         storage.setCloudSync(null);
@@ -155,7 +157,10 @@ App({
         storage.setCloudSync(cloudSync);
 
         if (backup.meta) {
+          // version 不从云端恢复，防止旧备份的 version 跳过本地迁移
+          var localVersion = meta.version;
           Object.assign(meta, backup.meta);
+          meta.version = localVersion;
         }
         meta.restore_status = 'done';
         storage.persistMeta();

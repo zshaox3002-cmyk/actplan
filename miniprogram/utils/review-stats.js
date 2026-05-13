@@ -346,7 +346,7 @@ function enrichCustomers(customers, records, plans, objectionNotes, today) {
       var p = cPlans[i];
       if (p.status !== '待执行') continue;
       pendingPlanCount++;
-      if (p.plan_date < today) {
+      if (p.plan_date && p.plan_date < today) {
         overduePlanCount++;
       } else if (p.plan_date === today) {
         todayPlanCount++;
@@ -475,7 +475,7 @@ function getTodayTasks(snapshot, today, dismissedSet) {
     var overduePlans = [];
     for (var i = 0; i < plans.length; i++) {
       var p = plans[i];
-      if (p.status === '待执行' && p.plan_date < today) overduePlans.push(p);
+      if (p.status === '待执行' && p.plan_date && p.plan_date < today) overduePlans.push(p);
     }
     overduePlans.sort(function (a, b) { return a.plan_date < b.plan_date ? -1 : 1; });
 

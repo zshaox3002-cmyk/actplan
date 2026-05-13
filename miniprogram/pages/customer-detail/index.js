@@ -418,8 +418,9 @@ Page({
       historyDealCount: historyDealCount
     };
 
-    // 加载转介绍来源客户名称
-    var referralSourceId = customer.referral_source_customer_id || null;
+    // 加载转介绍来源客户名称（从 referral_relation 表读，customer 对象上无此字段）
+    var existingReferralRelation = referralRepo.getByReferred(id);
+    var referralSourceId = existingReferralRelation ? existingReferralRelation.referrer_customer_id : null;
     var referralSourceName = '';
     if (referralSourceId !== null) {
       var sourceCustomer = customerRepo.get(referralSourceId);

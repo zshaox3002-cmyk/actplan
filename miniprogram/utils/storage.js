@@ -43,7 +43,7 @@ function _key(name) {
 function init() {
   if (_ready) return;
 
-  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'segment', 'insured_member', 'task_dismiss'];
+  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'segment', 'insured_member', 'task_dismiss', 'referral_relation'];
 
   _tables = {};
 
@@ -69,6 +69,7 @@ function init() {
     if (!meta.nextId.segment) meta.nextId.segment = 0;
     if (!meta.nextId.insured_member) meta.nextId.insured_member = 0;
     if (!meta.nextId.task_dismiss) meta.nextId.task_dismiss = 0;
+    if (!meta.nextId.referral_relation) meta.nextId.referral_relation = 0;
   }
   _tables._meta = meta;
 
@@ -198,6 +199,7 @@ function _migrate() {
   _migrateV4();
   _migrateV5();
   _migrateV6();
+  _migrateV7();
 }
 
 /**
@@ -495,6 +497,83 @@ function _migrateV6() {
   meta.version = 6;
   wx.setStorageSync(_key('meta'), meta);
   console.log('[Storage] v1.6 迁移完成 ✓');
+}
+
+/**
+ * v1.6 → v1.7 数据修复：云端恢复时 Object.assign(meta, backup.meta) 会把旧 version 覆盖到本地，
+ * 导致 v1.5/v1.6 迁移被跳过，旧系统预设（沉睡金子/重要客户/高价值缺口）残留，节奏预设缺失。
+ * 本次迁移不依赖 version 号，直接按字段特征修复数据。
+ * @private
+ */
+function _migrateV7() {
+  var meta = _tables._meta;
+  if ((meta.version || 1) >= 7) return;
+
+  console.log('[Storage] 执行 v1.7 数据修复（清理旧系统预设 + 补写节奏预设）...');
+
+  var segments = _tables.segment;
+  var now = Date.now();
+
+  // 1. 移除旧系统预设（is_system=true 且无 rhythm_preset）
+  var cleaned = segments.filter(function (s) {
+    return !s.is_system || s.rhythm_preset;
+  });
+
+  // 2. 补写节奏预设（如果缺失）
+  var hasAttention = false;
+  var hasAdvancing = false;
+  for (var i = 0; i < cleaned.length; i++) {
+    if (cleaned[i].rhythm_preset === 'attention') hasAttention = true;
+    if (cleaned[i].rhythm_preset === 'advancing') hasAdvancing = true;
+  }
+
+  var toInsert = [];
+  if (!hasAttention) {
+    toInsert.push({
+      id: meta.nextId.segment++,
+      name: '需关注',
+      color: null,
+      is_system: true,
+      rhythm_preset: 'attention',
+      rules: {
+        version: 1,
+        match: 'OR',
+        rules: [
+          { field: 'rhythm_tag', op: 'eq', value: 'break_risk' },
+          { field: 'rhythm_tag', op: 'eq', value: 'stuck' }
+        ]
+      },
+      sort: { field: 'stage_days', order: 'desc' },
+      created_at: now,
+      updated_at: now
+    });
+  }
+  if (!hasAdvancing) {
+    toInsert.push({
+      id: meta.nextId.segment++,
+      name: '正向推进',
+      color: null,
+      is_system: true,
+      rhythm_preset: 'advancing',
+      rules: {
+        version: 1,
+        match: 'AND',
+        rules: [
+          { field: 'rhythm_tag', op: 'eq', value: 'should_advance' }
+        ]
+      },
+      sort: { field: 'days_since_last_visit', order: 'asc' },
+      created_at: now,
+      updated_at: now
+    });
+  }
+
+  _tables.segment = toInsert.concat(cleaned);
+  wx.setStorageSync(_key('segment'), _tables.segment);
+
+  meta.version = 7;
+  wx.setStorageSync(_key('meta'), meta);
+  console.log('[Storage] v1.7 迁移完成 ✓');
 }
 
 /**
