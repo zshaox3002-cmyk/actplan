@@ -2,34 +2,95 @@
 
   <view class="section-card">
     <view class="section-header">
-      <view class="section-title">客户画像信息</view>
-      <button class="template-btn" bindtap="downloadCustomerTemplate">下载模版</button>
+      <view class="section-title">客户主数据</view>
     </view>
     <view class="action-row">
-      <button class="action-btn" bindtap="importCustomers" loading="{{importing}}">导入</button>
-      <button class="action-btn outline" bindtap="exportCustomers" loading="{{exporting}}">导出</button>
+      <button class="action-btn secondary" bindtap="downloadTemplate" loading="{{loading}}">下载模板</button>
+      <button class="action-btn primary" bindtap="startImport" loading="{{loading}}">导入客户</button>
+      <button class="action-btn outline" bindtap="exportCustomers" loading="{{loading}}">导出客户</button>
     </view>
   </view>
 
-  <view class="section-card">
-    <view class="section-header">
-      <view class="section-title">保单信息</view>
-      <button class="template-btn" bindtap="downloadPolicyTemplate">下载模版</button>
+  <view wx:if="{{missingReferrerCustomers.length > 0}}" class="issue-section warning-section referrer-tip-card">
+    <view class="referrer-tip-header">
+      <view class="issue-title">数据待完善</view>
+      <view class="referrer-tip-count">{{missingReferrerCustomers.length}} 位客户</view>
     </view>
-    <view class="action-row">
-      <button class="action-btn" bindtap="importPolicies" loading="{{importing}}">导入</button>
-      <button class="action-btn outline" bindtap="exportPolicies" loading="{{exporting}}">导出</button>
+    <view class="referrer-tip-desc">以下客户关系来源为「客户介绍」，但尚未填写介绍人：</view>
+    <view class="referrer-tip-list">
+      <text
+        wx:for="{{missingReferrerCustomers}}"
+        wx:key="id"
+        class="referrer-tip-item"
+        data-id="{{item.id}}"
+        bindtap="onMissingReferrerTap"
+      >· {{item.name}}</text>
+    </view>
+    <view class="referrer-tip-hint">点击客户名可前往详情页补填介绍人信息</view>
+  </view>
+
+  <view wx:if="{{step === 'preview_done'}}" class="preview-panel">
+    <view class="preview-title">导入预检结果</view>
+
+    <view class="stats-grid">
+      <view class="stat-item">
+        <view class="stat-value">{{preview.totalRows}}</view>
+        <view class="stat-label">总行数</view>
+      </view>
+      <view class="stat-item create">
+        <view class="stat-value">{{preview.actions.create}}</view>
+        <view class="stat-label">将新增</view>
+      </view>
+      <view class="stat-item update">
+        <view class="stat-value">{{preview.actions.update}}</view>
+        <view class="stat-label">将更新</view>
+      </view>
+      <view class="stat-item skip">
+        <view class="stat-value">{{preview.actions.skip}}</view>
+        <view class="stat-label">将跳过</view>
+      </view>
+      <view class="stat-item error">
+        <view class="stat-value">{{preview.invalidRows}}</view>
+        <view class="stat-label">错误</view>
+      </view>
+    </view>
+
+    <view wx:if="{{preview.errors.length > 0}}" class="issue-section error-section">
+      <view class="issue-title">错误（有错误时无法导入）</view>
+      <view wx:for="{{preview.errors}}" wx:key="index" wx:if="{{index < 5}}" class="issue-item error-item">{{item}}</view>
+      <view wx:if="{{preview.errors.length > 5}}" class="issue-more">还有 {{preview.errors.length - 5}} 条错误...</view>
+    </view>
+
+    <view wx:if="{{preview.warnings.length > 0}}" class="issue-section warning-section">
+      <view class="issue-title">警告（可继续导入）</view>
+      <view wx:for="{{preview.warnings}}" wx:key="index" wx:if="{{index < 5}}" class="issue-item warning-item">{{item}}</view>
+      <view wx:if="{{preview.warnings.length > 5}}" class="issue-more">还有 {{preview.warnings.length - 5}} 条警告...</view>
+    </view>
+
+    <view class="preview-actions">
+      <button class="action-btn outline" bindtap="cancelImport">取消</button>
+      <button class="action-btn primary" bindtap="confirmImport" disabled="{{preview.invalidRows > 0}}" loading="{{loading}}">确认导入</button>
     </view>
   </view>
 
-  <view class="section-card">
-    <view class="section-header">
-      <view class="section-title">拜访记录</view>
-      <button class="template-btn" bindtap="downloadRecordTemplate">下载模版</button>
+  <view wx:if="{{step === 'done'}}" class="preview-panel">
+    <view class="preview-title">导入完成</view>
+    <view class="stats-grid">
+      <view class="stat-item create">
+        <view class="stat-value">{{importResult.created}}</view>
+        <view class="stat-label">已新增</view>
+      </view>
+      <view class="stat-item update">
+        <view class="stat-value">{{importResult.updated}}</view>
+        <view class="stat-label">已更新</view>
+      </view>
+      <view class="stat-item skip">
+        <view class="stat-value">{{importResult.skipped}}</view>
+        <view class="stat-label">已跳过</view>
+      </view>
     </view>
-    <view class="action-row">
-      <button class="action-btn" bindtap="importRecords" loading="{{importing}}">导入</button>
-      <button class="action-btn outline" bindtap="exportRecords" loading="{{exporting}}">导出</button>
+    <view class="preview-actions">
+      <button class="action-btn primary" bindtap="resetImport">完成</button>
     </view>
   </view>
 

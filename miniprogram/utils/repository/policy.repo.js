@@ -49,6 +49,7 @@ function create(data) {
   var policy = {
     id: newId,
     customer_id: data.customer_id,
+    insured_member_id: data.insured_member_id !== undefined ? data.insured_member_id : null,
     product_type: data.product_type || templates.getCoverageKey(category),
     category: category,
     product_name: data.product_name || '',
@@ -87,7 +88,7 @@ function update(policyId, fields) {
       var editableFields = [
         'product_name', 'product_type', 'category',
         'premium', 'effective_date', 'expire_date',
-        'coverage_term', 'payment_term', 'status'
+        'coverage_term', 'payment_term', 'status', 'insured_member_id'
       ];
       for (var k = 0; k < editableFields.length; k++) {
         var f = editableFields[k];

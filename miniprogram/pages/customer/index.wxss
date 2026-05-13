@@ -60,6 +60,56 @@ page { background: var(--color-bg-page); }
   padding: 0 0 8rpx;
 }
 
+.referrer-tip-card {
+  background: var(--color-warning-light);
+  border-radius: var(--radius-badge);
+  padding: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.referrer-tip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.referrer-tip-title {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-warning);
+}
+
+.referrer-tip-count {
+  font-size: var(--font-size-caption);
+  color: var(--color-warning);
+  font-weight: var(--font-weight-medium);
+}
+
+.referrer-tip-desc {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin-bottom: 10rpx;
+}
+
+.referrer-tip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.referrer-tip-item {
+  font-size: var(--font-size-caption);
+  color: var(--color-warning);
+  text-decoration: underline;
+}
+
+.referrer-tip-hint {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
 .customer-list {
   display: flex;
   flex-direction: column;

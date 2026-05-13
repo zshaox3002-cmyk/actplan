@@ -7,6 +7,7 @@ var storage = require('../storage');
 var id = require('../id');
 var dateUtil = require('../date');
 var policyRepo = require('./policy.repo');
+var referralRepo = require('./referral.repo');
 
 /**
  * stage 数字/英文 → 中文映射（防御性兜底）
@@ -99,6 +100,7 @@ function create(data) {
 
   var customer = {
     id: newId,
+    external_key: data.external_key || null,
     name: data.name || '',
     gender: data.gender || '',
     relation: data.relation || '',
@@ -143,6 +145,15 @@ function create(data) {
 
   all.push(customer);
   storage.setTable('customer', all);
+
+  // 自动创建默认本人保障对象（require 放在函数内避免循环依赖）
+  var insuredMemberRepo = require('./insured-member.repo');
+  insuredMemberRepo.create({
+    customer_id: newId,
+    relation: '本人',
+    display_name: customer.name || '本人',
+    is_default: true
+  });
 
   return { id: newId };
 }
@@ -321,12 +332,64 @@ function count() {
   return storage.getTable('customer').length;
 }
 
+/**
+ * 新建客户并同时建立转介绍关系（原子操作）
+ * @param {Object} data - 客户数据
+ * @param {number|null} referrerCustomerId - 介绍人客户 ID，无则传 null
+ * @returns {{ id: number }}
+ */
+function createWithReferral(data, referrerCustomerId) {
+  var result = create(data);
+  if (referrerCustomerId !== null && referrerCustomerId !== undefined) {
+    referralRepo.createRelation(referrerCustomerId, result.id, { source: 'customer_create' });
+    referralRepo.recountReferralCount(referrerCustomerId);
+  }
+  return result;
+}
+
+/**
+ * 更新客户的转介绍来源（介绍人）
+ * - newReferrerId 为 null：删除现有介绍关系
+ * - 已有关系：更新介绍人
+ * - 无关系：新建介绍关系
+ * @param {number} customerId - 被介绍客户 ID
+ * @param {number|null} newReferrerId - 新介绍人 ID，null 表示清除
+ * @returns {{ ok: boolean, error?: string }}
+ */
+function updateReferralSource(customerId, newReferrerId) {
+  try {
+    var existing = referralRepo.getByReferred(customerId);
+    var oldReferrerId = existing ? existing.referrer_customer_id : null;
+
+    if (newReferrerId === null || newReferrerId === undefined) {
+      if (existing) {
+        referralRepo.removeByReferredCustomer(customerId);
+        referralRepo.recountReferralCount(oldReferrerId);
+      }
+    } else if (existing) {
+      referralRepo.updateRelation(customerId, newReferrerId);
+      if (oldReferrerId !== newReferrerId) {
+        referralRepo.recountReferralCount(oldReferrerId);
+        referralRepo.recountReferralCount(newReferrerId);
+      }
+    } else {
+      referralRepo.createRelation(newReferrerId, customerId, { source: 'customer_edit' });
+      referralRepo.recountReferralCount(newReferrerId);
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || '转介绍来源更新失败' };
+  }
+}
+
 module.exports = {
   list: list,
   get: get,
   getCustomerWithDerived: getCustomerWithDerived,
   create: create,
   update: update,
+  createWithReferral: createWithReferral,
+  updateReferralSource: updateReferralSource,
   delete: deleteCustomer,
   count: count
 };

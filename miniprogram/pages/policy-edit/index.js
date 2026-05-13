@@ -1,9 +1,10 @@
 /**
- * policy-edit/index.js — 保单录入/编辑页（v1.3 双轴时间模型）
+ * policy-edit/index.js — 保单录入/编辑页（v1.3 双轴时间模型，v1.4 被保险人）
  */
 
 var policyRepo = require('../../utils/repository/policy.repo');
 var customerRepo = require('../../utils/repository/customer.repo');
+var insuredMemberRepo = require('../../utils/repository/insured-member.repo');
 var logRepo = require('../../utils/repository/log.repo');
 var storage = require('../../utils/storage');
 var toast = require('../../utils/toast');
@@ -50,6 +51,16 @@ Page({
     showDraftTip: false,
     visitRecordDate: '',
 
+    // 被保险人
+    insuredMembers: [],
+    insuredMemberId: null,
+    insuredMemberName: '',
+    showMemberPicker: false,
+    showAddMemberSheet: false,
+    newMemberRelationIndex: -1,
+    newMemberDisplayName: '',
+    relationOptions: insuredMemberRepo.RELATION_OPTIONS,
+
     isSaving: false
   },
 
@@ -76,6 +87,16 @@ Page({
           var ctTypeIdx = COVERAGE_TERM_TYPES.indexOf(ct.type);
           var ptTypeIdx = PAYMENT_TERM_TYPES.indexOf(pt.type);
 
+          // 加载被保险人列表，回显已选
+          var members = insuredMemberRepo.listByCustomer(customerId);
+          var memberId = policy.insured_member_id !== undefined ? policy.insured_member_id : null;
+          var memberName = '待确认';
+          if (memberId !== null) {
+            for (var mi = 0; mi < members.length; mi++) {
+              if (members[mi].id === memberId) { memberName = members[mi].display_name; break; }
+            }
+          }
+
           self.setData({
             isEdit: true,
             policyId: policyId,
@@ -89,7 +110,10 @@ Page({
             coverageTermTypeIndex: ctTypeIdx >= 0 ? ctTypeIdx : 0,
             paymentTerm: pt,
             paymentTermTypeIndex: ptTypeIdx >= 0 ? ptTypeIdx : 0,
-            showPaymentTerm: tmpl.show_payment_term
+            showPaymentTerm: tmpl.show_payment_term,
+            insuredMembers: members,
+            insuredMemberId: memberId,
+            insuredMemberName: memberName
           });
           self._updateTermDisplays();
           wx.setNavigationBarTitle({ title: '编辑保单' });
@@ -100,6 +124,10 @@ Page({
         var defaultCat = 'critical_illness';
         var defaultTmpl = templates.getTemplate(defaultCat);
 
+        // 确保有默认本人保障对象，加载列表
+        var defaultMember = insuredMemberRepo.ensureDefaultMember(customerId, customer ? customer.name : '');
+        var newMembers = insuredMemberRepo.listByCustomer(customerId);
+
         self.setData({
           customerId: customerId,
           customerName: customer ? customer.name : '',
@@ -107,7 +135,10 @@ Page({
           categoryIndex: templates.CATEGORY_OPTIONS.indexOf(defaultCat),
           coverageTerm: defaultTmpl.coverage_term,
           paymentTerm: defaultTmpl.payment_term,
-          showPaymentTerm: defaultTmpl.show_payment_term
+          showPaymentTerm: defaultTmpl.show_payment_term,
+          insuredMembers: newMembers,
+          insuredMemberId: defaultMember.id,
+          insuredMemberName: defaultMember.display_name
         });
         self._updateTermDisplays();
 
@@ -214,6 +245,87 @@ Page({
     });
   },
 
+  // ---- 被保险人选择 ----
+
+  /** 打开被保险人选择弹窗 */
+  onInsuredMemberTap: function () {
+    this.setData({ showMemberPicker: true });
+  },
+
+  /** 关闭被保险人选择弹窗 */
+  onMemberPickerClose: function () {
+    this.setData({ showMemberPicker: false });
+  },
+
+  /** 选中某个保障对象 */
+  onMemberSelect: function (e) {
+    var memberId = parseInt(e.currentTarget.dataset.id);
+    var memberName = e.currentTarget.dataset.name;
+    this.setData({
+      insuredMemberId: memberId,
+      insuredMemberName: memberName,
+      showMemberPicker: false
+    });
+  },
+
+  /** 打开新增保障对象弹窗 */
+  onAddMemberTap: function () {
+    this.setData({
+      showMemberPicker: false,
+      showAddMemberSheet: true,
+      newMemberRelationIndex: -1,
+      newMemberDisplayName: ''
+    });
+  },
+
+  /** 关闭新增保障对象弹窗 */
+  onAddMemberCancel: function () {
+    this.setData({ showAddMemberSheet: false });
+  },
+
+  /** 选择关系，自动生成显示名称 */
+  onNewMemberRelationChange: function (e) {
+    var idx = parseInt(e.currentTarget.dataset.index);
+    var relation = this.data.relationOptions[idx];
+    var members = this.data.insuredMembers;
+    var sameCount = members.filter(function (m) { return m.relation === relation; }).length;
+    var displayName = insuredMemberRepo.generateDisplayName(relation, this.data.customerName, sameCount);
+    this.setData({ newMemberRelationIndex: idx, newMemberDisplayName: displayName });
+  },
+
+  /** 手动编辑显示名称 */
+  onNewMemberDisplayNameInput: function (e) {
+    this.setData({ newMemberDisplayName: e.detail.value });
+  },
+
+  /** 确认新增保障对象 */
+  onAddMemberConfirm: function () {
+    var d = this.data;
+    if (d.newMemberRelationIndex < 0) {
+      wx.showToast({ title: '请选择关系', icon: 'none' });
+      return;
+    }
+    var relation = d.relationOptions[d.newMemberRelationIndex];
+    var displayName = (d.newMemberDisplayName || '').trim();
+    if (!displayName) {
+      wx.showToast({ title: '请填写显示名称', icon: 'none' });
+      return;
+    }
+    var newMember = insuredMemberRepo.create({
+      customer_id: d.customerId,
+      relation: relation,
+      display_name: displayName,
+      is_default: false
+    });
+    var updatedMembers = insuredMemberRepo.listByCustomer(d.customerId);
+    this.setData({
+      insuredMembers: updatedMembers,
+      insuredMemberId: newMember.id,
+      insuredMemberName: newMember.display_name,
+      showAddMemberSheet: false
+    });
+  },
+
   onSave: function () {
     if (this._saving) return;
     this._saving = true;
@@ -223,6 +335,12 @@ Page({
 
     if (!d.category) {
       wx.showToast({ title: '请选择险种', icon: 'none' });
+      this._saving = false;
+      this.setData({ isSaving: false });
+      return;
+    }
+    if (d.insuredMemberId === null) {
+      wx.showToast({ title: '请选择被保险人', icon: 'none' });
       this._saving = false;
       this.setData({ isSaving: false });
       return;
@@ -259,13 +377,10 @@ Page({
           expire_date: null,
           coverage_term: d.coverageTerm,
           payment_term: d.paymentTerm,
-          status: 'active'
+          status: 'active',
+          insured_member_id: d.insuredMemberId
         };
         policyRepo.update(d.policyId, fields);
-
-        var statusUpdate = {};
-        statusUpdate[coverageKey] = 'configured';
-        customerRepo.update(d.customerId, { coverage_status: statusUpdate, _forceStatus: true });
       } else {
         policyRepo.create({
           customer_id: d.customerId,
@@ -278,12 +393,9 @@ Page({
           coverage_term: d.coverageTerm,
           payment_term: d.paymentTerm,
           status: 'active',
+          insured_member_id: d.insuredMemberId,
           visit_record_id: null
         });
-
-        var statusUpdate2 = {};
-        statusUpdate2[coverageKey] = 'configured';
-        customerRepo.update(d.customerId, { coverage_status: statusUpdate2, _forceStatus: true });
 
         logRepo.add({
           customer_id: d.customerId,

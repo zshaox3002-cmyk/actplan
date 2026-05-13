@@ -1,84 +1,162 @@
 <view class="page-container">
-  <!-- 顶部摘要条 -->
-  <view class="summary-bar">
-    <view class="summary-item warming-summary" bindtap="onTabChange" data-tab="warming">
-      <text class="summary-icon">🔥</text>
-      <text class="summary-count">{{warmingList.length}}</text>
-      <text class="summary-label">升温</text>
-      <text class="summary-delta">较上周 {{warmingDelta}}</text>
-    </view>
-    <view class="summary-item cooling-summary" bindtap="onTabChange" data-tab="cooling">
-      <text class="summary-icon">❄️</text>
-      <text class="summary-count">{{coolingList.length}}</text>
-      <text class="summary-label">降温</text>
-      <text class="summary-delta">较上周 {{coolingDelta}}</text>
-    </view>
-    <view class="summary-item stuck-summary" bindtap="onTabChange" data-tab="stuck">
-      <text class="summary-icon">⏸</text>
-      <text class="summary-count">{{stuckList.length}}</text>
-      <text class="summary-label">卡住</text>
-      <text class="summary-delta">较上周 {{stuckDelta}}</text>
-    </view>
+  <!-- 低数据提示 -->
+  <view wx:if="{{isLowData}}" class="low-data-tip">
+    <text class="low-data-text">当前数据较少，节奏判断可能不完整。建议先完善客户阶段、拜访记录和下次计划。</text>
   </view>
 
-  <!-- Tab 切换 -->
-  <view class="tab-bar">
-    <view class="tab-item {{activeTab === 'warming' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="warming">升温中</view>
-    <view class="tab-item {{activeTab === 'cooling' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="cooling">降温中</view>
-    <view class="tab-item {{activeTab === 'stuck' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="stuck">卡住了</view>
-  </view>
+  <!-- 有数据时：摘要 + Tab + 列表 -->
+  <block wx:if="{{totalCount > 0}}">
+    <!-- 顶部摘要 -->
+    <view class="summary-section">
+      <text class="summary-main-text">{{summaryText}}</text>
+    </view>
 
-  <!-- 升温列表 -->
-  <view wx:if="{{activeTab === 'warming'}}">
-    <view wx:if="{{warmingList.length === 0}}" class="empty-wrap">
-      <empty-state text="暂无升温中的客户" />
-    </view>
-    <view wx:for="{{warmingList}}" wx:key="id" class="rhythm-card" bindtap="onCustomerTap" data-id="{{item.id}}">
-      <view class="card-header">
-        <view class="card-left-bar signal-bar-warming"></view>
-        <text class="card-name">{{item.name}}</text>
-        <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
-        <text class="card-last-visit">{{item.lastVisitLabel}}</text>
+    <!-- Tab 切换 -->
+    <view class="tab-bar">
+      <view class="tab-item {{activeTab === 'stuck' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="stuck">
+        <text>卡点待处理</text>
+        <text wx:if="{{stuckList.length > 0}}" class="tab-badge">{{stuckList.length}}</text>
       </view>
-      <view class="card-body">
-        <text class="card-signal-text">{{item.visitCountText}}，{{item.signalText}}</text>
-        <text wx:if="{{item.hasGrowth}}" class="growth-badge">{{item.growthRate}}</text>
+      <view class="tab-item {{activeTab === 'breakRisk' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="breakRisk">
+        <text>断档风险</text>
+        <text wx:if="{{breakRiskList.length > 0}}" class="tab-badge">{{breakRiskList.length}}</text>
+      </view>
+      <view class="tab-item {{activeTab === 'shouldAdvance' ? 'tab-active' : ''}}" bindtap="onTabChange" data-tab="shouldAdvance">
+        <text>该推进了</text>
+        <text wx:if="{{shouldAdvanceList.length > 0}}" class="tab-badge">{{shouldAdvanceList.length}}</text>
       </view>
     </view>
-  </view>
 
-  <!-- 降温列表 -->
-  <view wx:if="{{activeTab === 'cooling'}}">
-    <view wx:if="{{coolingList.length === 0}}" class="empty-wrap">
-      <empty-state text="暂无降温中的客户" />
-    </view>
-    <view wx:for="{{coolingList}}" wx:key="id" class="rhythm-card" bindtap="onCustomerTap" data-id="{{item.id}}">
-      <view class="card-header">
-        <view class="card-left-bar signal-bar-cooling"></view>
-        <text class="card-name">{{item.name}}</text>
-        <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
-        <text class="card-last-visit">{{item.lastVisitLabel}}</text>
+    <!-- 卡点待处理列表 -->
+    <view wx:if="{{activeTab === 'stuck'}}">
+      <view wx:if="{{stuckList.length === 0}}" class="empty-wrap">
+        <empty-state text="暂无卡点客户" subText="没有客户因异议或停滞需要处理" />
       </view>
-      <view class="card-body">
-        <text class="card-signal-text">{{item.visitCountText}}，{{item.signalText}}</text>
+      <view wx:for="{{stuckList}}" wx:key="id" class="rhythm-card card-border-stuck">
+        <view class="card-header">
+          <text class="card-name">{{item.name}}</text>
+          <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
+        </view>
+        <text class="card-reason">{{item.reasonText}}</text>
+        <view class="card-detail-block">
+          <text class="card-evidence"><text class="detail-label">依据：</text>{{item.evidenceText}}</text>
+          <text class="card-action"><text class="detail-label">建议：</text>{{item.actionText}}</text>
+        </view>
+        <view class="card-actions">
+          <view wx:if="{{item.primaryAction === 'objection'}}"
+                class="quick-btn quick-btn-secondary" catchtap="onViewObjection" data-id="{{item.id}}">
+            <text>查看异议</text>
+          </view>
+          <view class="quick-btn quick-btn-primary" catchtap="onAddPlan" data-id="{{item.id}}" data-name="{{item.name}}">
+            <text>预约</text>
+          </view>
+        </view>
       </view>
     </view>
-  </view>
 
-  <!-- 卡住列表 -->
-  <view wx:if="{{activeTab === 'stuck'}}">
-    <view wx:if="{{stuckList.length === 0}}" class="empty-wrap">
-      <empty-state text="暂无卡住的客户" />
-    </view>
-    <view wx:for="{{stuckList}}" wx:key="id" class="rhythm-card" bindtap="onCustomerTap" data-id="{{item.id}}">
-      <view class="card-header">
-        <view class="card-left-bar signal-bar-stuck"></view>
-        <text class="card-name">{{item.name}}</text>
-        <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
-        <text class="card-last-visit">{{item.lastVisitLabel}}</text>
+    <!-- 断档风险列表 -->
+    <view wx:if="{{activeTab === 'breakRisk'}}">
+      <view wx:if="{{breakRiskList.length === 0}}" class="empty-wrap">
+        <empty-state text="跟进节奏正常" subText="所有客户均有近期拜访计划" />
       </view>
-      <view class="card-body">
-        <text class="card-signal-text">{{item.signalText}}</text>
+      <view wx:for="{{breakRiskList}}" wx:key="id" class="rhythm-card card-border-break">
+        <view class="card-header">
+          <text class="card-name">{{item.name}}</text>
+          <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
+        </view>
+        <text class="card-reason">{{item.reasonText}}</text>
+        <view class="card-detail-block">
+          <text class="card-evidence"><text class="detail-label">依据：</text>{{item.evidenceText}}</text>
+          <text class="card-action"><text class="detail-label">建议：</text>{{item.actionText}}</text>
+        </view>
+        <view class="card-actions">
+          <view class="quick-btn quick-btn-primary" catchtap="onAddPlan" data-id="{{item.id}}" data-name="{{item.name}}">
+            <text>预约</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 该推进了列表 -->
+    <view wx:if="{{activeTab === 'shouldAdvance'}}">
+      <view wx:if="{{shouldAdvanceList.length === 0}}" class="empty-wrap">
+        <empty-state text="暂无推进机会" subText="暂时没有客户达到推进条件" />
+      </view>
+      <view wx:for="{{shouldAdvanceList}}" wx:key="id" class="rhythm-card card-border-advance">
+        <view class="card-header">
+          <text class="card-name">{{item.name}}</text>
+          <text class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</text>
+        </view>
+        <text class="card-reason">{{item.reasonText}}</text>
+        <view class="card-detail-block">
+          <text class="card-evidence"><text class="detail-label">依据：</text>{{item.evidenceText}}</text>
+          <text class="card-action"><text class="detail-label">建议：</text>{{item.actionText}}</text>
+        </view>
+        <view class="card-actions">
+          <view class="quick-btn quick-btn-primary" catchtap="onAddPlan" data-id="{{item.id}}" data-name="{{item.name}}">
+            <text>预约</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 全空状态 -->
+  <view wx:if="{{totalCount === 0 && !loading}}" class="empty-full">
+    <view class="empty-illus">
+      <view class="empty-illus-bg"></view>
+      <view class="empty-illus-doc">
+        <view class="empty-illus-line"></view>
+        <view class="empty-illus-line"></view>
+        <view class="empty-illus-line empty-illus-line-short"></view>
+      </view>
+      <text class="empty-illus-star">★</text>
+      <text class="empty-illus-check">✔</text>
+    </view>
+    <text class="empty-title">所有客户节奏正常</text>
+    <text class="empty-desc">没有卡点、断档或待推进的客户</text>
+    <text class="empty-hint-text">系统持续监测，有变化会自动出现在这里</text>
+  </view>
+</view>
+
+<!-- 添加计划底部 sheet -->
+<view class="plan-sheet" wx:if="{{showPlanSheet}}">
+  <view class="plan-sheet-mask" bindtap="onPlanSheetCancel"></view>
+  <view class="plan-sheet-content card">
+    <text class="plan-sheet-title">添加拜访计划</text>
+    <view class="plan-sheet-row">
+      <text class="plan-sheet-label">客户</text>
+      <text class="plan-sheet-value">{{planSheetCustomerName}}</text>
+    </view>
+    <view class="plan-sheet-row">
+      <text class="plan-sheet-label">日期</text>
+      <picker mode="date" value="{{planSheetDate}}" bindchange="onPlanSheetDateChange">
+        <text class="plan-sheet-value plan-sheet-picker">{{planSheetDate}} ▾</text>
+      </picker>
+    </view>
+    <view class="plan-sheet-row">
+      <text class="plan-sheet-label">拜访方式</text>
+      <picker mode="selector" range="{{planSheetVisitWayOptions}}" bindchange="onPlanSheetVisitWayChange">
+        <text class="plan-sheet-value plan-sheet-picker">{{planSheetVisitWay}} ▾</text>
+      </picker>
+    </view>
+    <view class="plan-sheet-row">
+      <text class="plan-sheet-label">计划时间</text>
+      <view class="plan-sheet-time-row">
+        <picker mode="time" value="{{planSheetTime}}" start="06:00" end="23:30" bindchange="onPlanSheetTimeChange">
+          <text class="plan-sheet-value {{planSheetTime ? '' : 'plan-sheet-placeholder'}}">{{planSheetTime || '请选择时间'}}</text>
+        </picker>
+        <view class="plan-sheet-time-clear" wx:if="{{planSheetTime}}" bindtap="onPlanSheetClearTime">
+          <text>×</text>
+        </view>
+      </view>
+    </view>
+    <view class="plan-sheet-actions">
+      <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">
+        <text class="plan-sheet-btn-text">取消</text>
+      </view>
+      <view class="plan-sheet-btn plan-sheet-btn-confirm" bindtap="onPlanSheetConfirm">
+        <text class="plan-sheet-btn-text">{{isSaving ? '保存中...' : '确认添加'}}</text>
       </view>
     </view>
   </view>

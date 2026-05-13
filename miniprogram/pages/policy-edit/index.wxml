@@ -23,6 +23,20 @@
     </picker>
   </view>
 
+  <!-- 被保险人 -->
+  <view class="section-card">
+    <view class="field-label-row">
+      <text class="field-label">被保险人</text>
+      <text class="required-mark">*</text>
+    </view>
+    <view class="picker-row" bindtap="onInsuredMemberTap">
+      <text class="picker-value {{insuredMemberId === null ? 'placeholder' : ''}}">
+        {{insuredMemberName || '请选择被保险人'}}
+      </text>
+      <text class="picker-arrow">▾</text>
+    </view>
+  </view>
+
   <!-- 产品名 -->
   <view class="section-card">
     <view class="field-label-row">
@@ -129,6 +143,63 @@
 
   <view class="save-bar">
     <button class="save-btn" disabled="{{isSaving}}" bindtap="onSave">{{isSaving ? '保存中...' : '保存'}}</button>
+  </view>
+
+  <!-- 被保险人选择弹窗 -->
+  <view class="modal-mask" wx:if="{{showMemberPicker}}" bindtap="onMemberPickerClose"></view>
+  <view class="bottom-sheet" wx:if="{{showMemberPicker}}">
+    <view class="sheet-header">
+      <text class="sheet-title">选择被保险人</text>
+      <text class="sheet-close" bindtap="onMemberPickerClose">✕</text>
+    </view>
+    <view class="member-list">
+      <view class="member-item {{item.id === insuredMemberId ? 'member-item-active' : ''}}"
+            wx:for="{{insuredMembers}}" wx:key="id"
+            data-id="{{item.id}}"
+            data-name="{{item.display_name}}"
+            bindtap="onMemberSelect">
+        <text class="member-relation">{{item.relation}}</text>
+        <text class="member-name">{{item.display_name}}</text>
+        <text class="member-check" wx:if="{{item.id === insuredMemberId}}">✓</text>
+      </view>
+    </view>
+    <view class="add-member-btn" bindtap="onAddMemberTap">
+      <text>+ 新增保障对象</text>
+    </view>
+  </view>
+
+  <!-- 新增保障对象弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddMemberSheet}}" bindtap="onAddMemberCancel"></view>
+  <view class="bottom-sheet" wx:if="{{showAddMemberSheet}}">
+    <view class="sheet-header">
+      <text class="sheet-title">新增保障对象</text>
+      <text class="sheet-close" bindtap="onAddMemberCancel">✕</text>
+    </view>
+    <view class="sheet-body">
+      <view class="field-label-row">
+        <text class="field-label">关系</text>
+        <text class="required-mark">*</text>
+      </view>
+      <view class="relation-chips">
+        <view class="relation-chip {{newMemberRelationIndex === index ? 'relation-chip-active' : ''}}"
+              wx:for="{{relationOptions}}" wx:key="*this"
+              data-index="{{index}}"
+              bindtap="onNewMemberRelationChange">
+          <text>{{item}}</text>
+        </view>
+      </view>
+      <view class="field-label-row" style="margin-top: 32rpx;">
+        <text class="field-label">显示名称</text>
+      </view>
+      <input class="text-input"
+             value="{{newMemberDisplayName}}"
+             bindinput="onNewMemberDisplayNameInput"
+             placeholder="自动生成，可修改"/>
+    </view>
+    <view class="sheet-footer">
+      <button class="sheet-cancel-btn" bindtap="onAddMemberCancel">取消</button>
+      <button class="sheet-confirm-btn" bindtap="onAddMemberConfirm">确认</button>
+    </view>
   </view>
 
 </view>

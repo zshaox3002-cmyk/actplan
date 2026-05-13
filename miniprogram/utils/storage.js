@@ -43,7 +43,7 @@ function _key(name) {
 function init() {
   if (_ready) return;
 
-  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'segment'];
+  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'segment', 'insured_member'];
 
   _tables = {};
 
@@ -67,6 +67,7 @@ function init() {
     if (!meta.derived_cache) meta.derived_cache = {};
     if (!meta.nextId.policy) meta.nextId.policy = 0;
     if (!meta.nextId.segment) meta.nextId.segment = 0;
+    if (!meta.nextId.insured_member) meta.nextId.insured_member = 0;
   }
   _tables._meta = meta;
 
@@ -314,7 +315,10 @@ function _migrate() {
  */
 function _migrateV3() {
   var meta = _tables._meta;
-  if ((meta.version || 1) >= 3) return;
+  if ((meta.version || 1) >= 3) {
+    _migrateV4();
+    return;
+  }
 
   console.log('[Storage] 执行 v1.3 数据迁移（policy 表双轴时间模型）...');
 
@@ -363,6 +367,32 @@ function _migrateV3() {
   meta.version = 3;
   wx.setStorageSync(_key('meta'), meta);
   console.log('[Storage] v1.3 迁移完成 ✓');
+
+  _migrateV4();
+}
+
+/**
+ * v1.3 → v1.4 数据迁移：policy 表补充 insured_member_id 字段
+ * 仅当 db_meta.version < 4 时执行，执行后写入 version=4
+ * @private
+ */
+function _migrateV4() {
+  var meta = _tables._meta;
+  if ((meta.version || 1) >= 4) return;
+
+  console.log('[Storage] 执行 v1.4 数据迁移（policy 表补 insured_member_id）...');
+
+  var policies = _tables.policy;
+  for (var i = 0; i < policies.length; i++) {
+    if (policies[i].insured_member_id === undefined) {
+      policies[i].insured_member_id = null;
+    }
+  }
+  wx.setStorageSync(_key('policy'), policies);
+
+  meta.version = 4;
+  wx.setStorageSync(_key('meta'), meta);
+  console.log('[Storage] v1.4 迁移完成 ✓');
 }
 
 /**

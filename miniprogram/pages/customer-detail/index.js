@@ -7,6 +7,7 @@
 
 var customerRepo = require('../../utils/repository/customer.repo');
 var policyRepo = require('../../utils/repository/policy.repo');
+var insuredMemberRepo = require('../../utils/repository/insured-member.repo');
 var recordRepo = require('../../utils/repository/record.repo');
 var planRepo = require('../../utils/repository/plan.repo');
 var objectionRepo = require('../../utils/repository/objection.repo');
@@ -17,6 +18,7 @@ var priority = require('../../utils/priority');
 var toast = require('../../utils/toast');
 var dateUtil = require('../../utils/date');
 var constants = require('../../utils/constants');
+var templates = require('../../utils/policy-templates');
 
 var STAGE_OPTIONS = ['初步认识', '需求沟通', '方案讲解', '待促成', '已成交', '已流失'];
 
@@ -139,6 +141,8 @@ Page({
     policies: [],
     derived: { policy_count: 0, total_premium: 0, avg_premium: 0, first_policy_date: '' },
     coverageStatusList: [],
+    coverageByMember: [],
+    unconfirmedPolicyCount: 0,
     referralCount: 0,
     showHistoryBackfillTip: false,
     historyDealCount: 0,
@@ -270,7 +274,17 @@ Page({
 
     // 保单列表（附带运行时计算字段）
     var rawPolicies = policyRepo.listWithComputed(id);
+
+    // 确保有默认本人保障对象（老客户补全）
+    insuredMemberRepo.ensureDefaultMember(id, customer.name);
+    var insuredMembers = insuredMemberRepo.listByCustomer(id);
+    var memberMap = {};
+    for (var mi = 0; mi < insuredMembers.length; mi++) {
+      memberMap[insuredMembers[mi].id] = insuredMembers[mi].display_name;
+    }
+
     var policies = rawPolicies.map(function (p) {
+      var memberId = p.insured_member_id !== undefined ? p.insured_member_id : null;
       return {
         id: p.id,
         productType: p.product_type,
@@ -285,16 +299,45 @@ Page({
         cardEventDate: p._card_status.eventDate,
         cardColorClass: p._card_status.colorClass,
         policyYear: p._policy_year,
-        needsCompletion: p._needs_completion
+        needsCompletion: p._needs_completion,
+        insuredMemberId: memberId,
+        insuredMemberName: memberId !== null
+          ? (memberMap[memberId] || '未知')
+          : '待确认'
       };
     });
 
-    // 保障状态列表
+    var unconfirmedPolicyCount = 0;
+    for (var ui = 0; ui < policies.length; ui++) {
+      if (policies[ui].insuredMemberId === null) unconfirmedPolicyCount++;
+    }
+
+    // 按保障对象分组计算保障状态（实时从 policy 表计算）
     var COVERAGE_KEYS = ['重疾', '医疗', '教育金', '养老', '意外', '寿险'];
-    var coverageStatus = customer.coverage_status || {};
-    var coverageStatusList = COVERAGE_KEYS.map(function (k) {
-      return { key: k, value: coverageStatus[k] || 'unknown' };
-    });
+    var memberCoverage = {};
+    for (var pi = 0; pi < rawPolicies.length; pi++) {
+      var pol = rawPolicies[pi];
+      if (pol.insured_member_id === null || pol.insured_member_id === undefined) continue;
+      if (pol.status !== 'active') continue;
+      var mid = pol.insured_member_id;
+      if (!memberCoverage[mid]) memberCoverage[mid] = {};
+      var coverageKey = templates.getCoverageKey(pol._category || pol.category || '');
+      if (coverageKey) memberCoverage[mid][coverageKey] = true;
+    }
+    var coverageByMember = insuredMembers.map(function (m) {
+      var covered = memberCoverage[m.id] || {};
+      var chips = [];
+      for (var ki = 0; ki < COVERAGE_KEYS.length; ki++) {
+        if (covered[COVERAGE_KEYS[ki]]) chips.push({ key: COVERAGE_KEYS[ki] });
+      }
+      return {
+        memberId: m.id,
+        memberName: m.display_name,
+        relation: m.relation,
+        chips: chips,
+        hasAny: chips.length > 0
+      };
+    }).filter(function (m) { return m.hasAny; });
 
     // 历史成交补录提示
     var historyDealCount = records.filter(function (r) {
@@ -361,7 +404,8 @@ Page({
         yearly_pending_display: fmtWan(customer.yearly_pending_premium || 0),
         yearly_pending_unit: fmtWanUnit(customer.yearly_pending_premium || 0)
       },
-      coverageStatusList: coverageStatusList,
+      coverageByMember: coverageByMember,
+      unconfirmedPolicyCount: unconfirmedPolicyCount,
       referralCount: customer.referral_count || 0,
       showHistoryBackfillTip: showHistoryBackfillTip,
       historyDealCount: historyDealCount
@@ -630,8 +674,8 @@ Page({
 
         // 若转介绍来源有变化则同步更新
         var originalReferralId = this.data.referralSourceCustomerId;
-        var currentCustomer = customerRepo.get(this.data.id);
-        var storedReferralId = currentCustomer ? (currentCustomer.referral_source_customer_id || null) : null;
+        var existingRelation = referralRepo.getByReferred(this.data.id);
+        var storedReferralId = existingRelation ? existingRelation.referrer_customer_id : null;
         if (originalReferralId !== storedReferralId) {
           var result = customerRepo.updateReferralSource(this.data.id, originalReferralId);
           if (!result.ok) {
@@ -881,20 +925,12 @@ Page({
     });
   },
 
-  /** 删除保单，删后回滚 coverage_status */
+  /** 删除保单 */
   _deletePolicy: function (policyId) {
     var self = this;
     var doDelete = function () {
       var result = policyRepo.remove(policyId);
       if (!result.success) return;
-      var deletedType = result.deletedPolicy.product_type;
-      var remaining = policyRepo.list(self.data.id);
-      var hasOtherOfType = remaining.some(function (p) { return p.product_type === deletedType; });
-      if (!hasOtherOfType) {
-        var statusRollback = {};
-        statusRollback[deletedType] = 'unknown';
-        customerRepo.update(self.data.id, { coverage_status: statusRollback, _forceStatus: true });
-      }
       self._loadDetail(self.data.id);
       toast.success('已删除');
     };

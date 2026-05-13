@@ -8,6 +8,7 @@ var customerRepo = require('../../utils/repository/customer.repo');
 var planRepo = require('../../utils/repository/plan.repo');
 var recordRepo = require('../../utils/repository/record.repo');
 var policyRepo = require('../../utils/repository/policy.repo');
+var referralRepo = require('../../utils/repository/referral.repo');
 var segmentRepo = require('../../utils/repository/segment.repo');
 var priority = require('../../utils/priority');
 var segment = require('../../utils/segment');
@@ -23,6 +24,7 @@ Page({
     pageState: 'loading',
     customers: [],
     keyword: '',
+    missingReferrerCustomers: [],
 
     // 视图切换器（v1.1）
     segments: [],           // [{ id, name, color, is_system }, ...]，首位为硬编码"全部"
@@ -153,6 +155,16 @@ Page({
         addSegmentDisabled: segmentRepo.getUserCount() >= segmentRepo.MAX_USER_SEGMENTS
       });
 
+      // 计算关系来源为「客户介绍」但未填写介绍人的客户
+      var missing = [];
+      for (var mi = 0; mi < allCustomers.length; mi++) {
+        var mc = allCustomers[mi];
+        if (mc.relation === '客户介绍' && !referralRepo.getByReferred(mc.id)) {
+          missing.push({ id: mc.id, name: mc.name });
+        }
+      }
+      this.setData({ missingReferrerCustomers: missing });
+
       this._applySegmentFilter();
     } catch (e) {
       this.setData({ pageState: 'error' });
@@ -196,6 +208,15 @@ Page({
       customers: filtered,
       pageState: filtered.length === 0 ? 'empty' : 'data'
     });
+  },
+
+  /**
+   * 点击缺失介绍人的客户名，跳转到详情页补填
+   * @param {Object} e
+   */
+  onMissingReferrerTap: function (e) {
+    var id = parseInt(e.currentTarget.dataset.id);
+    wx.navigateTo({ url: '/pages/customer-detail/index?id=' + id });
   },
 
   onSearchInput: function (e) {

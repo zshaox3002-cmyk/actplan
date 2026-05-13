@@ -26,3 +26,25 @@
 /* 折叠编辑区 */
 .term-edit-block { border-top: 1rpx solid var(--color-border); padding-top: var(--spacing-sm, 16rpx); margin-top: var(--spacing-sm, 16rpx); display: flex; flex-direction: column; gap: 16rpx; }
 .term-value-input { margin-top: 12rpx; }
+
+/* 被保险人弹窗 */
+.modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; }
+.bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: var(--radius-card) var(--radius-card) 0 0; z-index: 101; padding-bottom: env(safe-area-inset-bottom); }
+.sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 32rpx var(--spacing-page) 24rpx; border-bottom: 1rpx solid var(--color-border); }
+.sheet-title { font-size: 30rpx; font-weight: 500; color: var(--color-text-primary); }
+.sheet-close { font-size: 28rpx; color: var(--color-text-secondary); padding: 8rpx; }
+.member-list { max-height: 480rpx; overflow-y: auto; }
+.member-item { display: flex; align-items: center; padding: 28rpx var(--spacing-page); border-bottom: 1rpx solid var(--color-border); }
+.member-item:last-child { border-bottom: none; }
+.member-item-active { background: var(--color-primary-light); }
+.member-relation { font-size: 24rpx; color: var(--color-text-secondary); margin-right: 12rpx; min-width: 60rpx; }
+.member-name { flex: 1; font-size: 28rpx; color: var(--color-text-primary); }
+.member-check { font-size: 28rpx; color: var(--color-primary); font-weight: 600; }
+.add-member-btn { padding: 28rpx var(--spacing-page); text-align: center; font-size: 28rpx; color: var(--color-primary); border-top: 1rpx solid var(--color-border); }
+.relation-chips { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 8rpx 0; }
+.relation-chip { padding: 10rpx 24rpx; border-radius: 32rpx; border: 1rpx solid var(--color-border); font-size: 26rpx; color: var(--color-text-secondary); }
+.relation-chip-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.sheet-body { padding: 32rpx var(--spacing-page); }
+.sheet-footer { display: flex; gap: 24rpx; padding: 24rpx var(--spacing-page); border-top: 1rpx solid var(--color-border); }
+.sheet-cancel-btn { flex: 1; background: var(--color-bg-muted); color: var(--color-text-secondary); border-radius: var(--radius-btn); font-size: 28rpx; }
+.sheet-confirm-btn { flex: 1; background: var(--color-primary); color: #fff; border-radius: var(--radius-btn); font-size: 28rpx; }

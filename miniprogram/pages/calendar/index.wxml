@@ -1,12 +1,4 @@
 <view class="calendar-page">
-  <!-- 顶部：视图切换 -->
-  <view class="view-toggle">
-    <view class="toggle-pill">
-      <view class="toggle-item {{viewMode === 'week' ? 'active' : ''}}" bindtap="onToggleView" data-mode="week">周视图</view>
-      <view class="toggle-item {{viewMode === 'month' ? 'active' : ''}}" bindtap="onToggleView" data-mode="month">月视图</view>
-    </view>
-  </view>
-
   <!-- 日历区域 -->
   <view class="calendar-container">
     <!-- 导航栏 -->
@@ -16,19 +8,8 @@
       <view class="nav-btn" bindtap="onNextPage">▶</view>
     </view>
 
-    <!-- 周视图 -->
-    <view wx:if="{{viewMode === 'week'}}" class="week-view">
-      <view class="week-row">
-        <view wx:for="{{weekDays}}" wx:key="date" class="day-cell {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" bindtap="onDateTap" data-date="{{item.date}}">
-          <view class="day-label">{{item.weekday}}</view>
-          <view class="day-number">{{item.day}}</view>
-          <view wx:if="{{item.isMarked}}" class="day-mark"></view>
-        </view>
-      </view>
-    </view>
-
     <!-- 月视图 -->
-    <view wx:if="{{viewMode === 'month'}}" class="month-view">
+    <view class="month-view">
       <view class="month-header">
         <view class="weekday-label">一</view>
         <view class="weekday-label">二</view>

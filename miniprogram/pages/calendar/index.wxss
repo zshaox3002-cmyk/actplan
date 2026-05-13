@@ -7,37 +7,6 @@
   background-color: var(--color-bg-page);
 }
 
-/* 视图切换 */
-.view-toggle {
-  padding: 16rpx 32rpx;
-  background-color: var(--color-bg-card);
-  border-bottom: 1rpx solid var(--color-border);
-}
-
-.toggle-pill {
-  display: flex;
-  gap: 12rpx;
-  background-color: var(--color-tab-bg);
-  border-radius: var(--radius-tab);
-  padding: 4rpx;
-}
-
-.toggle-item {
-  flex: 1;
-  padding: 12rpx 24rpx;
-  text-align: center;
-  font-size: 26rpx;
-  color: var(--color-tab-inactive-text);
-  border-radius: var(--radius-tab-item);
-  transition: all 0.2s ease;
-}
-
-.toggle-item.active {
-  background-color: var(--color-tab-active-bg);
-  color: var(--color-tab-active-text);
-  font-weight: 500;
-}
-
 /* 日历容器 */
 .calendar-container {
   flex-shrink: 0;
@@ -68,66 +37,6 @@
   font-size: 28rpx;
   font-weight: 500;
   color: var(--color-text-primary);
-}
-
-/* 周视图 */
-.week-view {
-  width: 100%;
-}
-
-.week-row {
-  display: flex;
-  gap: 8rpx;
-  justify-content: space-between;
-}
-
-.day-cell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
-  padding: 8rpx;
-  border-radius: 8rpx;
-  background-color: transparent;
-  transition: all 0.2s ease;
-  position: relative;
-  min-height: 60rpx;
-  justify-content: center;
-}
-
-.day-cell.selected {
-  background-color: var(--color-primary);
-  border-radius: 50%;
-}
-
-.day-cell.selected .day-number {
-  color: #FFFFFF;
-}
-
-.day-cell.today {
-  border: 2rpx solid var(--color-primary);
-}
-
-.day-label {
-  font-size: 20rpx;
-  color: var(--color-text-secondary);
-  margin-bottom: 4rpx;
-}
-
-.day-number {
-  font-size: 24rpx;
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-
-.day-mark {
-  width: 4rpx;
-  height: 4rpx;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  position: absolute;
-  bottom: 4rpx;
 }
 
 /* 月视图 */
@@ -192,10 +101,14 @@
 }
 
 .cell-mark {
-  width: 4rpx;
-  height: 4rpx;
-  border-radius: 50%;
+  width: 16rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
   background-color: var(--color-primary);
+}
+
+.month-cell.selected .cell-mark {
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 /* 事件列表 */

@@ -997,3 +997,16 @@
 .modal-item-stage {
   font-size: var(--font-size-helper);
 }
+
+/* ---- 保单被保险人行 ---- */
+.policy-insured-row { display: flex; align-items: center; margin: 4rpx 0 6rpx; }
+.policy-insured-label { font-size: var(--font-size-helper); color: var(--color-text-placeholder); }
+.policy-insured-name { font-size: var(--font-size-helper); color: var(--color-text-secondary); }
+.policy-insured-unconfirmed { color: var(--color-warning); }
+
+/* ---- 保障状态按保障对象分组 ---- */
+.coverage-member-group { padding: 16rpx 0; border-bottom: 1rpx solid var(--color-border); }
+.coverage-member-group:last-child { border-bottom: none; }
+.coverage-member-header { margin-bottom: 12rpx; }
+.coverage-member-name { font-size: 26rpx; font-weight: 500; color: var(--color-text-primary); }
+.coverage-member-chips { display: flex; flex-wrap: wrap; gap: 12rpx; }

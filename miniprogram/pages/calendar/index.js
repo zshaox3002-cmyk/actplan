@@ -26,11 +26,9 @@ function safeDecodeURIComponent(str) {
 
 Page({
   data: {
-    viewMode: 'week',           // 'week' | 'month'
     anchorDate: '',             // 当前锚点日期
     selectedDate: '',           // 选中的日期
     yearMonth: '',              // 年月显示（YYYY-MM）
-    weekDays: [],               // 周视图数据
     monthDays: [],              // 月视图数据
     events: [],                 // 选中日期的事件列表
     loading: true
@@ -106,22 +104,14 @@ Page({
   },
 
   /**
-   * 根据 viewMode 和 anchorDate 刷新日历视图
+   * 根据 anchorDate 刷新月视图
    */
   _refreshCalendarView: function () {
     var anchorDate = this.data.anchorDate;
-    var viewMode = this.data.viewMode;
-    var yearMonth = anchorDate.substring(0, 7);  // 提取 YYYY-MM
-
-    if (viewMode === 'week') {
-      var weekDays = dateUtil.getWeekDays(anchorDate);
-      weekDays = this._buildDaysWithMarks(weekDays);
-      this.setData({ weekDays: weekDays, yearMonth: yearMonth });
-    } else {
-      var monthDays = dateUtil.getMonthDays(anchorDate);
-      monthDays = this._buildDaysWithMarks(monthDays);
-      this.setData({ monthDays: monthDays, yearMonth: yearMonth });
-    }
+    var yearMonth = anchorDate.substring(0, 7);
+    var monthDays = dateUtil.getMonthDays(anchorDate);
+    monthDays = this._buildDaysWithMarks(monthDays);
+    this.setData({ monthDays: monthDays, yearMonth: yearMonth });
   },
 
   /**
@@ -244,28 +234,10 @@ Page({
   },
 
   /**
-   * 切换视图模式
-   */
-  onToggleView: function (e) {
-    var mode = e.currentTarget.dataset.mode;
-    if (mode === this.data.viewMode) return;
-
-    var self = this;
-    this.setData({ viewMode: mode }, function () {
-      self._loadData();
-    });
-  },
-
-  /**
-   * 前翻页
+   * 前翻一个月
    */
   onPrevPage: function () {
-    var anchorDate = this.data.anchorDate;
-    var viewMode = this.data.viewMode;
-    var newAnchor = viewMode === 'week'
-      ? dateUtil.shiftWeek(anchorDate, -1)
-      : dateUtil.shiftMonth(anchorDate, -1);
-
+    var newAnchor = dateUtil.shiftMonth(this.data.anchorDate, -1);
     var self = this;
     this.setData({ anchorDate: newAnchor }, function () {
       self._loadData();
@@ -273,15 +245,10 @@ Page({
   },
 
   /**
-   * 后翻页
+   * 后翻一个月
    */
   onNextPage: function () {
-    var anchorDate = this.data.anchorDate;
-    var viewMode = this.data.viewMode;
-    var newAnchor = viewMode === 'week'
-      ? dateUtil.shiftWeek(anchorDate, 1)
-      : dateUtil.shiftMonth(anchorDate, 1);
-
+    var newAnchor = dateUtil.shiftMonth(this.data.anchorDate, 1);
     var self = this;
     this.setData({ anchorDate: newAnchor }, function () {
       self._loadData();

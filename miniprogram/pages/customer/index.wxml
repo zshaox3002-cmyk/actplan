@@ -45,6 +45,25 @@
   <!-- 视图编辑提示 -->
   <text class="chip-hint" wx:if="{{segments.length > 0}}">长按视图可编辑规则</text>
 
+  <!-- 介绍人未填写提示 -->
+  <view wx:if="{{missingReferrerCustomers.length > 0}}" class="referrer-tip-card">
+    <view class="referrer-tip-header">
+      <view class="referrer-tip-title">数据待完善</view>
+      <view class="referrer-tip-count">{{missingReferrerCustomers.length}} 位客户</view>
+    </view>
+    <view class="referrer-tip-desc">以下客户关系来源为「客户介绍」，但尚未填写介绍人：</view>
+    <view class="referrer-tip-list">
+      <text
+        wx:for="{{missingReferrerCustomers}}"
+        wx:key="id"
+        class="referrer-tip-item"
+        data-id="{{item.id}}"
+        bindtap="onMissingReferrerTap"
+      >· {{item.name}}</text>
+    </view>
+    <view class="referrer-tip-hint">点击客户名可前往详情页补填介绍人信息</view>
+  </view>
+
   <!-- 加载态 -->
   <skeleton wx:if="{{pageState === 'loading'}}" rows="{{5}}" />
 

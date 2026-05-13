@@ -310,6 +310,10 @@
                   <text>{{item.productType}}</text>
                 </view>
               </view>
+              <view class="policy-insured-row">
+                <text class="policy-insured-label">被保险人：</text>
+                <text class="policy-insured-name {{item.insuredMemberId === null ? 'policy-insured-unconfirmed' : ''}}">{{item.insuredMemberName}}</text>
+              </view>
               <view class="policy-summary-row" wx:if="{{item.policySummary}}">
                 <text class="policy-summary-text">{{item.policySummary}}</text>
               </view>
@@ -349,15 +353,25 @@
       <view class="section-card" wx:if="{{!isNew}}">
         <view class="section-header">
           <text class="section-title">保障状态</text>
-          <text class="section-hint">点击切换（已配置不可改）</text>
+          <text class="section-hint">按被保险人统计</text>
         </view>
-        <view class="coverage-status-grid">
-          <view class="coverage-chip coverage-chip-{{item.value}} {{item.value === 'configured' ? 'coverage-chip-disabled' : ''}}"
-                wx:for="{{coverageStatusList}}" wx:key="key"
-                data-key="{{item.key}}"
-                bindtap="onCoverageStatusChange">
-            <text class="coverage-chip-key">{{item.key}}</text>
-            <text class="coverage-chip-val">{{item.value === 'configured' ? '已配置' : item.value === 'gap' ? '有缺口' : item.value === 'none' ? '不需要' : '未知'}}</text>
+
+        <view wx:if="{{coverageByMember.length === 0}}" class="empty-hint">
+          <text>暂无有效保单数据</text>
+        </view>
+
+        <view wx:else>
+          <view class="coverage-member-group" wx:for="{{coverageByMember}}" wx:key="memberId">
+            <view class="coverage-member-header">
+              <text class="coverage-member-name">{{item.memberName}}</text>
+            </view>
+            <view class="coverage-member-chips">
+              <view class="coverage-chip coverage-chip-configured"
+                    wx:for="{{item.chips}}" wx:for-item="chip" wx:key="key">
+                <text class="coverage-chip-key">{{chip.key}}</text>
+                <text class="coverage-chip-val">已配置</text>
+              </view>
+            </view>
           </view>
         </view>
       </view>

@@ -37,6 +37,7 @@ page {
   --color-warning: #D46B08;
   --color-warning-light: #FFF7E6;
   --color-caution: #CA8A04;
+  --color-star: #FAAD14;
   --color-danger: #EF4444;
   --color-danger-light: #FEE2E2;
 
