@@ -429,7 +429,92 @@ function classifyCustomers(customers, records, plans, objectionNotes, today, pol
   return { shouldAdvance: shouldAdvance, breakRisk: breakRisk, stuck: stuck };
 }
 
+/**
+ * 返回每个客户的节奏标签（扁平数组）
+ * 复用 _matchStuck / _matchBreakRisk / _matchShouldAdvance，优先级：stuck > break_risk > should_advance
+ * @param {Array} customers
+ * @param {Array} records
+ * @param {Array} plans
+ * @param {Array} objectionNotes
+ * @param {string} today - 'YYYY-MM-DD'
+ * @param {Array} [policies]
+ * @returns {Array<{ customer_id, rhythm_tag, reason, detail }>}
+ *   rhythm_tag: 'break_risk'|'stuck'|'should_advance'|'normal'
+ */
+function tagCustomers(customers, records, plans, objectionNotes, today, policies) {
+  var recordIndex = _buildIndex(records);
+  var planIndex = _buildIndex(plans);
+  var noteIndex = _buildIndex(objectionNotes);
+
+  var premiumIndex = {};
+  var policyList = policies || [];
+  for (var pi = 0; pi < policyList.length; pi++) {
+    var pol = policyList[pi];
+    premiumIndex[pol.customer_id] = (premiumIndex[pol.customer_id] || 0) + (pol.premium || 0);
+  }
+
+  var result = [];
+  for (var i = 0; i < customers.length; i++) {
+    var c = customers[i];
+    if (c.stage === constants.STAGE.DEAL || c.stage === constants.STAGE.LOST) {
+      result.push({ customer_id: c.id, rhythm_tag: 'normal', reason: '', detail: '' });
+      continue;
+    }
+
+    var cRecords = recordIndex[c.id] || [];
+    var cPlans = planIndex[c.id] || [];
+    var cNotes = noteIndex[c.id] || [];
+
+    var lastActionDate = _calcLastActionDate(c, cRecords);
+    if (!lastActionDate) {
+      result.push({ customer_id: c.id, rhythm_tag: 'normal', reason: '', detail: '' });
+      continue;
+    }
+
+    var stageDateStr = _truncateDate(c.stage_updated_at) || _truncateDate(c.created_at);
+    var stageDays = stageDateStr ? dateUtil.daysBetween(today, stageDateStr) : 0;
+    var daysSinceLastAction = dateUtil.daysBetween(today, lastActionDate);
+
+    var derived = {
+      stageDays: stageDays,
+      daysSinceLastAction: daysSinceLastAction,
+      lastCommResult: _getLastCommResult(cRecords),
+      hasUnresolvedObjection: _hasUnresolvedObjection(cNotes),
+      hasFuturePlan: _hasFuturePlan(cPlans, today),
+      hasRecentSmooth: _hasRecentSmooth(cRecords, today, RHYTHM_RULE_CONFIG.positiveSmoothDays),
+      hasStageAdvance: _hasStageAdvance(cRecords, today, RHYTHM_RULE_CONFIG.positiveStageAdvanceDays)
+    };
+
+    var stuckResult = _matchStuck(c, derived);
+    if (stuckResult) {
+      var stuckReason = stuckResult.primaryReason ? stuckResult.primaryReason.text : '卡点待处理';
+      var stuckDetail = stuckResult.primaryReason ? stuckResult.primaryReason.evidence : '';
+      result.push({ customer_id: c.id, rhythm_tag: 'stuck', reason: stuckReason, detail: stuckDetail });
+      continue;
+    }
+
+    var breakResult = _matchBreakRisk(c, derived);
+    if (breakResult) {
+      var breakReason = '已 ' + breakResult.daysSinceLastAction + ' 天未联系';
+      var breakDetail = c.stage + '阶段，跟进阈值 ' + breakResult.followThreshold + ' 天，已超 ' + breakResult.overdueDays + ' 天';
+      result.push({ customer_id: c.id, rhythm_tag: 'break_risk', reason: breakReason, detail: breakDetail });
+      continue;
+    }
+
+    var advanceResult = _matchShouldAdvance(c, derived);
+    if (advanceResult) {
+      result.push({ customer_id: c.id, rhythm_tag: 'should_advance', reason: advanceResult.text, detail: '' });
+      continue;
+    }
+
+    result.push({ customer_id: c.id, rhythm_tag: 'normal', reason: '', detail: '' });
+  }
+
+  return result;
+}
+
 module.exports = {
   classifyCustomers: classifyCustomers,
+  tagCustomers: tagCustomers,
   RHYTHM_RULE_CONFIG: RHYTHM_RULE_CONFIG
 };

@@ -252,6 +252,7 @@
 .plan-sheet-picker { color: var(--color-primary); }
 .plan-sheet-placeholder { color: var(--color-text-placeholder); }
 .plan-sheet-time-row { display: flex; align-items: center; }
+.plan-sheet-datetime-row { display: flex; align-items: center; gap: 16rpx; }
 .plan-sheet-time-clear {
   margin-left: 16rpx;
   padding: 4rpx 16rpx;
@@ -261,6 +262,50 @@
   border-radius: var(--radius-badge);
 }
 .plan-sheet-time-clear:active { background: var(--color-border); }
+.plan-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 24rpx;
+}
+.plan-sheet-close {
+  position: absolute;
+  right: 0;
+  font-size: 40rpx;
+  color: var(--color-text-secondary);
+  line-height: 1;
+  padding: 0 4rpx;
+}
+.plan-sheet-field { margin-bottom: 16rpx; }
+.plan-sheet-chips { display: flex; gap: 12rpx; }
+.plan-sheet-chip {
+  padding: 8rpx 24rpx;
+  border-radius: var(--radius-badge);
+  border: 1rpx solid var(--color-border);
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+.plan-sheet-chip.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.plan-sheet-goal-header { display: flex; justify-content: space-between; align-items: center; }
+.plan-sheet-goal-count { font-size: 22rpx; color: var(--color-text-placeholder); }
+.plan-sheet-goal-input {
+  width: 100%;
+  min-height: 80rpx;
+  margin-top: 12rpx;
+  padding: 16rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  box-sizing: border-box;
+  line-height: 1.6;
+}
 .plan-sheet-actions { display: flex; gap: 12px; margin-top: 20px; }
 .plan-sheet-btn {
   flex: 1;

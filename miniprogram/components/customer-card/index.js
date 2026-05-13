@@ -5,7 +5,8 @@
  */
 Component({
   properties: {
-    customer: { type: Object, value: {} }
+    customer: { type: Object, value: {} },
+    viewContext: { type: String, value: 'default' }
   },
 
   data: {

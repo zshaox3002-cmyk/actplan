@@ -162,7 +162,8 @@ Page({
     planSheetDate: '',
     planSheetTime: '',
     planSheetVisitWay: '面对面',
-    planSheetVisitWayOptions: [],
+    planSheetGoal: '',
+    visitWayOptions: ['面对面', '电话', '微信'],
 
     // 保存防重复
     isSaving: false
@@ -217,14 +218,20 @@ Page({
       : '未安排';
 
     // 沟通时间线
+    var planMap = {};
+    for (var pi = 0; pi < allPlans.length; pi++) {
+      planMap[allPlans[pi].id] = allPlans[pi];
+    }
     var records = recordRepo.listByCustomer(id);
     var timeline = records.map(function (r) {
+      var linkedPlan = (r.plan_id !== null && r.plan_id !== undefined) ? planMap[r.plan_id] : null;
       return {
         id: r.id,
         date: r.visit_date,
         time: r.visit_time || '',
         type: r.record_type || 'planned',
         way: r.visit_way ? safeDecodeWay(r.visit_way) : '',
+        goal: linkedPlan && linkedPlan.goal ? linkedPlan.goal : '',
         summary: r.summary || '',
         stageChange: r.stage || '',
         nextDate: r.next_follow_date || ''
@@ -458,7 +465,7 @@ Page({
       planSheetDate: dateUtil.today(),
       planSheetTime: '',
       planSheetVisitWay: '面对面',
-      planSheetVisitWayOptions: constants.VISIT_WAY_OPTIONS
+      planSheetGoal: ''
     });
   },
 
@@ -472,17 +479,20 @@ Page({
     this.setData({ planSheetTime: e.detail.value });
   },
 
-  /** @param {Object} e */
-  onPlanSheetVisitWayChange: function (e) {
-    this.setData({ planSheetVisitWay: constants.VISIT_WAY_OPTIONS[e.detail.value] });
-  },
-
   onPlanSheetClearTime: function () {
     this.setData({ planSheetTime: '' });
   },
 
   onPlanSheetCancel: function () {
     this.setData({ showPlanSheet: false });
+  },
+
+  onPlanSheetWayChange: function (e) {
+    this.setData({ planSheetVisitWay: e.currentTarget.dataset.way });
+  },
+
+  onPlanSheetGoalInput: function (e) {
+    this.setData({ planSheetGoal: e.detail.value });
   },
 
   onPlanSheetConfirm: function () {
@@ -495,7 +505,8 @@ Page({
         planRepo.update(d.planSheetPlanId, {
           plan_date: d.planSheetDate,
           plan_time: d.planSheetTime || null,
-          visit_way: d.planSheetVisitWay
+          visit_way: d.planSheetVisitWay,
+          goal: d.planSheetGoal || ''
         });
         toast.success('已保存');
       } else {
@@ -507,7 +518,8 @@ Page({
           customer_id: d.id,
           plan_date: d.planSheetDate,
           plan_time: d.planSheetTime,
-          visit_way: d.planSheetVisitWay
+          visit_way: d.planSheetVisitWay,
+          goal: d.planSheetGoal || ''
         });
         if (result.conflict) {
           toast.fail('该客户当日已有计划');
@@ -851,7 +863,8 @@ Page({
            '&plan_id=' + plan.id +
            '&plan_date=' + plan.plan_date +
            '&plan_time=' + (plan.plan_time || '') +
-           '&visit_way=' + encodeURIComponent(plan.visit_way || '面对面')
+           '&visit_way=' + encodeURIComponent(plan.visit_way || '面对面') +
+           '&plan_goal=' + encodeURIComponent(plan.goal || '')
     });
   },
 
@@ -867,7 +880,7 @@ Page({
       planSheetDate: plan.plan_date,
       planSheetTime: plan.plan_time || '',
       planSheetVisitWay: plan.visit_way || '面对面',
-      planSheetVisitWayOptions: constants.VISIT_WAY_OPTIONS
+      planSheetGoal: plan.goal || ''
     });
   },
 

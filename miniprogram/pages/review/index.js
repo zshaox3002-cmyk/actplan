@@ -108,8 +108,9 @@ Page({
     return [
       card('拜访', current.visitCount, previous.visitCount),
       card('新客', current.newCustomers, previous.newCustomers),
+      card('预约', current.appointmentCount, previous.appointmentCount),
       card('推进', current.stageAdvances, previous.stageAdvances),
-      card('成交', current.dealCount, previous.dealCount)
+      card('成交单量', current.dealPolicyCount, previous.dealPolicyCount)
     ];
   },
 
@@ -121,6 +122,7 @@ Page({
       customer: storage.getTable('customer'),
       visit_record: storage.getTable('visit_record'),
       plan: storage.getTable('plan'),
+      policy: storage.getTable('policy'),
       objection: storage.getTable('objection'),
       objection_note: storage.getTable('objection_note'),
       operation_log: storage.getTable('operation_log')

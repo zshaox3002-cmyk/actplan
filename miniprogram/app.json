@@ -50,7 +50,7 @@
     "list": [
       {
         "pagePath": "pages/dashboard/index",
-        "text": "概览",
+        "text": "行动",
         "iconPath": "images/icons/dashboard.png",
         "selectedIconPath": "images/icons/dashboard-active.png"
       },
@@ -65,12 +65,6 @@
         "text": "日历",
         "iconPath": "images/icons/calendar.png",
         "selectedIconPath": "images/icons/calendar-active.png"
-      },
-      {
-        "pagePath": "pages/rhythm/index",
-        "text": "节奏",
-        "iconPath": "images/icons/plan.png",
-        "selectedIconPath": "images/icons/plan-active.png"
       },
       {
         "pagePath": "pages/review/index",

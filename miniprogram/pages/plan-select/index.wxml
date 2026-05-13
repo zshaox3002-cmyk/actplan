@@ -69,6 +69,20 @@
         </view>
       </view>
 
+      <view class="confirm-info">
+        <view class="confirm-label-row">
+          <text class="confirm-label">拜访目标</text>
+          <text class="confirm-goal-count">{{planGoal.length}}/20</text>
+        </view>
+        <textarea class="confirm-goal-input"
+          placeholder="请输入本次拜访目标（选填）..."
+          placeholder-class="placeholder"
+          value="{{planGoal}}"
+          maxlength="20"
+          bindinput="onPlanGoalInput"
+          auto-height/>
+      </view>
+
       <view class="confirm-actions">
         <view class="action-btn btn-cancel" bindtap="onCancelSelect">
           <text class="btn-text">取消</text>

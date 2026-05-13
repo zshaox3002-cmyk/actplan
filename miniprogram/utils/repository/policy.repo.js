@@ -251,8 +251,19 @@ function _invalidateDerivedCache(customerId) {
   }
 }
 
+/**
+ * 获取全量保单，按 effective_date 降序
+ * @returns {Array<Object>}
+ */
+function listAll() {
+  return storage.getTable('policy').slice().sort(function (a, b) {
+    return (b.effective_date || '').localeCompare(a.effective_date || '');
+  });
+}
+
 module.exports = {
   list: list,
+  listAll: listAll,
   listWithComputed: listWithComputed,
   create: create,
   update: update,

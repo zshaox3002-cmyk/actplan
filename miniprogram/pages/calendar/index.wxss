@@ -240,6 +240,12 @@
   font-size: 24rpx;
   color: var(--color-text-secondary);
 }
+.event-goal {
+  font-size: 26rpx;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  display: block;
+}
 
 /* 右栏：状态 */
 .event-status-area {

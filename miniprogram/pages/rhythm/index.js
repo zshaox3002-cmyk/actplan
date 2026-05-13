@@ -38,7 +38,8 @@ Page({
     planSheetDate: '',
     planSheetTime: '',
     planSheetVisitWay: '面对面',
-    planSheetVisitWayOptions: [],
+    planSheetGoal: '',
+    visitWayOptions: ['面对面', '电话', '微信'],
     isSaving: false
   },
 
@@ -196,7 +197,7 @@ Page({
       planSheetDate: dateUtil.today(),
       planSheetTime: '',
       planSheetVisitWay: '面对面',
-      planSheetVisitWayOptions: constants.VISIT_WAY_OPTIONS
+      planSheetGoal: ''
     });
   },
 
@@ -208,16 +209,20 @@ Page({
     this.setData({ planSheetTime: e.detail.value });
   },
 
-  onPlanSheetVisitWayChange: function (e) {
-    this.setData({ planSheetVisitWay: constants.VISIT_WAY_OPTIONS[e.detail.value] });
-  },
-
   onPlanSheetClearTime: function () {
     this.setData({ planSheetTime: '' });
   },
 
   onPlanSheetCancel: function () {
     this.setData({ showPlanSheet: false });
+  },
+
+  onPlanSheetWayChange: function (e) {
+    this.setData({ planSheetVisitWay: e.currentTarget.dataset.way });
+  },
+
+  onPlanSheetGoalInput: function (e) {
+    this.setData({ planSheetGoal: e.detail.value });
   },
 
   onPlanSheetConfirm: function () {
@@ -233,7 +238,8 @@ Page({
         customer_id: d.planSheetCustomerId,
         plan_date: d.planSheetDate,
         plan_time: d.planSheetTime,
-        visit_way: d.planSheetVisitWay
+        visit_way: d.planSheetVisitWay,
+        goal: d.planSheetGoal || ''
       });
       if (result.conflict) {
         toast.fail('该客户当日已有计划');

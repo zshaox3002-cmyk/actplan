@@ -193,6 +193,7 @@ Page({
         stage: customer.stage,
         stageClass: constants.STAGE_CLASS_MAP[customer.stage] || '',
         visitWay: safeDecodeURIComponent(plan.visit_way) || '',
+        goal: plan.goal || '',
         status: status,
         statusText: status === 'completed' ? '已完成' : (status === 'overdue' ? '逾期' : '待执行'),
         statusColor: status === 'completed' ? '#10B981' : (status === 'overdue' ? '#EF4444' : '#2563EB')

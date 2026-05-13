@@ -43,7 +43,7 @@ function _key(name) {
 function init() {
   if (_ready) return;
 
-  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'segment', 'insured_member'];
+  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'segment', 'insured_member', 'task_dismiss'];
 
   _tables = {};
 
@@ -68,6 +68,7 @@ function init() {
     if (!meta.nextId.policy) meta.nextId.policy = 0;
     if (!meta.nextId.segment) meta.nextId.segment = 0;
     if (!meta.nextId.insured_member) meta.nextId.insured_member = 0;
+    if (!meta.nextId.task_dismiss) meta.nextId.task_dismiss = 0;
   }
   _tables._meta = meta;
 
@@ -192,12 +193,21 @@ function setCloudSync(module) {
  * @private
  */
 function _migrate() {
+  _migrateV2();
+  _migrateV3();
+  _migrateV4();
+  _migrateV5();
+  _migrateV6();
+}
+
+/**
+ * v1.0 → v1.1 数据迁移
+ * 仅当 db_meta.version < 2 时执行，执行后写入 version=2
+ * @private
+ */
+function _migrateV2() {
   var meta = _tables._meta;
-  // 如果已经是 v2 或以上，直接跳到后续迁移
-  if ((meta.version || 1) >= 2) {
-    _migrateV3();
-    return;
-  }
+  if ((meta.version || 1) >= 2) return;
 
   console.log('[Storage] 执行 v1.1 数据迁移...');
 
@@ -303,9 +313,6 @@ function _migrate() {
   meta.version = 2;
   wx.setStorageSync(_key('meta'), meta);
   console.log('[Storage] v1.1 迁移完成 ✓');
-
-  // v1.2 → v1.3 迁移紧接执行（version 已设为 2，_migrateV3 会继续检查）
-  _migrateV3();
 }
 
 /**
@@ -315,10 +322,7 @@ function _migrate() {
  */
 function _migrateV3() {
   var meta = _tables._meta;
-  if ((meta.version || 1) >= 3) {
-    _migrateV4();
-    return;
-  }
+  if ((meta.version || 1) >= 3) return;
 
   console.log('[Storage] 执行 v1.3 数据迁移（policy 表双轴时间模型）...');
 
@@ -367,8 +371,6 @@ function _migrateV3() {
   meta.version = 3;
   wx.setStorageSync(_key('meta'), meta);
   console.log('[Storage] v1.3 迁移完成 ✓');
-
-  _migrateV4();
 }
 
 /**
@@ -396,7 +398,106 @@ function _migrateV4() {
 }
 
 /**
- * 获取 meta 数据（直接引用，不深拷贝）
+ * v1.4 → v1.5 数据迁移：新增 task_dismiss 表 + 节奏预设视图
+ * 仅当 db_meta.version < 5 时执行，执行后写入 version=5
+ * @private
+ */
+function _migrateV5() {
+  var meta = _tables._meta;
+  if ((meta.version || 1) >= 5) return;
+
+  console.log('[Storage] 执行 v1.5 数据迁移（task_dismiss 表 + 节奏预设视图）...');
+
+  // 1. 初始化 task_dismiss 表
+  if (!_tables.task_dismiss) {
+    _tables.task_dismiss = [];
+    wx.setStorageSync(_key('task_dismiss'), []);
+  }
+
+  // 2. 在 db_segment 前插两条节奏预设（幂等：检查 rhythm_preset 字段）
+  var segments = _tables.segment;
+  var hasRhythmPresets = false;
+  for (var i = 0; i < segments.length; i++) {
+    if (segments[i].rhythm_preset) { hasRhythmPresets = true; break; }
+  }
+
+  if (!hasRhythmPresets) {
+    var now = Date.now();
+    var presets = [
+      {
+        id: meta.nextId.segment++,
+        name: '需关注',
+        color: null,
+        is_system: true,
+        rhythm_preset: 'attention',
+        rules: {
+          version: 1,
+          match: 'OR',
+          rules: [
+            { field: 'rhythm_tag', op: 'eq', value: 'break_risk' },
+            { field: 'rhythm_tag', op: 'eq', value: 'stuck' }
+          ]
+        },
+        sort: { field: 'stage_days', order: 'desc' },
+        created_at: now,
+        updated_at: now
+      },
+      {
+        id: meta.nextId.segment++,
+        name: '正向推进',
+        color: null,
+        is_system: true,
+        rhythm_preset: 'advancing',
+        rules: {
+          version: 1,
+          match: 'AND',
+          rules: [
+            { field: 'rhythm_tag', op: 'eq', value: 'should_advance' }
+          ]
+        },
+        sort: { field: 'days_since_last_visit', order: 'asc' },
+        created_at: now,
+        updated_at: now
+      }
+    ];
+    // 前插到现有 segment 列表
+    _tables.segment = presets.concat(segments);
+    wx.setStorageSync(_key('segment'), _tables.segment);
+  }
+
+  meta.version = 5;
+  wx.setStorageSync(_key('meta'), meta);
+  console.log('[Storage] v1.5 迁移完成 ✓');
+}
+
+/**
+ * v1.5 → v1.6 数据迁移：移除旧系统预设视图（沉睡金子/重要客户/高价值缺口）
+ * 仅保留带 rhythm_preset 字段的系统预设和用户自建视图
+ * @private
+ */
+function _migrateV6() {
+  var meta = _tables._meta;
+  if ((meta.version || 1) >= 6) return;
+
+  console.log('[Storage] 执行 v1.6 数据迁移（移除旧系统预设视图）...');
+
+  var segments = _tables.segment;
+  var filtered = segments.filter(function (s) {
+    // 保留：用户自建视图 或 带 rhythm_preset 的系统预设
+    return !s.is_system || s.rhythm_preset;
+  });
+
+  if (filtered.length !== segments.length) {
+    _tables.segment = filtered;
+    wx.setStorageSync(_key('segment'), filtered);
+  }
+
+  meta.version = 6;
+  wx.setStorageSync(_key('meta'), meta);
+  console.log('[Storage] v1.6 迁移完成 ✓');
+}
+
+/**
  * @returns {Object} meta 对象
  */
 function getMeta() {

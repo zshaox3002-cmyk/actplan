@@ -97,6 +97,7 @@ function create(data) {
     plan_date: data.plan_date,
     plan_time: data.plan_time || null,
     visit_way: data.visit_way || constants.VISIT_WAY.FACE,
+    goal: data.goal || '',
     status: constants.PLAN_STATUS.PENDING,
     created_at: now
   };
@@ -108,9 +109,9 @@ function create(data) {
 }
 
 /**
- * 更新计划的可编辑字段（plan_date, plan_time, visit_way）
+ * 更新计划的可编辑字段（plan_date, plan_time, visit_way, goal）
  * @param {number} planId
- * @param {{ plan_date?: string, plan_time?: string|null, visit_way?: string }} fields
+ * @param {{ plan_date?: string, plan_time?: string|null, visit_way?: string, goal?: string }} fields
  * @returns {boolean}
  */
 function update(planId, fields) {
@@ -121,6 +122,7 @@ function update(planId, fields) {
       if (fields.plan_date !== undefined) all[i].plan_date = fields.plan_date;
       if (fields.plan_time !== undefined) all[i].plan_time = fields.plan_time;
       if (fields.visit_way !== undefined) all[i].visit_way = fields.visit_way;
+      if (fields.goal !== undefined) all[i].goal = fields.goal;
       found = true;
       break;
     }

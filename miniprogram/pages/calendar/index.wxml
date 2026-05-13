@@ -50,7 +50,9 @@
           <text class="event-name">{{item.customerName}}</text>
           <view class="stage-badge stage-{{item.stageClass}}">{{item.stage}}</view>
         </view>
-        <!-- 第二行：拜访方式 -->
+        <!-- 第二行：目标标题（有值才显示） -->
+        <text class="event-goal" wx:if="{{item.goal}}">{{item.goal}}</text>
+        <!-- 第三行：拜访方式 -->
         <view class="event-way">{{item.visitWay}}</view>
       </view>
 

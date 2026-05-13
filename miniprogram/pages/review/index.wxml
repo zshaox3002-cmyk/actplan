@@ -33,13 +33,13 @@
     <view class="section-title">拜访方式对比</view>
     <view class="method-list">
       <view class="method-row" wx:for="{{methodList}}" wx:key="way">
-        <text class="method-way">{{item.way}}</text>
-        <text class="method-count">{{item.count}}次</text>
-        <view class="method-rate-bar">
-          <view class="method-rate-fill" style="width: {{item.advanceRate}}%"></view>
+          <text class="method-way">{{item.way}}</text>
+          <text class="method-count">{{item.count}}次</text>
+          <view class="method-rate-bar">
+            <view class="method-rate-fill" style="width: {{item.countRate}}%"></view>
+          </view>
+          <text class="method-rate-text">{{item.countRate}}%</text>
         </view>
-        <text class="method-rate-text">{{item.advanceRate}}%</text>
-      </view>
     </view>
   </view>
 

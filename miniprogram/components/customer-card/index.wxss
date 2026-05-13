@@ -141,3 +141,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ---- 节奏视图信息 ---- */
+.rhythm-reason {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  display: block;
+}
+.rhythm-action {
+  font-size: 22rpx;
+  color: var(--color-primary);
+  display: block;
+  margin-top: 4rpx;
+}

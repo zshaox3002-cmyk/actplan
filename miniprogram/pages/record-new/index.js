@@ -95,7 +95,8 @@ Page({
     planSheetDate: '',
     planSheetTime: '',
     planSheetVisitWay: '面对面',
-    planSheetVisitWayOptions: [],
+    planSheetGoal: '',
+    visitWayOptions: ['面对面', '电话', '微信'],
 
     // 选择异议 sheet
     showObjSheet: false,
@@ -118,7 +119,9 @@ Page({
     var visitWay = options.visit_way
       ? (function(v) { try { return decodeURIComponent(v); } catch(e) { return v; } })(options.visit_way)
       : '面对面';
-    var planGoal = options.plan_goal || '';
+    var planGoal = options.plan_goal
+      ? (function(v) { try { return decodeURIComponent(v); } catch(e) { return v; } })(options.plan_goal)
+      : '';
     var customerName = options.customer_name
       ? (function(v) { try { return decodeURIComponent(v); } catch(e) { return v; } })(options.customer_name)
       : '';
@@ -321,7 +324,7 @@ Page({
       planSheetDate: dateUtil.today(),
       planSheetTime: '',
       planSheetVisitWay: '面对面',
-      planSheetVisitWayOptions: constants.VISIT_WAY_OPTIONS
+      planSheetGoal: ''
     });
   },
 
@@ -333,16 +336,20 @@ Page({
     this.setData({ planSheetTime: e.detail.value });
   },
 
-  onPlanSheetVisitWayChange: function(e) {
-    this.setData({ planSheetVisitWay: constants.VISIT_WAY_OPTIONS[e.detail.value] });
-  },
-
   onPlanSheetClearTime: function() {
     this.setData({ planSheetTime: '' });
   },
 
   onPlanSheetCancel: function() {
     this.setData({ showPlanSheet: false });
+  },
+
+  onPlanSheetWayChange: function(e) {
+    this.setData({ planSheetVisitWay: e.currentTarget.dataset.way });
+  },
+
+  onPlanSheetGoalInput: function(e) {
+    this.setData({ planSheetGoal: e.detail.value });
   },
 
   onPlanSheetConfirm: function() {
@@ -360,7 +367,7 @@ Page({
       plan_date: d.planSheetDate,
       plan_time: d.planSheetTime || null,
       visit_way: d.planSheetVisitWay,
-      goal: '',
+      goal: d.planSheetGoal || '',
       status: '待执行'
     });
     if (result && result.conflict) {

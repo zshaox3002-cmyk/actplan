@@ -123,7 +123,10 @@
 <view class="plan-sheet" wx:if="{{showPlanSheet}}">
   <view class="plan-sheet-mask" bindtap="onPlanSheetCancel"></view>
   <view class="plan-sheet-content card">
-    <text class="plan-sheet-title">添加拜访计划</text>
+    <view class="plan-sheet-header">
+      <text class="plan-sheet-title">添加拜访计划</text>
+      <text class="plan-sheet-close" bindtap="onPlanSheetCancel">×</text>
+    </view>
     <view class="plan-sheet-row">
       <text class="plan-sheet-label">客户</text>
       <text class="plan-sheet-value">{{planSheetCustomerName}}</text>
@@ -135,21 +138,31 @@
       </picker>
     </view>
     <view class="plan-sheet-row">
-      <text class="plan-sheet-label">拜访方式</text>
-      <picker mode="selector" range="{{planSheetVisitWayOptions}}" bindchange="onPlanSheetVisitWayChange">
-        <text class="plan-sheet-value plan-sheet-picker">{{planSheetVisitWay}} ▾</text>
+      <text class="plan-sheet-label">时间</text>
+      <picker mode="time" value="{{planSheetTime}}" start="06:00" end="23:30" bindchange="onPlanSheetTimeChange">
+        <text class="plan-sheet-value {{planSheetTime ? 'plan-sheet-picker' : 'plan-sheet-placeholder'}}">{{planSheetTime || '请选择'}} ▾</text>
       </picker>
     </view>
     <view class="plan-sheet-row">
-      <text class="plan-sheet-label">计划时间</text>
-      <view class="plan-sheet-time-row">
-        <picker mode="time" value="{{planSheetTime}}" start="06:00" end="23:30" bindchange="onPlanSheetTimeChange">
-          <text class="plan-sheet-value {{planSheetTime ? '' : 'plan-sheet-placeholder'}}">{{planSheetTime || '请选择时间'}}</text>
-        </picker>
-        <view class="plan-sheet-time-clear" wx:if="{{planSheetTime}}" bindtap="onPlanSheetClearTime">
-          <text>×</text>
-        </view>
+      <text class="plan-sheet-label">方式</text>
+      <view class="plan-sheet-chips">
+        <view wx:for="{{visitWayOptions}}" wx:key="*this"
+          class="plan-sheet-chip {{planSheetVisitWay === item ? 'active' : ''}}"
+          data-way="{{item}}" bindtap="onPlanSheetWayChange">{{item}}</view>
       </view>
+    </view>
+    <view class="plan-sheet-field">
+      <view class="plan-sheet-goal-header">
+        <text class="plan-sheet-label">拜访目标</text>
+        <text class="plan-sheet-goal-count">{{planSheetGoal.length}}/20</text>
+      </view>
+      <textarea class="plan-sheet-goal-input"
+        placeholder="请输入本次拜访目标（选填）..."
+        placeholder-class="plan-sheet-placeholder"
+        value="{{planSheetGoal}}"
+        maxlength="20"
+        bindinput="onPlanSheetGoalInput"
+        auto-height/>
     </view>
     <view class="plan-sheet-actions">
       <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">

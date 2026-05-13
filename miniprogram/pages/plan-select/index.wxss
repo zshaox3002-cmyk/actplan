@@ -154,6 +154,7 @@
 .confirm-label-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .label-optional {
@@ -169,6 +170,21 @@
 
 .confirm-value.placeholder {
   color: var(--color-text-placeholder);
+}
+
+.confirm-goal-count { font-size: 22rpx; color: var(--color-text-placeholder); }
+.confirm-goal-input {
+  width: 100%;
+  min-height: 80rpx;
+  margin-top: 12rpx;
+  padding: 16rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  box-sizing: border-box;
+  line-height: 1.6;
 }
 
 .time-clear {

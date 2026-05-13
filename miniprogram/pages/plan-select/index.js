@@ -20,6 +20,7 @@ Page({
     selectedCustomerName: '',
     selectedVisitWay: '面对面',
     planTime: '',
+    planGoal: '',
     showConfirm: false,
     isEditMode: false,
     editPlanId: null,
@@ -37,6 +38,7 @@ Page({
         selectedCustomerName: customer ? customer.name : '(未知客户)',
         selectedVisitWay: plan.visit_way,
         planTime: plan.plan_time || '',
+        planGoal: plan.goal || '',
         showConfirm: true,
         isEditMode: true,
         editPlanId: plan.id,
@@ -152,6 +154,10 @@ Page({
     this.setData({ planTime: '' });
   },
 
+  onPlanGoalInput: function (e) {
+    this.setData({ planGoal: e.detail.value });
+  },
+
   /** 日期 picker 变化 */
   onPlanDateChange: function (e) {
     this.setData({ planDate: e.detail.value });
@@ -174,7 +180,8 @@ Page({
       if (this.data.isEditMode) {
         planRepo.update(this.data.editPlanId, {
           plan_time: this.data.planTime,
-          visit_way: this.data.selectedVisitWay
+          visit_way: this.data.selectedVisitWay,
+          goal: this.data.planGoal || ''
         });
         toast.success('修改成功');
       } else {
@@ -182,7 +189,8 @@ Page({
           customer_id: this.data.selectedCustomerId,
           plan_date: this.data.planDate,
           plan_time: this.data.planTime,
-          visit_way: this.data.selectedVisitWay
+          visit_way: this.data.selectedVisitWay,
+          goal: this.data.planGoal || ''
         });
 
         if (result.conflict) {

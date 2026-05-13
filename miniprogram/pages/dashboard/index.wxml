@@ -2,151 +2,134 @@
 <van-toast id="van-toast" />
 <view class="page-container">
 
-  <!-- 周期选择栏 -->
-  <view class="period-banner">
-    <view class="period-selector" bindtap="onPeriodTap">
-      <text class="period-label">{{periodLabel}}</text>
-      <image class="period-arrow {{showPeriodDropdown ? 'open' : ''}}" src="/assets/icons/chevron-down.svg" mode="aspectFit" />
-    </view>
-    <text class="period-range">{{periodRange}}</text>
-  </view>
-
-  <!-- 周期下拉选项 -->
-  <view class="period-dropdown" wx:if="{{showPeriodDropdown}}" catchtap="onDropdownMaskTap">
-    <view class="period-dropdown-inner" catchtap="">
-      <view class="period-option {{currentPeriod === 'week' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="week">
-        <text>本周</text>
-        <text class="period-check" wx:if="{{currentPeriod === 'week'}}">✓</text>
-      </view>
-      <view class="period-option {{currentPeriod === 'month' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="month">
-        <text>本月</text>
-        <text class="period-check" wx:if="{{currentPeriod === 'month'}}">✓</text>
-      </view>
-      <view class="period-option {{currentPeriod === 'quarter' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="quarter">
-        <text>季度</text>
-        <text class="period-check" wx:if="{{currentPeriod === 'quarter'}}">✓</text>
-      </view>
-      <view class="period-option {{currentPeriod === 'year' ? 'active' : ''}}" catchtap="onPeriodSelect" data-period="year">
-        <text>年度</text>
-        <text class="period-check" wx:if="{{currentPeriod === 'year'}}">✓</text>
-      </view>
-    </view>
-  </view>
-
   <!-- 问候语 Hero 区域 -->
   <view class="hero-bar">
     <text class="hero-greeting">{{greetingPrefix}}</text>
     <text class="hero-subtext{{greetingWarn ? ' hero-subtext--warn' : ''}}">{{greetingSubtext}}</text>
   </view>
 
-  <!-- 逾期警示 Banner -->
-  <view class="overdue-banner" wx:if="{{overdueCount > 0}}" bindtap="onOverdueTap">
-    <text class="overdue-banner-icon">⚠</text>
-    <text class="overdue-banner-text">{{overdueCount}}条计划已逾期，去处理 ›</text>
-  </view>
-
-  <!-- 空态引导 -->
-  <view class="dashboard-empty" wx:if="{{isEmpty}}">
-    <text class="empty-icon-text">📋</text>
-    <text class="empty-title">开始管理你的客户</text>
-    <text class="empty-desc">添加第一位客户后，这里将展示今日拜访和跟进提醒</text>
-    <view class="empty-actions">
-      <van-button type="primary" block bindtap="onGoAddCustomer">+ 添加第一位客户</van-button>
+  <!-- KPI 三格 -->
+  <view class="kpi-row">
+    <view class="kpi-card {{kpiOverdue > 0 ? 'kpi-danger' : ''}}">
+      <text class="kpi-num">{{kpiOverdue}}</text>
+      <text class="kpi-label">逾期未做</text>
+    </view>
+    <view class="kpi-card">
+      <text class="kpi-num">{{kpiPending}}</text>
+      <text class="kpi-label">待执行计划</text>
+    </view>
+    <view class="kpi-card kpi-success">
+      <text class="kpi-num">{{kpiMonthDeal}}</text>
+      <text class="kpi-label">本月签单</text>
     </view>
   </view>
 
-  <block wx:if="{{!isEmpty}}">
+  <!-- 今日要做 -->
+  <view class="section-title">
+    <text>今日要做</text>
+    <view class="section-badge" wx:if="{{taskTotal > 0}}"><text>{{taskTotal}}</text></view>
+  </view>
 
-    <!-- 今日拜访 -->
-    <view class="section-title">
-      <text>今日拜访</text>
-      <view class="section-badge"><text>{{todayPlans.length}}</text></view>
-    </view>
+  <!-- 空状态：无客户 -->
+  <view class="task-empty" wx:if="{{taskEmptyType === 'no_customer'}}">
+    <text class="task-empty-icon">📋</text>
+    <text class="task-empty-title">还没有客户</text>
+    <text class="task-empty-desc">添加客户后，ActPlan 会帮你识别今日要做和需关注客户</text>
+    <van-button type="primary" size="small" bindtap="onGoAddCustomer">添加客户</van-button>
+  </view>
 
-    <view class="today-empty" wx:if="{{todayPlans.length === 0}}">
-      <text class="today-empty-text">今天没有安排拜访</text>
-    </view>
+  <!-- 空状态：无紧急任务 -->
+  <view class="task-empty" wx:elif="{{taskEmptyType === 'no_urgent_task'}}">
+    <text class="task-empty-icon">✅</text>
+    <text class="task-empty-title">今天暂无紧急任务</text>
+    <text class="task-empty-desc">当前没有需要立即处理的客户事项</text>
+    <van-button type="default" size="small" bindtap="onGoNeedAttention">看看需关注</van-button>
+  </view>
 
-    <van-cell-group custom-class="today-cell-group" wx:else>
-      <van-cell wx:for="{{todayPlans}}" wx:key="id" use-label-slot border="{{false}}">
-        <view slot="icon" class="today-time-slot">
-          <text class="today-time" wx:if="{{item.plan_time}}">{{item.plan_time}}</text>
-          <text class="today-time today-time-empty" wx:else>待定</text>
-        </view>
-        <view slot="title" class="today-cell-title">{{item.customerName}}</view>
-        <view slot="label" class="today-cell-label">{{item.visit_way || '面对面'}} · {{item.customerStage}}</view>
-        <van-button slot="right-icon" type="primary" size="small" catchtap="onExecutePlan" data-id="{{item.id}}">执行</van-button>
-      </van-cell>
-    </van-cell-group>
+  <!-- 空状态：数据异常 -->
+  <view class="task-empty" wx:elif="{{taskEmptyType === 'data_error'}}">
+    <text class="task-empty-icon">⚠️</text>
+    <text class="task-empty-title">数据加载失败</text>
+    <text class="task-empty-desc">请稍后重试</text>
+  </view>
 
-    <!-- 待跟进 Top -->
-    <view id="follow-section" class="section-title">
-      <text>待跟进</text>
-    </view>
-
-    <van-cell-group custom-class="follow-cell-group">
-      <van-cell wx:for="{{pendingFollowUp}}" wx:key="id" use-label-slot bindtap="onFollowUpTap" data-id="{{item.id}}" border="{{false}}">
-        <view slot="icon" class="follow-priority priority-{{item.priorityLevel}}">
-          <text>{{item.priorityLevel}}</text>
-        </view>
-        <view slot="title" class="follow-name-row">
-          <text class="follow-name">{{item.name}}</text>
-          <text class="follow-stage stage-{{item.stageClass}}">{{item.stage}}</text>
-        </view>
-        <view slot="label" class="follow-label-col">
-          <text class="follow-priority-label">{{item.priorityLabel}}</text>
-          <view class="follow-next-row">
-            <text wx:if="{{item.isOverdue}}" class="overdue-icon">⏰</text>
-            <text class="follow-next {{item.isOverdue ? 'overdue' : ''}}">{{item.nextPlanText}}</text>
-          </view>
-        </view>
-        <van-icon slot="right-icon" name="arrow" color="var(--color-text-placeholder)" />
-      </van-cell>
-    </van-cell-group>
-
-    <!-- 本周进展 -->
-    <view class="section-title">
-      <text>{{periodLabel}}进展</text>
-    </view>
-
-    <view class="metrics-unified-card">
-      <view class="metrics-grid">
-        <view class="metric-item">
-          <text class="metric-value {{metrics.newCustomers === 0 ? 'metric-value-zero' : ''}}">{{metrics.newCustomers}}</text>
-          <text class="metric-label">新增客户</text>
-        </view>
-        <view class="metric-item">
-          <text class="metric-value {{metrics.visitCount === 0 ? 'metric-value-zero' : ''}}">{{metrics.visitCount}}</text>
-          <text class="metric-label">拜访次数</text>
-        </view>
-        <view class="metric-item">
-          <text class="metric-value {{metrics.appointmentCount === 0 ? 'metric-value-zero' : ''}}">{{metrics.appointmentCount}}</text>
-          <text class="metric-label">预约计划</text>
-        </view>
-        <view class="metric-item">
-          <text class="metric-value {{metrics.dealCustomers === 0 ? 'metric-value-zero' : ''}}">{{metrics.dealCustomers}}</text>
-          <text class="metric-label">本期成交</text>
+  <!-- 任务列表 -->
+  <view class="task-list" wx:elif="{{todayTasks.length > 0}}">
+    <view wx:for="{{todayTasks}}" wx:key="task_id" class="task-card task-type-{{item.task_type}}">
+      <view class="task-card-top">
+        <text class="task-customer-name">{{item.customer_name}}</text>
+        <text class="stage-tag stage-{{item.customer_stage_class}}">{{item.customer_stage}}</text>
+      </view>
+      <text class="task-title">{{item.task_title}}</text>
+      <text class="task-reason">{{item.reason}}</text>
+      <view class="task-actions">
+        <view wx:for="{{item.actions}}" wx:key="*this" wx:for-item="action"
+              class="task-btn task-btn-{{index}}"
+              data-task-id="{{item.task_id}}"
+              data-action="{{action}}"
+              catchtap="onTaskAction">
+          <text>{{action}}</text>
         </view>
       </view>
     </view>
+  </view>
 
-    <!-- 客户阶段漏斗 -->
-    <view class="section-title">
-      <text>客户阶段</text>
-    </view>
+  <view class="page-bottom-pad"></view>
 
-    <view class="funnel-list">
-      <view class="funnel-item" wx:for="{{stageFunnel}}" wx:key="stage">
-        <text class="funnel-stage">{{item.stage}}</text>
-        <view class="funnel-bar-wrap">
-          <view class="funnel-bar" wx:if="{{item.count > 0}}" style="width: {{(item.count / funnelMax * 100)}}%; background: {{item.barColor}};"></view>
+  <!-- 修改计划底部 sheet -->
+  <view class="plan-sheet" wx:if="{{showPlanSheet}}">
+    <view class="plan-sheet-mask" bindtap="onPlanSheetCancel"></view>
+    <view class="plan-sheet-content card">
+      <view class="plan-sheet-header">
+        <text class="plan-sheet-title">{{planSheetMode === 'add' ? '添加拜访计划' : '修改拜访计划'}}</text>
+        <text class="plan-sheet-close" bindtap="onPlanSheetCancel">×</text>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">客户</text>
+        <text class="plan-sheet-value">{{planSheetCustomerName}}</text>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">日期</text>
+        <picker mode="date" value="{{planSheetDate}}" bindchange="onPlanSheetDateChange">
+          <text class="plan-sheet-value plan-sheet-picker">{{planSheetDate}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">时间</text>
+        <picker mode="time" value="{{planSheetTime}}" start="06:00" end="23:30" bindchange="onPlanSheetTimeChange">
+          <text class="plan-sheet-value {{planSheetTime ? 'plan-sheet-picker' : 'plan-sheet-placeholder'}}">{{planSheetTime || '请选择'}} ▾</text>
+        </picker>
+      </view>
+      <view class="plan-sheet-row">
+        <text class="plan-sheet-label">方式</text>
+        <view class="plan-sheet-chips">
+          <view wx:for="{{visitWayOptions}}" wx:key="*this"
+            class="plan-sheet-chip {{planSheetVisitWay === item ? 'active' : ''}}"
+            data-way="{{item}}" bindtap="onPlanSheetWayChange">{{item}}</view>
         </view>
-        <text class="funnel-count">{{item.count}}</text>
+      </view>
+      <view class="plan-sheet-field">
+        <view class="plan-sheet-goal-header">
+          <text class="plan-sheet-label">拜访目标</text>
+          <text class="plan-sheet-goal-count">{{planSheetGoal.length}}/20</text>
+        </view>
+        <textarea class="plan-sheet-goal-input"
+          placeholder="请输入本次拜访目标（选填）..."
+          placeholder-class="plan-sheet-placeholder"
+          value="{{planSheetGoal}}"
+          maxlength="20"
+          bindinput="onPlanSheetGoalInput"
+          auto-height/>
+      </view>
+      <view class="plan-sheet-actions">
+        <view class="plan-sheet-btn plan-sheet-btn-cancel" bindtap="onPlanSheetCancel">
+          <text class="plan-sheet-btn-text">取消</text>
+        </view>
+        <view class="plan-sheet-btn plan-sheet-btn-confirm {{isSaving ? 'disabled' : ''}}" bindtap="{{isSaving ? '' : 'onPlanSheetConfirm'}}">
+          <text class="plan-sheet-btn-text">{{isSaving ? '保存中...' : (planSheetMode === 'add' ? '确认添加' : '确认修改')}}</text>
+        </view>
       </view>
     </view>
-
-    <view class="page-bottom-pad"></view>
-
-  </block>
+  </view>
 
 </view>

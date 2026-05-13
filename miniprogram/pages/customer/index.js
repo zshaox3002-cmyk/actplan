@@ -12,6 +12,7 @@ var referralRepo = require('../../utils/repository/referral.repo');
 var segmentRepo = require('../../utils/repository/segment.repo');
 var priority = require('../../utils/priority');
 var segment = require('../../utils/segment');
+var reviewStats = require('../../utils/review-stats');
 var storage = require('../../utils/storage');
 var toast = require('../../utils/toast');
 var dateUtil = require('../../utils/date');
@@ -39,7 +40,11 @@ Page({
     planSheetDate: '',
     planSheetTime: '',
     planSheetVisitWay: '面对面',
-    planSheetVisitWayOptions: [],
+    planSheetGoal: '',
+    visitWayOptions: ['面对面', '电话', '微信'],
+
+    // 视图上下文（供 customer-card 差异化展示）
+    activeViewContext: 'default',
 
     // 保存防重复
     isSaving: false
@@ -70,17 +75,19 @@ Page({
       var allCustomers = customerRepo.list({ keyword: this.data.keyword });
       var allPlans = planRepo.listAll();
       var allRecords = recordRepo.list();
+      var allObjNotes = storage.getTable('objection_note');
 
       // 批量获取派生字段（一次读取 db_policy，避免 N 次循环）
       var derivedMap = policyRepo.getDerivedAll();
 
-      var today = new Date();
-      var todayStr = today.getFullYear() + '-' +
-        String(today.getMonth() + 1).padStart(2, '0') + '-' +
-        String(today.getDate()).padStart(2, '0');
+      var todayStr = dateUtil.today();
 
-      // 富化客户列表（含派生字段）
-      var enriched = allCustomers.map(function (c) {
+      // 使用 enrichCustomers 添加节奏相关派生字段
+      var enrichedBase = reviewStats.enrichCustomers(allCustomers, allRecords, allPlans, allObjNotes, todayStr);
+
+      // 追加 UI 专用字段（优先级、下次跟进文案等）
+      var enriched = enrichedBase.map(function (c) {
+        // 找最近待执行计划（用于优先级计算和文案）
         var nextPlan = null;
         for (var i = 0; i < allPlans.length; i++) {
           var p = allPlans[i];
@@ -122,7 +129,7 @@ Page({
           else lastVisitText = days + '天前';
         }
 
-        // 合并派生字段
+        // 合并保单派生字段
         var derived = derivedMap[c.id] || { policy_count: 0, total_premium: 0, avg_premium: 0, first_policy_date: null };
 
         return Object.assign({}, c, derived, {
@@ -177,6 +184,7 @@ Page({
     var enriched = this._enrichedAll || [];
     var activeId = this.data.activeSegmentId;
     var filtered;
+    var activeViewContext = 'default';
 
     if (activeId === null) {
       // 全部：P0→P1→P2→P3→已成交→已流失，同级按 score 降序
@@ -199,6 +207,9 @@ Page({
       }
       if (activeSeg) {
         filtered = segment.applySegment(enriched, activeSeg.rules, activeSeg.sort);
+        // 节奏预设视图上下文
+        if (activeSeg.rhythm_preset === 'attention') activeViewContext = 'rhythm_attention';
+        else if (activeSeg.rhythm_preset === 'advancing') activeViewContext = 'rhythm_advancing';
       } else {
         filtered = enriched.slice();
       }
@@ -206,6 +217,7 @@ Page({
 
     this.setData({
       customers: filtered,
+      activeViewContext: activeViewContext,
       pageState: filtered.length === 0 ? 'empty' : 'data'
     });
   },
@@ -312,7 +324,7 @@ Page({
       planSheetDate: dateUtil.today(),
       planSheetTime: '',
       planSheetVisitWay: '面对面',
-      planSheetVisitWayOptions: constants.VISIT_WAY_OPTIONS
+      planSheetGoal: ''
     });
   },
 
@@ -326,17 +338,20 @@ Page({
     this.setData({ planSheetTime: e.detail.value });
   },
 
-  /** @param {Object} e */
-  onPlanSheetVisitWayChange: function (e) {
-    this.setData({ planSheetVisitWay: constants.VISIT_WAY_OPTIONS[e.detail.value] });
-  },
-
   onPlanSheetClearTime: function () {
     this.setData({ planSheetTime: '' });
   },
 
   onPlanSheetCancel: function () {
     this.setData({ showPlanSheet: false });
+  },
+
+  onPlanSheetWayChange: function (e) {
+    this.setData({ planSheetVisitWay: e.currentTarget.dataset.way });
+  },
+
+  onPlanSheetGoalInput: function (e) {
+    this.setData({ planSheetGoal: e.detail.value });
   },
 
   onPlanSheetConfirm: function () {
@@ -347,7 +362,8 @@ Page({
       customer_id: this.data.planSheetCustomerId,
       plan_date: this.data.planSheetDate,
       plan_time: this.data.planSheetTime || null,
-      visit_way: this.data.planSheetVisitWay
+      visit_way: this.data.planSheetVisitWay,
+      goal: this.data.planSheetGoal || ''
     });
     if (result.conflict) {
       toast.fail('该客户当日已有计划');

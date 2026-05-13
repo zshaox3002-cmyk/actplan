@@ -34,9 +34,13 @@
       <text class="priority-reasons {{customer._isOverdue ? 'overdue' : ''}}" wx:if="{{customer._priorityReasons}}">{{customer._priorityReasons}}</text>
     </view>
 
-    <!-- meta 信息：下次跟进 -->
+    <!-- meta 信息：节奏视图显示节奏原因，默认视图显示下次跟进 -->
     <view class="card-meta">
-      <view class="meta-row {{customer._isOverdue ? 'overdue' : ''}}">
+      <view wx:if="{{viewContext === 'rhythm_attention' || viewContext === 'rhythm_advancing'}}">
+        <text class="rhythm-reason">{{customer.rhythm_reason}}</text>
+        <text class="rhythm-action" wx:if="{{customer.suggested_action}}">建议：{{customer.suggested_action}}</text>
+      </view>
+      <view wx:else class="meta-row {{customer._isOverdue ? 'overdue' : ''}}">
         <text class="meta-label">下次跟进</text>
         <text class="meta-value">{{customer._nextFollowText}}</text>
       </view>
