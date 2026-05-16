@@ -59,7 +59,7 @@ Page({
     planId: '',
     planDate: '',
     planTime: '',
-    visitWay: '面对面',
+    visitWay: '随记',
     planGoal: '',
 
     // 沟通结果
@@ -96,7 +96,7 @@ Page({
     planSheetTime: '',
     planSheetVisitWay: '面对面',
     planSheetGoal: '',
-    visitWayOptions: ['面对面', '电话', '微信'],
+    visitWayOptions: ['面对面', '电话', '微信', '随记'],
 
     // 选择异议 sheet
     showObjSheet: false,
@@ -118,7 +118,7 @@ Page({
     var planTime = options.plan_time || '';
     var visitWay = options.visit_way
       ? (function(v) { try { return decodeURIComponent(v); } catch(e) { return v; } })(options.visit_way)
-      : '面对面';
+      : '随记';
     var planGoal = options.plan_goal
       ? (function(v) { try { return decodeURIComponent(v); } catch(e) { return v; } })(options.plan_goal)
       : '';
@@ -437,7 +437,7 @@ Page({
         plan_id: d.planId || null,
         visit_date: d.planDate || new Date().toISOString().slice(0, 10),
         visit_time: d.planTime || null,
-        visit_way: d.visitWay || '面对面',
+        visit_way: d.visitWay || '随记',
         summary: summary,
         stage: selectedStage,
         comm_result: d.commResultKey,

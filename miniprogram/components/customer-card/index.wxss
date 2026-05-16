@@ -1,48 +1,14 @@
-/* customer-card/index.wxss */
-
-.swipe-container {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-card);
-}
+/* customer-card/index.wxss — V4.0 */
 
 .customer-card {
-  position: relative;
-  z-index: 1;
   background: var(--color-bg-card);
   border-radius: var(--radius-card);
   border: 1rpx solid var(--color-border);
-  padding: 24rpx 28rpx;
+  padding: 24rpx 28rpx 20rpx;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  transition: transform 0.25s ease;
 }
 
-/* 左滑操作区：预约 / 随手记 / 删除 */
-.swipe-actions {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 300rpx;
-  display: flex;
-  z-index: 0;
-  border-radius: 0 var(--radius-card) var(--radius-card) 0;
-  overflow: hidden;
-}
-.swipe-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26rpx;
-  font-weight: 500;
-  color: #fff;
-}
-.swipe-btn-plan   { background: var(--color-primary); }
-.swipe-btn-record { background: var(--color-primary-dark); }
-.swipe-btn-delete { background: var(--color-danger); }
-
-/* 头部：姓名 + 交情 + 阶段标签同行 */
+/* 行1：身份区 */
 .card-header {
   display: flex;
   align-items: center;
@@ -54,40 +20,17 @@
   font-weight: 500;
   color: var(--color-text-primary);
 }
-.customer-intimacy {
-  font-size: 26rpx;
+.customer-relation {
+  font-size: 24rpx;
   color: var(--color-text-placeholder);
   flex-shrink: 0;
 }
-
-/* 优先级行 */
-.priority-row {
+.header-right {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8rpx;
-  margin-bottom: 12rpx;
-}
-
-/* 优先级标签：浅色底+深色字 */
-.priority-tag {
-  padding: 4rpx 14rpx;
-  border-radius: var(--radius-badge);
-  font-size: 22rpx;
-  font-weight: 500;
   flex-shrink: 0;
-}
-.priority-P0 { background: var(--priority-p0-bg); color: var(--priority-p0-text); }
-.priority-P1 { background: var(--priority-p1-bg); color: var(--priority-p1-text); }
-.priority-P2 { background: var(--priority-p2-bg); color: var(--priority-p2-text); }
-.priority-P3 { background: var(--priority-p3-bg); color: var(--priority-p3-text); }
-
-/* 驱动因素文字 */
-.priority-reasons {
-  font-size: 22rpx;
-  color: var(--color-text-secondary);
-}
-.priority-reasons.overdue {
-  color: var(--color-danger);
 }
 
 /* 阶段标签：描边样式 */
@@ -98,7 +41,6 @@
   background: transparent;
   border: 1rpx solid currentColor;
   flex-shrink: 0;
-  margin-left: auto;
 }
 .stage-tag.stage-meet    { color: var(--stage-meet-text); }
 .stage-tag.stage-comm    { color: var(--stage-comm-text); }
@@ -107,42 +49,63 @@
 .stage-tag.stage-deal    { color: var(--stage-deal-text); }
 .stage-tag.stage-lost    { color: var(--stage-lost-text); }
 
-/* meta 信息 */
-.card-meta {
+/* 行2：跟进信号区 */
+.signal-row {
   display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-  margin: 12rpx 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
 }
-.meta-row {
+
+.display-tag {
+  padding: var(--spacing-badge-py) var(--spacing-badge-px);
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+}
+.display-tag-high     { background: var(--priority-p1-bg); color: var(--priority-p1-text); }
+.display-tag-keep     { background: var(--priority-p2-bg); color: var(--priority-p2-text); }
+.display-tag-low      { background: var(--priority-p3-bg); color: var(--priority-p3-text); }
+.display-tag-inactive { background: var(--color-bg-muted); color: var(--color-text-placeholder); }
+
+.reason-chip-sm {
+  padding: 2rpx 10rpx;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+/* 行3/行4 通用布局 */
+.info-row {
   display: flex;
   align-items: center;
   gap: 8rpx;
+  min-height: 40rpx;
+  margin-bottom: 10rpx;
 }
-.meta-label {
-  font-size: 24rpx;
+.info-row:last-child { margin-bottom: 0; }
+.row-label {
+  font-size: var(--font-size-body-sm);
   color: var(--color-text-meta-label);
   flex-shrink: 0;
 }
-.meta-value {
-  font-size: 24rpx;
+.row-value {
+  font-size: var(--font-size-body-sm);
   color: var(--color-text-meta-value);
 }
-.meta-row.overdue .meta-label,
-.meta-row.overdue .meta-value {
-  color: var(--color-danger);
-}
+.row-value-empty { color: var(--color-text-placeholder); }
 
-/* 摘要：单行截断 */
-.last-summary {
-  font-size: 24rpx;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* 行3 下次跟进状态色 */
+.follow-row-overdue .row-label,
+.follow-row-overdue .row-value { color: var(--color-danger); }
+.follow-row-today .row-value   { color: var(--color-primary); }
+.follow-row-none .row-value    { color: var(--color-text-placeholder); }
 
-/* ---- 节奏视图信息 ---- */
+/* 行3 节奏视图信息（保留） */
 .rhythm-reason {
   font-size: 24rpx;
   color: var(--color-text-secondary);

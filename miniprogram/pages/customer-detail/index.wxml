@@ -27,24 +27,14 @@
         </view>
       </view>
 
-      <!-- 沟通信息 -->
-      <view class="contact-info">
-        <text class="contact-item">最近沟通：{{lastVisit || '暂无'}}</text>
-        <text class="contact-item next-plan {{nextPlanText === '未安排' ? 'no-plan' : ''}}">
-          下次跟进：{{nextPlanText}}
-        </text>
-      </view>
-
-      <!-- 快捷操作 -->
-      <view class="quick-actions">
-        <view class="quick-btn quick-btn-primary {{isNew ? 'disabled' : ''}}"
-              bindtap="{{isNew ? '' : 'onAddPlan'}}">
-          <text>预约</text>
+      <!-- 下次跟进摘要卡 -->
+      <view class="next-plan-card" wx:if="{{nextPlan}}">
+        <view class="next-plan-info">
+          <text class="next-plan-label">下次跟进</text>
+          <text class="next-plan-date">{{nextPlan.date}}{{nextPlan.time ? ' ' + nextPlan.time : ''}}</text>
+          <text class="next-plan-way">{{nextPlan.way}}</text>
         </view>
-        <view class="quick-btn quick-btn-secondary {{isNew ? 'disabled' : ''}}"
-              bindtap="{{isNew ? '' : 'onAddRecord'}}">
-          <text>随手记</text>
-        </view>
+        <view class="next-plan-edit-btn" bindtap="onEditNextPlan">修改</view>
       </view>
     </view>
 
@@ -65,10 +55,6 @@
       <view class="tab-item {{activeTab === 'objection' ? 'active' : ''}}"
             data-tab="objection" bindtap="onTabTap">
         <text>异议</text>
-      </view>
-      <view class="tab-item {{activeTab === 'plan' ? 'active' : ''}}"
-            data-tab="plan" bindtap="onTabTap">
-        <text>计划</text>
       </view>
     </view>
 
@@ -383,25 +369,42 @@
       <view class="section-card">
         <view class="section-header">
           <text class="section-title">沟通记录</text>
+          <view class="edit-btn" bindtap="onAddRecord"><text>+ 随记</text></view>
         </view>
 
         <view wx:if="{{timeline.length === 0}}" class="empty-hint">
-          <text>暂无沟通记录</text>
+          <text>暂无沟通记录，点击右上角"+ 随记"添加</text>
         </view>
 
         <view class="timeline" wx:else>
           <view class="timeline-item" wx:for="{{timelineVisible}}" wx:key="id">
-            <view class="timeline-dot {{item.type === 'planned' ? 'dot-large' : 'dot-small'}}"></view>
-            <view class="timeline-content">
-              <view class="timeline-meta">
-                <text class="timeline-date">{{item.date}}{{item.time ? ' ' + item.time : ''}}</text>
-                <text class="timeline-type">{{item.type === 'planned' ? '计划拜访' : '临时沟通'}} · {{item.way}}</text>
-                <text class="timeline-edit-btn" data-id="{{item.id}}" bindtap="onEditRecordTap">编辑</text>
+            <!-- 左侧轴 -->
+            <view class="tl-axis">
+              <view class="tl-dot {{item.isLatest ? 'tl-dot-latest' : 'tl-dot-history'}}"></view>
+              <view class="tl-line" wx:if="{{index < timelineVisible.length - 1}}"></view>
+            </view>
+            <!-- 右侧内容 -->
+            <view class="tl-card">
+              <!-- 日期行 -->
+              <text class="tl-datetime">{{item.date}}{{item.time ? ' ' + item.time : ''}}</text>
+              <!-- 阶段 · 沟通方式 同行 -->
+              <view class="tl-meta-row" wx:if="{{item.stageChange || item.communicationType}}">
+                <text class="tl-meta-value" wx:if="{{item.stageChange}}">{{item.stageChange}}</text>
+                <text class="tl-meta-sep" wx:if="{{item.stageChange && item.communicationType}}">·</text>
+                <text class="tl-meta-value" wx:if="{{item.communicationType}}">{{item.communicationType}}</text>
               </view>
-              <text class="timeline-goal" wx:if="{{item.goal}}">目标：{{item.goal}}</text>
-              <text class="timeline-summary">{{item.summary}}</text>
-              <text class="timeline-stage" wx:if="{{item.stageChange}}">阶段：{{item.stageChange}}</text>
-              <text class="timeline-next" wx:if="{{item.nextDate}}">下次：{{item.nextDate}}</text>
+              <!-- 内容卡片 -->
+              <view class="tl-content-card">
+                <text class="tl-content-text" wx:if="{{item.goal}}">目标：{{item.goal}}</text>
+                <text class="tl-content-text" wx:elif="{{item.summary}}">{{item.summary}}</text>
+                <text class="tl-content-text tl-content-empty" wx:else>暂无摘要</text>
+                <text class="tl-content-text tl-content-goal-summary" wx:if="{{item.goal && item.summary}}">{{item.summary}}</text>
+              </view>
+              <!-- 操作按钮 -->
+              <view class="tl-actions">
+                <view class="tl-act-btn tl-act-edit" data-id="{{item.id}}" bindtap="onEditRecordTap">编辑</view>
+                <view class="tl-act-btn tl-act-del" data-id="{{item.id}}" bindtap="onDeleteRecord">删除</view>
+              </view>
             </view>
           </view>
           <view class="expand-btn" wx:if="{{!timelineExpanded && timelineTotal > 5}}" bindtap="onExpandTimeline">
@@ -436,37 +439,6 @@
             <text class="obj-content">{{item.content}}</text>
             <view class="obj-footer">
               <text class="obj-solution" wx:if="{{item.solution}}">话术：{{item.solution}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- ===== 计划 Tab ===== -->
-    <view wx:if="{{activeTab === 'plan'}}">
-      <view class="section-card">
-        <view class="section-header">
-          <text class="section-title">下一步计划</text>
-        </view>
-
-        <view wx:if="{{customerPlans.length === 0}}" class="empty-hint">
-          <text>暂无待执行计划</text>
-        </view>
-
-        <view class="plan-list" wx:else>
-          <view class="plan-item" wx:for="{{customerPlans}}" wx:key="id">
-            <view class="plan-item-header">
-              <view class="plan-item-meta">
-                <text class="plan-date {{item.isOverdue ? 'plan-date-overdue' : ''}}">{{item.plan_date}}{{item.plan_time ? ' ' + item.plan_time : ''}}</text>
-                <text class="plan-way">{{item.visit_way}}</text>
-              </view>
-              <view wx:if="{{item.isOverdue}}" class="plan-overdue-badge">逾期</view>
-            </view>
-            <text class="plan-goal-text" wx:if="{{item.goal}}">{{item.goal}}</text>
-            <view class="plan-item-actions">
-              <view class="plan-act-btn plan-act-primary" data-id="{{item.id}}" bindtap="onExecutePlanFromDetail">完成记录</view>
-              <view class="plan-act-btn" data-id="{{item.id}}" bindtap="onEditPlanFromDetail">修改</view>
-              <view class="plan-act-btn plan-act-danger" data-id="{{item.id}}" bindtap="onDeletePlanFromDetail">删除</view>
             </view>
           </view>
         </view>

@@ -88,6 +88,29 @@ function get(id) {
 }
 
 /**
+ * 根据手机号查找客户（用于 CSV 导入去重）
+ * @param {string} phone
+ * @returns {Object|null}
+ */
+function findByPhone(phone) {
+  if (!phone) return null;
+  var all = storage.getTable('customer');
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].phone === phone) return _normalizeCustomer(all[i]);
+  }
+  return null;
+}
+
+/**
+ * 根据 ID 查找客户（get 的别名，供导出模块使用）
+ * @param {number} customerId
+ * @returns {Object|null}
+ */
+function findById(customerId) {
+  return get(customerId);
+}
+
+/**
  * 新建客户
  * @param {Object} data - 客户数据
  * @param {string} data.name - 客户姓名（必填）
@@ -102,6 +125,7 @@ function create(data) {
     id: newId,
     external_key: data.external_key || null,
     name: data.name || '',
+    phone: data.phone || '',
     gender: data.gender || '',
     relation: data.relation || '',
     income: data.income || '',
@@ -305,6 +329,15 @@ function deleteCustomer(id) {
       storage.setTable('objection', remainingObjections);
     }
 
+    // 级联删除转介绍关系
+    // 1. 删除该客户的入边（谁介绍了他），并重算介绍人的 referral_count
+    var removedReferrerId = referralRepo.removeByReferredCustomer(id);
+    if (removedReferrerId !== null) {
+      referralRepo.recountReferralCount(removedReferrerId);
+    }
+    // 2. 删除该客户的出边（他介绍了谁），被介绍人变为无来源
+    referralRepo.removeByReferrer(id);
+
     return true;
   }
   return false;
@@ -385,6 +418,8 @@ function updateReferralSource(customerId, newReferrerId) {
 module.exports = {
   list: list,
   get: get,
+  findByPhone: findByPhone,
+  findById: findById,
   getCustomerWithDerived: getCustomerWithDerived,
   create: create,
   update: update,

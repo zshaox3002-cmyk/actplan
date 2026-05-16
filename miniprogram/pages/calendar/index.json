@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "日历",
   "usingComponents": {
-    "empty-state": "/components/empty-state/index"
+    "empty-state": "/components/empty-state/index",
+    "fab-button": "/components/fab-button/index"
   }
 }

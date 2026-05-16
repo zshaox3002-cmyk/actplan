@@ -499,7 +499,7 @@ function getTodayTasks(snapshot, today, dismissedSet) {
         plan_goal: op.goal || '',
         has_active_plan: true,
         reason: '逾期 ' + overdueDays + ' 天',
-        actions: ['执行', '修改', '删除']
+        actions: ['记录', '编辑', '删除']
       });
       seenCustomerIds[oc.id] = true;
     }
@@ -537,7 +537,7 @@ function getTodayTasks(snapshot, today, dismissedSet) {
         plan_goal: tdp.goal || '',
         has_active_plan: true,
         reason: timeStr,
-        actions: ['执行', '修改', '删除']
+        actions: ['记录', '编辑', '删除']
       });
       seenCustomerIds[tdc.id] = true;
     }

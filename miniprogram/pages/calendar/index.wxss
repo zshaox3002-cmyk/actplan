@@ -1,291 +1,626 @@
 @import '/styles/variables.wxss';
 
+/* ═══════════════════════════════════════════
+   页面基础
+═══════════════════════════════════════════ */
+
 .calendar-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--color-bg-page);
+  background-color: #F6F8FB;
 }
 
-/* 日历容器 */
+/* ═══════════════════════════════════════════
+   日历容器
+═══════════════════════════════════════════ */
+
 .calendar-container {
   flex-shrink: 0;
   background-color: var(--color-bg-card);
-  border-bottom: 1rpx solid var(--color-border);
-  padding: 24rpx 32rpx;
+  padding: 24rpx 28rpx 20rpx;
+  box-shadow: var(--shadow-sm);
 }
+
+/* ─── 月份标题行 ─── */
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24rpx;
-}
-
-.nav-btn {
-  width: 40rpx;
-  height: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  color: var(--color-text-primary);
-  cursor: pointer;
+  margin-bottom: 20rpx;
+  padding: 0 4rpx;
 }
 
 .calendar-title {
-  font-size: 28rpx;
+  font-size: 34rpx;
   font-weight: 500;
   color: var(--color-text-primary);
+  letter-spacing: 1rpx;
 }
 
-/* 月视图 */
-.month-view {
-  width: 100%;
+/* 切换按钮：浅灰圆形背景 */
+.nav-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.month-header {
+/* 用 border 模拟箭头图标，避免依赖字体图标 */
+.nav-icon {
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 3rpx solid var(--color-text-secondary);
+  border-right: 3rpx solid var(--color-text-secondary);
+}
+
+.nav-icon-left {
+  transform: rotate(-135deg);
+  margin-left: 6rpx;
+}
+
+.nav-icon-right {
+  transform: rotate(45deg);
+  margin-right: 6rpx;
+}
+
+/* ─── 星期栏 ─── */
+
+.weekday-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8rpx;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 
 .weekday-label {
   text-align: center;
   font-size: 22rpx;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  padding: 8rpx 0;
+  font-weight: 400;
+  color: var(--color-text-placeholder);
+  padding: 6rpx 0;
 }
+
+.weekend-label {
+  color: var(--color-danger);
+  opacity: 0.6;
+}
+
+/* ─── 日期网格 ─── */
 
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8rpx;
+  row-gap: 6rpx;
 }
 
-.month-cell {
-  aspect-ratio: 1;
+.day-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rpx;
-  border-radius: 8rpx;
-  background-color: transparent;
+  height: 72rpx;
   position: relative;
-  transition: all 0.2s ease;
+  border-radius: 8rpx;
 }
 
-.month-cell.other-month {
-  opacity: 0.4;
+/* 今天：蓝色描边圆 */
+.day-cell.day-today .day-num {
+  color: var(--color-primary);
+  font-weight: 500;
 }
 
-.month-cell.today {
+.day-cell.day-today::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: var(--radius-full);
   border: 2rpx solid var(--color-primary);
 }
 
-.month-cell.selected {
+/* 选中态：蓝色实心圆 */
+.day-cell.day-selected::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: var(--radius-full);
   background-color: var(--color-primary);
+  z-index: 0;
 }
 
-.month-cell.selected .cell-day {
+.day-cell.day-selected .day-num {
   color: #FFFFFF;
-}
-
-.cell-day {
-  font-size: 22rpx;
   font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+/* 非当前月 */
+.day-cell.day-other .day-num {
+  color: var(--color-neutral);
+}
+
+.day-num {
+  font-size: 26rpx;
+  font-weight: 400;
   color: var(--color-text-primary);
+  position: relative;
+  z-index: 1;
+  line-height: 1;
 }
 
-.cell-mark {
-  width: 16rpx;
-  height: 6rpx;
-  border-radius: 3rpx;
+/* 事项圆点 */
+.day-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: var(--radius-full);
   background-color: var(--color-primary);
+  position: relative;
+  z-index: 1;
+  margin-top: 4rpx;
 }
 
-.month-cell.selected .cell-mark {
-  background-color: rgba(255, 255, 255, 0.8);
+.day-dot-selected {
+  background-color: rgba(255, 255, 255, 0.85);
 }
 
-/* 事件列表 */
+/* ═══════════════════════════════════════════
+   事项列表区
+═══════════════════════════════════════════ */
+
 .events-section {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   overflow-y: auto;
-  padding: 24rpx 32rpx;
+  padding: 0 28rpx 0;
+  box-sizing: border-box;
 }
 
+/* 分区标题 */
 .events-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24rpx;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid var(--color-border);
+  padding: 20rpx 0 16rpx;
+  margin-bottom: 4rpx;
+  position: sticky;
+  top: 0;
+  background-color: #F6F8FB;
+  z-index: 10;
 }
 
 .events-date {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 500;
   color: var(--color-text-primary);
 }
 
 .events-count {
   font-size: 24rpx;
-  color: var(--color-text-secondary);
+  color: var(--color-text-placeholder);
+  background-color: var(--color-bg-muted);
+  padding: 4rpx 16rpx;
+  border-radius: var(--radius-full);
 }
 
 .empty-wrap {
-  flex: 1;
+  padding-top: 80rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 事件卡片 - 三栏结构 */
+/* ═══════════════════════════════════════════
+   事项卡片
+═══════════════════════════════════════════ */
+
 .event-card {
   display: flex;
-  align-items: flex-start;
-  gap: 16rpx;
-  padding: 16rpx;
-  margin-bottom: 12rpx;
+  align-items: stretch;
+  margin-bottom: 16rpx;
   background-color: var(--color-bg-card);
-  border-radius: var(--radius-card);
-  border: 1rpx solid var(--color-border);
-  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
-.event-card.completed {
-  opacity: 0.75;
-}
-
-.event-card:active {
-  background-color: var(--color-primary-light);
-}
-
-/* 左栏：时间 */
-.event-time {
-  min-width: 60rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  text-align: right;
+/* 左侧状态条 */
+.card-stripe {
   flex-shrink: 0;
+  width: 6rpx;
 }
 
-/* 中栏：主信息 */
-.event-main {
+.stripe-blue  { background-color: var(--color-primary); }
+.stripe-green { background-color: var(--color-success); }
+.stripe-gray  { background-color: var(--color-neutral); }
+
+/* 卡片主体 */
+.card-body {
   flex: 1;
+  padding: 20rpx 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 10rpx;
+  min-width: 0;
 }
 
-.event-header {
+/* 第一行：时间 + 客户名 + 阶段标签 */
+.card-row-top {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  flex-wrap: wrap;
+  gap: 10rpx;
+  overflow: hidden;
 }
 
-.event-name {
-  font-size: 32rpx;
-  font-weight: 600;
+.card-time {
+  font-size: 24rpx;
+  color: var(--color-text-placeholder);
+  flex-shrink: 0;
+  min-width: 72rpx;
+}
+
+.card-time-empty {
+  color: var(--color-neutral);
+}
+
+.card-name {
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--color-text-primary);
-}
-
-.stage-badge {
-  padding: 4rpx 12rpx;
-  font-size: 20rpx;
-  border-radius: 6rpx;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.stage-badge.stage-meet {
-  background-color: var(--color-bg-muted);
+/* 阶段标签（与全局规范一致：描边无背景） */
+.stage-tag {
+  padding: 4rpx 14rpx;
+  border-radius: var(--radius-badge);
+  font-size: 22rpx;
+  border: 1rpx solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stage-tag.stage-meet    { color: var(--stage-meet-text);    border-color: var(--stage-meet-text); }
+.stage-tag.stage-comm    { color: var(--stage-comm-text);    border-color: var(--stage-comm-text); }
+.stage-tag.stage-present { color: var(--stage-present-text); border-color: var(--stage-present-text); }
+.stage-tag.stage-closing { color: var(--stage-closing-text); border-color: var(--stage-closing-text); }
+.stage-tag.stage-deal    { color: var(--stage-deal-text);    border-color: var(--stage-deal-text); }
+.stage-tag.stage-lost    { color: var(--stage-lost-text);    border-color: var(--stage-lost-text); }
+
+/* 目标 / 摘要（最多 2 行） */
+.card-content {
+  font-size: 24rpx;
   color: var(--color-text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-.stage-badge.stage-comm {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
+.card-summary {
+  color: var(--color-text-placeholder);
 }
 
-.stage-badge.stage-present {
-  background-color: var(--color-warning-light);
-  color: var(--color-warning);
+/* 底部行：方式标签 + 操作按钮 */
+.card-row-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2rpx;
 }
 
-.stage-badge.stage-closing {
-  background-color: var(--color-warning-light);
-  color: var(--color-warning);
+.way-tag {
+  font-size: 22rpx;
+  color: var(--color-text-placeholder);
+  background-color: var(--color-bg-muted);
+  padding: 4rpx 16rpx;
+  border-radius: var(--radius-full);
 }
 
-.stage-badge.stage-deal {
-  background-color: var(--color-success-light);
-  color: var(--color-success);
+.way-adhoc {
+  background-color: var(--color-secondary-light);
+  color: var(--color-secondary);
 }
 
-.stage-badge.stage-lost {
-  background-color: var(--color-danger-light);
+/* 操作按钮组 */
+.card-actions {
+  display: flex;
+  gap: 10rpx;
+  align-items: center;
+}
+
+.btn-action {
+  height: 52rpx;
+  padding: 0 18rpx;
+  font-size: 22rpx;
+  border-radius: var(--radius-badge);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+  border: 1rpx solid transparent;
+}
+
+.btn-outline {
+  border: 1rpx solid var(--color-border);
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-card);
+}
+
+.btn-danger {
+  border: 1rpx solid var(--color-danger);
   color: var(--color-danger);
 }
 
-.event-way {
+/* ═══════════════════════════════════════════
+   底部弹窗（Sheet）
+═══════════════════════════════════════════ */
+
+.sheet-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+}
+
+.sheet-container {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  right: 0;
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 32rpx 32rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  z-index: 201;
+  transition: bottom 0.3s ease;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.sheet-container.sheet-visible {
+  bottom: 0;
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.sheet-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.sheet-close {
+  font-size: 44rpx;
+  color: var(--color-text-placeholder);
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════
+   表单元素
+═══════════════════════════════════════════ */
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
+}
+
+.form-row-textarea {
+  align-items: flex-start;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+  width: 96rpx;
+  flex-shrink: 0;
+}
+
+.required {
+  color: var(--color-danger);
+}
+
+.form-input {
+  flex: 1;
+  height: 80rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-card);
+}
+
+.form-picker {
+  flex: 1;
+  height: 80rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-card);
+  display: flex;
+  align-items: center;
+  min-width: 200rpx;
+}
+
+.form-readonly {
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.form-textarea {
+  flex: 1;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 16rpx 24rpx;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-card);
+  min-height: 120rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.time-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex: 1;
+}
+
+.clear-btn {
   font-size: 24rpx;
   color: var(--color-text-secondary);
-}
-.event-goal {
-  font-size: 26rpx;
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-medium);
-  display: block;
-}
-
-/* 右栏：状态 */
-.event-status-area {
+  padding: 8rpx 20rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-full);
   flex-shrink: 0;
+}
+
+/* Chip 方式选择 */
+.chip-group {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  gap: 16rpx;
+  flex-wrap: wrap;
+  flex: 1;
 }
 
-.status-icon {
-  font-size: 32rpx;
-}
-
-.status-badge {
-  padding: 8rpx 16rpx;
+.chip-item {
+  padding: 10rpx 24rpx;
+  border-radius: 32rpx;
   font-size: 26rpx;
-  font-weight: 500;
-  border-radius: 8rpx;
-  white-space: nowrap;
-  height: 32rpx;
-  display: flex;
-  align-items: center;
+  color: var(--chip-inactive-text);
+  background-color: var(--color-bg-muted);
 }
 
-.status-badge.pending {
+.chip-item.chip-active {
   background-color: var(--color-primary);
   color: #FFFFFF;
 }
 
-.status-badge.completed {
-  background-color: var(--color-success-light);
-  color: var(--color-success);
+/* 冲突提示 */
+.conflict-tip {
+  margin: -16rpx 0 20rpx 112rpx;
+  font-size: 24rpx;
+  color: var(--color-warning);
 }
 
-.status-badge.overdue {
-  background-color: var(--color-danger);
-  color: #FFFFFF;
+/* 搜索结果浮层 */
+.search-wrap {
+  flex: 1;
+  position: relative;
 }
 
-.status-badge.adhoc {
-  background-color: var(--color-bg-muted);
+.search-wrap .form-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-results {
+  position: absolute;
+  top: 88rpx;
+  left: 0;
+  right: 0;
+  background-color: var(--color-bg-card);
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  max-height: 400rpx;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+}
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid var(--color-border);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.result-name {
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+}
+
+.result-stage {
+  font-size: 24rpx;
   color: var(--color-text-secondary);
+}
+
+/* 弹窗底部按钮 */
+.sheet-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 40rpx;
+}
+
+.sheet-btn-cancel {
+  flex: 1;
+  height: 88rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 30rpx;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheet-btn-confirm {
+  flex: 2;
+  height: 88rpx;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 30rpx;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheet-btn-confirm.btn-disabled {
+  background-color: var(--color-disabled);
 }

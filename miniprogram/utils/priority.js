@@ -80,22 +80,35 @@ function calculatePriority(customer, nextPlan) {
   var R = _recencyScore(customer.last_visit || null, today, customer.created_at || null);
   var score = I + U + R;
 
-  var level, label;
-  if (score >= 80) { level = 'P0'; label = '今日必跟'; }
-  else if (score >= 60) { level = 'P1'; label = '本周重点'; }
-  else if (score >= 35) { level = 'P2'; label = '保持节奏'; }
-  else { level = 'P3'; label = '暂缓跟进'; }
+  var level, label, displayLabel;
+  if (score >= 80) { level = 'P0'; label = '今日必跟'; displayLabel = '高优先'; }
+  else if (score >= 60) { level = 'P1'; label = '本周重点'; displayLabel = '高优先'; }
+  else if (score >= 35) { level = 'P2'; label = '保持节奏'; displayLabel = '保持节奏'; }
+  else { level = 'P3'; label = '暂缓跟进'; displayLabel = '暂不紧急'; }
 
-  // 驱动因素：取得分最高的 1-2 个维度，用业务语言描述
   var reasons = [];
-  if (nextPlan) {
-    var diff = Math.round((new Date(nextPlan.plan_date) - new Date(today)) / 86400000);
-    if (diff === 0) reasons.push('今天有跟进计划');
-    else if (diff === 1) reasons.push('明天有跟进计划');
-    else if (diff <= 3) reasons.push('3天内有计划');
-    else if (diff <= 7) reasons.push('7天内有计划');
+
+  // 计划类原因（优先）
+  if (nextPlan && nextPlan.plan_date) {
+    var planDiff = Math.round((new Date(nextPlan.plan_date) - new Date(today)) / 86400000);
+    if (planDiff < 0) reasons.push('计划已逾期');
+    else if (planDiff === 0) reasons.push('今日有计划');
+    else if (planDiff === 1) reasons.push('明天有计划');
+    else if (planDiff <= 3) reasons.push('3天内有计划');
+    else if (planDiff <= 7) reasons.push('7天内有约');
+  } else {
+    reasons.push('无预约');
   }
-  return { score: score, level: level, label: label, reasons: reasons };
+
+  // 最近联系原因
+  if (reasons.length < 2) {
+    if (customer.last_visit) {
+      var visitDiff = Math.round((new Date(today) - new Date(customer.last_visit)) / 86400000);
+      if (visitDiff >= 5) reasons.push(visitDiff + '天未联系');
+    }
+  }
+
+  return { score: score, level: level, label: label, displayLabel: displayLabel, reasons: reasons.slice(0, 2) };
 }
 
 module.exports = {

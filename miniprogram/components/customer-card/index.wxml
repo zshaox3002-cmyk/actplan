@@ -1,55 +1,45 @@
-<!-- customer-card/index.wxml -->
-<view class="swipe-container customer-card-component"
-      bindtouchstart="onTouchStart"
-      bindtouchmove="onTouchMove"
-      bindtouchend="onTouchEnd">
+<!-- customer-card/index.wxml — V4.0 固定4行 -->
+<view class="customer-card customer-card-component"
+      catchtap="onCardTap"
+      data-id="{{customer.id}}">
 
-  <!-- 左滑操作区：预约 / 随手记 / 删除 -->
-  <view class="swipe-actions">
-    <view class="swipe-btn swipe-btn-plan" catchtap="onAddPlan">预约</view>
-    <view class="swipe-btn swipe-btn-record" catchtap="onAddRecord">随手记</view>
-    <view class="swipe-btn swipe-btn-delete" catchtap="onDeleteTap" data-id="{{customer.id}}">删除</view>
-  </view>
-
-  <!-- 卡片主体 -->
-  <view class="customer-card"
-        style="transform: translateX({{offsetX}}rpx);"
-        catchtap="onCardTap"
-        data-id="{{customer.id}}">
-
-    <!-- 头部：姓名 + 交情 + 阶段标签 -->
-    <view class="card-header">
-      <text class="customer-name">{{customer.name}}</text>
-      <text class="customer-intimacy" wx:if="{{customer.intimacy}}">{{customer.intimacy}}</text>
+  <!-- 行1：客户身份区 -->
+  <view class="card-header">
+    <text class="customer-name">{{customer.name}}</text>
+    <text class="customer-relation" wx:if="{{customer.relation}}">{{customer.relation}}</text>
+    <view class="header-right">
       <view class="stage-tag stage-{{_stageClass}}" wx:if="{{customer.stage}}">
         <text>{{customer.stage}}</text>
       </view>
     </view>
-
-    <!-- 优先级行（有优先级时才显示） -->
-    <view class="priority-row" wx:if="{{customer._priorityLevel && customer._priorityLevel !== 'none'}}">
-      <view class="priority-tag priority-{{customer._priorityLevel}}">
-        <text>{{customer._priorityLabel}}</text>
-      </view>
-      <text class="priority-reasons {{customer._isOverdue ? 'overdue' : ''}}" wx:if="{{customer._priorityReasons}}">{{customer._priorityReasons}}</text>
-    </view>
-
-    <!-- meta 信息：节奏视图显示节奏原因，默认视图显示下次跟进 -->
-    <view class="card-meta">
-      <view wx:if="{{viewContext === 'rhythm_attention' || viewContext === 'rhythm_advancing'}}">
-        <text class="rhythm-reason">{{customer.rhythm_reason}}</text>
-        <text class="rhythm-action" wx:if="{{customer.suggested_action}}">建议：{{customer.suggested_action}}</text>
-      </view>
-      <view wx:else class="meta-row {{customer._isOverdue ? 'overdue' : ''}}">
-        <text class="meta-label">下次跟进</text>
-        <text class="meta-value">{{customer._nextFollowText}}</text>
-      </view>
-    </view>
-
-    <!-- 摘要 -->
-    <view class="last-summary" wx:if="{{customer._lastSummary}}">
-      <text>上次摘要：{{customer._lastSummary}}</text>
-    </view>
-
   </view>
+
+  <!-- 行2：跟进信号区 -->
+  <view class="signal-row">
+    <view class="display-tag display-tag-{{customer._priorityDisplayClass}}">
+      <text>{{customer._priorityDisplayLabel}}</text>
+    </view>
+    <view wx:for="{{customer._reasonTags}}" wx:key="*this" class="reason-chip-sm">
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 行3：节奏视图 → rhythm_reason；默认视图 → 下次跟进 -->
+  <view wx:if="{{viewContext === 'rhythm_attention' || viewContext === 'rhythm_advancing'}}"
+        class="info-row">
+    <text class="rhythm-reason">{{customer.rhythm_reason}}</text>
+    <text class="rhythm-action" wx:if="{{customer.suggested_action}}">建议：{{customer.suggested_action}}</text>
+  </view>
+  <view wx:else class="info-row follow-row-{{customer._nextFollowClass}}">
+    <text class="row-label">下次跟进</text>
+    <text class="row-value">{{customer._nextFollowDisplay}}</text>
+  </view>
+
+  <!-- 行4：最近沟通区（两种视图均展示） -->
+  <view class="info-row">
+    <text class="row-label">最近沟通</text>
+    <text class="row-value" wx:if="{{customer._lastContactDisplay}}">{{customer._lastContactDisplay}}</text>
+    <text class="row-value row-value-empty" wx:else>暂无</text>
+  </view>
+
 </view>

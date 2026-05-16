@@ -54,6 +54,26 @@ App({
       storage.persistMeta();
     }
 
+    // 3.3 清理孤儿计划（customer_id 对应客户不存在的待执行计划）
+    if (!meta.cleanup_orphan_plans_v1_done) {
+      var plans = storage.getTable('plan');
+      var customers = storage.getTable('customer');
+      var customerIdSet = {};
+      for (var ci = 0; ci < customers.length; ci++) {
+        customerIdSet[customers[ci].id] = true;
+      }
+      var cleanedPlans = plans.filter(function (p) {
+        return customerIdSet[p.customer_id] !== undefined;
+      });
+      var removedCount = plans.length - cleanedPlans.length;
+      if (removedCount > 0) {
+        storage.setTable('plan', cleanedPlans);
+        console.log('[App] 孤儿计划清理完成: 移除 ' + removedCount + ' 条');
+      }
+      meta.cleanup_orphan_plans_v1_done = true;
+      storage.persistMeta();
+    }
+
     // 4. 注册 Storage 容量预警
     var that = this;
     storage.onCapacityWarning(function (level, tableName, kbSize) {
@@ -98,7 +118,7 @@ App({
   _getAllTableData: function () {
     var tableNames = ['customer', 'visit_record', 'plan', 'objection',
       'objection_note', 'objection_links', 'operation_log', 'policy', 'segment',
-      'insured_member', 'task_dismiss'];
+      'insured_member', 'task_dismiss', 'referral_relation'];
     var result = {};
     tableNames.forEach(function (name) {
       result[name] = storage.getTable(name);
@@ -145,7 +165,7 @@ App({
 
         var tableNames = ['customer', 'visit_record', 'plan', 'objection',
           'objection_note', 'objection_links', 'operation_log', 'policy', 'segment',
-          'insured_member', 'task_dismiss'];
+          'insured_member', 'task_dismiss', 'referral_relation'];
 
         // Disable cloud sync during restore to avoid re-uploading data just downloaded
         storage.setCloudSync(null);

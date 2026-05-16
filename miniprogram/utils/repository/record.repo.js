@@ -106,7 +106,7 @@ function create(data) {
       plan_id: data.plan_id || null,
       visit_date: data.visit_date,
       visit_time: data.visit_time || null,
-      visit_way: data.visit_way || constants.VISIT_WAY.FACE,
+      visit_way: data.visit_way || constants.VISIT_WAY.RANDOM,
       duration: data.duration || null,
       summary: data.summary || '',
       stage: data.stage || '',
@@ -163,10 +163,55 @@ function create(data) {
   return newRecordId;
 }
 
+/**
+ * 删除拜访记录，重新计算客户 last_visit / visit_count
+ * @param {number} recordId
+ * @returns {{ planId: number|null }} 被删除记录关联的 plan_id
+ */
+function remove(recordId) {
+  var planId = null;
+  storage.transaction(function (ctx) {
+    var records = ctx.getTableRef('visit_record');
+    var customers = ctx.getTableRef('customer');
+
+    var target = null;
+    var newRecords = [];
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].id === recordId) { target = records[i]; }
+      else { newRecords.push(records[i]); }
+    }
+    if (!target) throw new Error('record not found: ' + recordId);
+
+    planId = target.plan_id !== undefined ? target.plan_id : null;
+
+    var remaining = newRecords.filter(function (r) {
+      return r.customer_id === target.customer_id;
+    });
+    var newLastVisit = '';
+    for (var j = 0; j < remaining.length; j++) {
+      if (remaining[j].visit_date > newLastVisit) newLastVisit = remaining[j].visit_date;
+    }
+
+    for (var k = 0; k < customers.length; k++) {
+      if (customers[k].id === target.customer_id) {
+        customers[k].last_visit = newLastVisit || null;
+        customers[k].visit_count = remaining.length;
+        customers[k].updated_at = new Date().toISOString();
+        break;
+      }
+    }
+
+    ctx.setTable('visit_record', newRecords);
+    ctx.setTable('customer', customers);
+  });
+  return { planId: planId };
+}
+
 module.exports = {
   list: list,
   listByCustomer: listByCustomer,
   get: get,
   create: create,
-  update: update
+  update: update,
+  remove: remove
 };

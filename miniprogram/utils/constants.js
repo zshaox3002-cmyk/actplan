@@ -31,11 +31,12 @@ var DIMENSION_OPTIONS = ['是', '否', '不确定'];
 var VISIT_WAY = {
   FACE: '面对面',
   PHONE: '电话',
-  WECHAT: '微信'
+  WECHAT: '微信',
+  RANDOM: '随记'
 };
 
 /** 拜访方式列表 */
-var VISIT_WAY_OPTIONS = ['面对面', '电话', '微信'];
+var VISIT_WAY_OPTIONS = ['面对面', '电话', '微信', '随记'];
 
 /** 异议分类 */
 var OBJECTION_CATEGORY = {

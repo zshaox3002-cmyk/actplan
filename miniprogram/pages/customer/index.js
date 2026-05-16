@@ -18,6 +18,47 @@ var toast = require('../../utils/toast');
 var dateUtil = require('../../utils/date');
 var constants = require('../../utils/constants');
 
+/**
+ * @param {Object|null} nextPlan
+ * @param {string} todayStr YYYY-MM-DD
+ * @returns {{ display: string, cls: string }}
+ */
+function _buildNextFollowDisplay(nextPlan, todayStr) {
+  if (!nextPlan) return { display: '未安排', cls: 'none' };
+  var d = nextPlan.plan_date;
+  var t = nextPlan.plan_time;
+  if (d < todayStr) {
+    var diff = Math.round((new Date(todayStr) - new Date(d)) / 86400000);
+    return { display: '已逾期' + diff + '天', cls: 'overdue' };
+  }
+  if (d === todayStr) {
+    return { display: t ? '今天 ' + t : '今天', cls: 'today' };
+  }
+  var mmdd = d.slice(5);
+  return { display: t ? mmdd + ' ' + t : mmdd, cls: 'future' };
+}
+
+/**
+ * @param {number} customerId
+ * @param {Array} allRecords 已按 visit_date 倒序
+ * @param {string} todayStr YYYY-MM-DD
+ * @returns {string}
+ */
+function _buildLastContactDisplay(customerId, allRecords, todayStr) {
+  var rec = null;
+  for (var i = 0; i < allRecords.length; i++) {
+    if (allRecords[i].customer_id === customerId) { rec = allRecords[i]; break; }
+  }
+  if (!rec) return '';
+  var mmdd = rec.visit_date ? rec.visit_date.slice(5) : '';
+  var way = rec.visit_way || '';
+  var days = rec.visit_date
+    ? Math.round((new Date(todayStr) - new Date(rec.visit_date)) / 86400000)
+    : -1;
+  var daysText = days === 0 ? '今天' : days === 1 ? '昨天' : days > 0 ? days + '天前' : '';
+  return [mmdd, way, daysText].filter(function (s) { return !!s; }).join(' · ');
+}
+
 var STAGE_OPTIONS = ['全部', '初步认识', '需求沟通', '方案讲解', '待促成', '已成交', '已流失'];
 
 Page({
@@ -33,21 +74,8 @@ Page({
     segmentCounts: {},      // { [segmentId]: count }
     addSegmentDisabled: false,
 
-    // 添加计划底部 sheet
-    showPlanSheet: false,
-    planSheetCustomerId: null,
-    planSheetCustomerName: '',
-    planSheetDate: '',
-    planSheetTime: '',
-    planSheetVisitWay: '面对面',
-    planSheetGoal: '',
-    visitWayOptions: ['面对面', '电话', '微信'],
-
     // 视图上下文（供 customer-card 差异化展示）
-    activeViewContext: 'default',
-
-    // 保存防重复
-    isSaving: false
+    activeViewContext: 'default'
   },
 
   /** 缓存富化后的全量客户列表，用于视图切换时快速过滤 */
@@ -106,27 +134,19 @@ Page({
 
         var pri = priority.calculatePriority(c, nextPlan);
 
-        var nextFollowText = '未安排';
-        var isOverdue = false;
-        if (nextPlan) {
-          if (nextPlan.plan_date < todayStr) {
-            isOverdue = true;
-            var diff = Math.round((new Date(todayStr) - new Date(nextPlan.plan_date)) / 86400000);
-            nextFollowText = '已逾期' + diff + '天';
-          } else if (nextPlan.plan_date === todayStr) {
-            nextFollowText = '今天';
-          } else {
-            nextFollowText = nextPlan.plan_date.slice(5).replace('-', '/');
-            if (nextPlan.plan_time) nextFollowText += ' ' + nextPlan.plan_time;
-          }
-        }
+        var nextFollow = _buildNextFollowDisplay(nextPlan, todayStr);
+        var lastContactDisplay = _buildLastContactDisplay(c.id, allRecords, todayStr);
 
-        var lastVisitText = '暂无';
-        if (c.last_visit) {
-          var days = Math.round((new Date(todayStr) - new Date(c.last_visit)) / 86400000);
-          if (days === 0) lastVisitText = '今天';
-          else if (days === 1) lastVisitText = '昨天';
-          else lastVisitText = days + '天前';
+        var priLabel, priCls, reasonTags;
+        if (!pri) {
+          priLabel = '不参与跟进'; priCls = 'inactive';
+          reasonTags = c.stage === '已成交' ? ['已成交', '可做复购'] : ['已流失', '仅保留记录'];
+        } else if (pri.level === 'P0' || pri.level === 'P1') {
+          priLabel = '高优先'; priCls = 'high'; reasonTags = (pri.reasons || []).slice(0, 2);
+        } else if (pri.level === 'P2') {
+          priLabel = '保持节奏'; priCls = 'keep'; reasonTags = (pri.reasons || []).slice(0, 2);
+        } else {
+          priLabel = '暂不紧急'; priCls = 'low'; reasonTags = (pri.reasons || []).slice(0, 2);
         }
 
         // 合并保单派生字段
@@ -135,13 +155,17 @@ Page({
         return Object.assign({}, c, derived, {
           _priority: pri,
           _priorityLevel: pri ? pri.level : '',
-          _priorityLabel: pri ? pri.label : '',
-          _priorityReasons: pri && pri.reasons ? pri.reasons.join(' · ') : '',
-          _nextFollowText: nextFollowText,
+          _priorityLabel: pri ? pri.displayLabel : '',
+          _priorityReasons: pri && pri.reasons ? pri.reasons : [],
+          _nextFollowText: nextFollow.display,
           _nextFollowDate: nextPlan ? nextPlan.plan_date : null,
-          _isOverdue: isOverdue,
-          _lastVisitText: lastVisitText,
-          _lastSummary: lastSummary ? lastSummary.slice(0, 30) + (lastSummary.length > 30 ? '…' : '') : ''
+          _isOverdue: nextFollow.cls === 'overdue',
+          _priorityDisplayLabel: priLabel,
+          _priorityDisplayClass: priCls,
+          _reasonTags: reasonTags,
+          _nextFollowDisplay: nextFollow.display,
+          _nextFollowClass: nextFollow.cls,
+          _lastContactDisplay: lastContactDisplay
         });
       });
 
@@ -303,79 +327,6 @@ Page({
     wx.navigateTo({ url: '/pages/customer-detail/index?id=' + e.detail.id });
   },
 
-  onCustomerDelete: function (e) {
-    var id = parseInt(e.detail.id);
-    try {
-      customerRepo.delete(id);
-      toast.success('已删除');
-      this._loadList();
-    } catch (err) {
-      toast.fail('删除失败');
-    }
-  },
-
-  onAddPlan: function (e) {
-    var id = e.detail.id;
-    var name = e.detail.name;
-    this.setData({
-      showPlanSheet: true,
-      planSheetCustomerId: id,
-      planSheetCustomerName: name,
-      planSheetDate: dateUtil.today(),
-      planSheetTime: '',
-      planSheetVisitWay: '面对面',
-      planSheetGoal: ''
-    });
-  },
-
-  /** @param {Object} e */
-  onPlanSheetDateChange: function (e) {
-    this.setData({ planSheetDate: e.detail.value });
-  },
-
-  /** @param {Object} e */
-  onPlanSheetTimeChange: function (e) {
-    this.setData({ planSheetTime: e.detail.value });
-  },
-
-  onPlanSheetClearTime: function () {
-    this.setData({ planSheetTime: '' });
-  },
-
-  onPlanSheetCancel: function () {
-    this.setData({ showPlanSheet: false });
-  },
-
-  onPlanSheetWayChange: function (e) {
-    this.setData({ planSheetVisitWay: e.currentTarget.dataset.way });
-  },
-
-  onPlanSheetGoalInput: function (e) {
-    this.setData({ planSheetGoal: e.detail.value });
-  },
-
-  onPlanSheetConfirm: function () {
-    if (this.data.isSaving) return;
-    this.setData({ isSaving: true });
-
-    var result = planRepo.create({
-      customer_id: this.data.planSheetCustomerId,
-      plan_date: this.data.planSheetDate,
-      plan_time: this.data.planSheetTime || null,
-      visit_way: this.data.planSheetVisitWay,
-      goal: this.data.planSheetGoal || ''
-    });
-    if (result.conflict) {
-      toast.fail('该客户当日已有计划');
-      this.setData({ isSaving: false });
-      return;
-    }
-    toast.success('添加成功');
-    this.setData({ showPlanSheet: false });
-    this._loadList();
-    this.setData({ isSaving: false });
-  },
-
   onAddRecord: function (e) {
     var id = e.detail.id;
     var name = e.detail.name;
@@ -386,15 +337,8 @@ Page({
     });
   },
 
-  onPageTap: function () {
-    var cards = this.selectAllComponents('.customer-card-component');
-    for (var i = 0; i < cards.length; i++) {
-      if (cards[i].closeSwipe) cards[i].closeSwipe();
-    }
-  },
-
   onAddCustomer: function () {
-    wx.navigateTo({ url: '/pages/customer-detail/index' });
+    wx.navigateTo({ url: '/pages/customer-detail/index?tab=profile' });
   },
 
   onDataManage: function () {

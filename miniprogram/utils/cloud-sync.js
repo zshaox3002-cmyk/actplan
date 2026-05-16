@@ -7,7 +7,7 @@
  * - 恢复路径：app 启动时本地为空 → 从云端拉取全量数据
  *
  * 云数据库集合：table_backup
- * 文档结构：{ _openid, table_name, data, updated_at }
+ * 文档结构：{ _openid(系统自动填充), table_name, data, updated_at }
  */
 
 var ENV_ID = 'pro-d1g97lgrm3a7cf83a';
@@ -90,7 +90,7 @@ function _doUpload(name, data) {
         return col.doc(res.data[0]._id).update({ data: payload });
       }
       return col.add({
-        data: Object.assign({ _openid: _openid, table_name: name }, payload)
+        data: Object.assign({ table_name: name }, payload)
       });
     })
     .then(function () {

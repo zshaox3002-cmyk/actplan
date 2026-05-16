@@ -1,68 +1,266 @@
 <view class="calendar-page">
-  <!-- 日历区域 -->
+  <!-- ═══ 日历区域 ═══ -->
   <view class="calendar-container">
-    <!-- 导航栏 -->
+    <!-- 月份标题行 -->
     <view class="calendar-header">
-      <view class="nav-btn" bindtap="onPrevPage">◀</view>
+      <view class="nav-btn" bindtap="onPrevPage">
+        <view class="nav-icon nav-icon-left"></view>
+      </view>
       <view class="calendar-title">{{yearMonth}}</view>
-      <view class="nav-btn" bindtap="onNextPage">▶</view>
+      <view class="nav-btn" bindtap="onNextPage">
+        <view class="nav-icon nav-icon-right"></view>
+      </view>
     </view>
 
-    <!-- 月视图 -->
-    <view class="month-view">
-      <view class="month-header">
-        <view class="weekday-label">一</view>
-        <view class="weekday-label">二</view>
-        <view class="weekday-label">三</view>
-        <view class="weekday-label">四</view>
-        <view class="weekday-label">五</view>
-        <view class="weekday-label">六</view>
-        <view class="weekday-label">日</view>
+    <!-- 星期栏 -->
+    <view class="weekday-row">
+      <view class="weekday-label">一</view>
+      <view class="weekday-label">二</view>
+      <view class="weekday-label">三</view>
+      <view class="weekday-label">四</view>
+      <view class="weekday-label">五</view>
+      <view class="weekday-label weekend-label">六</view>
+      <view class="weekday-label weekend-label">日</view>
+    </view>
+
+    <!-- 日期网格 -->
+    <view class="month-grid">
+      <view
+        wx:for="{{monthDays}}"
+        wx:key="date"
+        class="day-cell {{!item.isCurrentMonth ? 'day-other' : ''}} {{item.isSelected ? 'day-selected' : ''}} {{item.isToday && !item.isSelected ? 'day-today' : ''}}"
+        bindtap="onDateTap"
+        data-date="{{item.date}}"
+      >
+        <text class="day-num">{{item.day}}</text>
+        <view wx:if="{{item.isMarked}}" class="day-dot {{item.isSelected ? 'day-dot-selected' : ''}}"></view>
       </view>
-      <view class="month-grid">
-        <view wx:for="{{monthDays}}" wx:key="date" class="month-cell {{!item.isCurrentMonth ? 'other-month' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" bindtap="onDateTap" data-date="{{item.date}}">
-          <view class="cell-day">{{item.day}}</view>
-          <view wx:if="{{item.isMarked}}" class="cell-mark"></view>
+    </view>
+  </view>
+
+  <!-- ═══ 事项列表 ═══ -->
+  <view class="events-section" style="padding-bottom: {{listPaddingBottom}}">
+    <!-- 分区标题 -->
+    <view class="events-header">
+      <text class="events-date">{{selectedDate}}</text>
+      <text class="events-count">{{events.length > 0 ? events.length + ' 件事' : '无事项'}}</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{events.length === 0}}" class="empty-wrap">
+      <empty-state text="暂无计划和记录" />
+    </view>
+
+    <!-- 事项卡片 -->
+    <view
+      wx:for="{{events}}"
+      wx:key="id"
+      class="event-card"
+    >
+      <!-- 左侧状态条 -->
+      <view class="card-stripe {{item.cardType === 'pending_plan' ? 'stripe-blue' : (item.cardType === 'completed_plan' ? 'stripe-green' : 'stripe-gray')}}"></view>
+
+      <!-- 卡片主体 -->
+      <view class="card-body">
+        <!-- 第一行：时间 + 客户名 + 阶段标签 -->
+        <view class="card-row-top">
+          <text wx:if="{{item.time}}" class="card-time">{{item.time}}</text>
+          <text wx:else class="card-time card-time-empty">—</text>
+          <text class="card-name">{{item.customerName}}</text>
+          <view class="stage-tag stage-{{item.stageClass}}">{{item.stage}}</view>
+        </view>
+
+        <!-- 第二行：目标 / 摘要（最多 2 行） -->
+        <text
+          wx:if="{{item.cardType === 'pending_plan' && item.goal}}"
+          class="card-content"
+        >{{item.goal}}</text>
+        <text
+          wx:if="{{item.cardType !== 'pending_plan' && item.summary}}"
+          class="card-content card-summary"
+        >{{item.summary}}</text>
+
+        <!-- 底部行：拜访方式 + 操作按钮 -->
+        <view class="card-row-bottom">
+          <view class="way-tag {{item.cardType === 'adhoc_record' ? 'way-adhoc' : ''}}">{{item.visitWayLabel}}</view>
+          <view class="card-actions">
+            <block wx:if="{{item.cardType === 'pending_plan'}}">
+              <view class="btn-action btn-primary" catchtap="onRecordPlan" data-plan-id="{{item.planId}}">记录</view>
+              <view class="btn-action btn-outline" catchtap="onEditPlan" data-plan-id="{{item.planId}}">编辑</view>
+              <view class="btn-action btn-danger" catchtap="onDeleteEvent" data-card-type="{{item.cardType}}" data-plan-id="{{item.planId}}" data-record-id="{{item.recordId}}">删除</view>
+            </block>
+            <block wx:else>
+              <view class="btn-action btn-outline" catchtap="onEditRecord" data-record-id="{{item.recordId}}">编辑</view>
+              <view class="btn-action btn-danger" catchtap="onDeleteEvent" data-card-type="{{item.cardType}}" data-plan-id="{{item.planId}}" data-record-id="{{item.recordId}}">删除</view>
+            </block>
+          </view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 事件列表 -->
-  <view class="events-section">
-    <view class="events-header">
-      <text class="events-date">{{selectedDate}}</text>
-      <text class="events-count">{{events.length}} 件事</text>
+  <!-- FAB -->
+  <fab-button bindtap="onOpenCreateSheet" />
+
+  <!-- ═══ 新建预约弹窗 ═══ -->
+  <view wx:if="{{showCreateSheet}}" class="sheet-mask" bindtap="onCloseCreateSheet"></view>
+  <view wx:if="{{showCreateSheet}}" class="sheet-container sheet-visible">
+    <view class="sheet-header">
+      <text class="sheet-title">新建预约</text>
+      <view class="sheet-close" bindtap="onCloseCreateSheet">×</view>
     </view>
 
-    <view wx:if="{{events.length === 0}}" class="empty-wrap">
-      <empty-state text="暂无计划和记录" />
-    </view>
-
-    <view wx:for="{{events}}" wx:key="id" class="event-card {{item.status === 'completed' ? 'completed' : ''}}" bindtap="onEventTap" data-event-id="{{item.id}}">
-      <!-- 左栏：时间 -->
-      <view class="event-time">{{item.time}}</view>
-
-      <!-- 中栏：主信息 -->
-      <view class="event-main">
-        <!-- 第一行：客户名 + 阶段标签 -->
-        <view class="event-header">
-          <text class="event-name">{{item.customerName}}</text>
-          <view class="stage-badge stage-{{item.stageClass}}">{{item.stage}}</view>
+    <view class="form-row">
+      <text class="form-label">客户 <text class="required">*</text></text>
+      <view class="search-wrap">
+        <input class="form-input" placeholder="搜索客户姓名" value="{{createSearchKeyword}}" bindinput="onCreateSearchInput" />
+        <view wx:if="{{showCustomerSearch}}" class="search-results">
+          <view
+            wx:for="{{createSearchResults}}"
+            wx:key="id"
+            class="search-result-item"
+            catchtap="onCreateCustomerSelect"
+            data-id="{{item.id}}"
+            data-name="{{item.name}}"
+          >
+            <text class="result-name">{{item.name}}</text>
+            <text class="result-stage">{{item.stage}}</text>
+          </view>
         </view>
-        <!-- 第二行：目标标题（有值才显示） -->
-        <text class="event-goal" wx:if="{{item.goal}}">{{item.goal}}</text>
-        <!-- 第三行：拜访方式 -->
-        <view class="event-way">{{item.visitWay}}</view>
       </view>
+    </view>
 
-      <!-- 右栏：状态 -->
-      <view class="event-status-area">
-        <view wx:if="{{item.status === 'completed'}}" class="status-badge completed">已完成</view>
-        <view wx:elif="{{item.status === 'overdue'}}" class="status-badge overdue">逾期</view>
-        <view wx:elif="{{item.status === 'adhoc'}}" class="status-badge adhoc">临时</view>
-        <view wx:else class="status-badge pending">待执行</view>
+    <view wx:if="{{conflictTip}}" class="conflict-tip">{{conflictTip}}</view>
+
+    <view class="form-row">
+      <text class="form-label">日期 <text class="required">*</text></text>
+      <picker mode="date" value="{{createDate}}" bindchange="onCreateDateChange">
+        <view class="form-picker">{{createDate || '选择日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">时间</text>
+      <view class="time-row">
+        <picker mode="time" value="{{createTime}}" bindchange="onCreateTimeChange">
+          <view class="form-picker">{{createTime || '不设置'}}</view>
+        </picker>
+        <view wx:if="{{createTime}}" class="clear-btn" catchtap="onCreateClearTime">清除</view>
       </view>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">方式</text>
+      <view class="chip-group">
+        <view
+          wx:for="{{visitWayOptions}}"
+          wx:key="*this"
+          class="chip-item {{createVisitWay === item ? 'chip-active' : ''}}"
+          catchtap="onCreateVisitWayTap"
+          data-way="{{item}}"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="form-row form-row-textarea">
+      <text class="form-label">目标</text>
+      <textarea
+        class="form-textarea"
+        placeholder="本次预约目标（可选）"
+        value="{{createGoal}}"
+        bindinput="onCreateGoalInput"
+        maxlength="200"
+        auto-height
+      />
+    </view>
+
+    <view class="sheet-actions">
+      <view class="sheet-btn-cancel" catchtap="onCloseCreateSheet">取消</view>
+      <view class="sheet-btn-confirm {{isSaving ? 'btn-disabled' : ''}}" catchtap="onCreateConfirm">确认预约</view>
+    </view>
+  </view>
+
+  <!-- ═══ 编辑预约弹窗 ═══ -->
+  <view wx:if="{{showEditPlanSheet}}" class="sheet-mask" bindtap="onCloseEditPlanSheet"></view>
+  <view wx:if="{{showEditPlanSheet}}" class="sheet-container sheet-visible">
+    <view class="sheet-header">
+      <text class="sheet-title">编辑预约</text>
+      <view class="sheet-close" bindtap="onCloseEditPlanSheet">×</view>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">客户</text>
+      <text class="form-readonly">{{editPlanCustomerName}}</text>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">日期 <text class="required">*</text></text>
+      <picker mode="date" value="{{editPlanDate}}" bindchange="onEditPlanDateChange">
+        <view class="form-picker">{{editPlanDate || '选择日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">时间</text>
+      <view class="time-row">
+        <picker mode="time" value="{{editPlanTime}}" bindchange="onEditPlanTimeChange">
+          <view class="form-picker">{{editPlanTime || '不设置'}}</view>
+        </picker>
+        <view wx:if="{{editPlanTime}}" class="clear-btn" catchtap="onEditPlanClearTime">清除</view>
+      </view>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">方式</text>
+      <view class="chip-group">
+        <view
+          wx:for="{{visitWayOptions}}"
+          wx:key="*this"
+          class="chip-item {{editPlanVisitWay === item ? 'chip-active' : ''}}"
+          catchtap="onEditPlanVisitWayTap"
+          data-way="{{item}}"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="form-row form-row-textarea">
+      <text class="form-label">目标</text>
+      <textarea
+        class="form-textarea"
+        placeholder="本次预约目标（可选）"
+        value="{{editPlanGoal}}"
+        bindinput="onEditPlanGoalInput"
+        maxlength="200"
+        auto-height
+      />
+    </view>
+
+    <view class="sheet-actions">
+      <view class="sheet-btn-cancel" catchtap="onCloseEditPlanSheet">取消</view>
+      <view class="sheet-btn-confirm {{isEditSaving ? 'btn-disabled' : ''}}" catchtap="onEditPlanConfirm">保存</view>
+    </view>
+  </view>
+
+  <!-- ═══ 编辑沟通摘要弹窗 ═══ -->
+  <view wx:if="{{showRecordEditSheet}}" class="sheet-mask" bindtap="onRecordEditCancel"></view>
+  <view wx:if="{{showRecordEditSheet}}" class="sheet-container sheet-visible">
+    <view class="sheet-header">
+      <text class="sheet-title">编辑沟通摘要</text>
+      <view class="sheet-close" bindtap="onRecordEditCancel">×</view>
+    </view>
+    <view class="form-row form-row-textarea">
+      <textarea
+        class="form-textarea"
+        placeholder="请输入沟通摘要"
+        value="{{recordEditSummary}}"
+        bindinput="onRecordEditSummaryInput"
+        auto-height
+        maxlength="500"
+      />
+    </view>
+    <view class="sheet-actions">
+      <view class="sheet-btn-cancel" catchtap="onRecordEditCancel">取消</view>
+      <view class="sheet-btn-confirm {{isRecordSaving ? 'btn-disabled' : ''}}" catchtap="onRecordEditConfirm">{{isRecordSaving ? '保存中...' : '保存'}}</view>
     </view>
   </view>
 </view>

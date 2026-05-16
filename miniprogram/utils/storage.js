@@ -200,6 +200,7 @@ function _migrate() {
   _migrateV5();
   _migrateV6();
   _migrateV7();
+  _migrateV8();
 }
 
 /**
@@ -574,6 +575,59 @@ function _migrateV7() {
   meta.version = 7;
   wx.setStorageSync(_key('meta'), meta);
   console.log('[Storage] v1.7 迁移完成 ✓');
+}
+
+/**
+ * v1.7 → v1.8 数据修复：清理所有业务表中 id 重复的记录
+ * 成因：早期版本保存按钮防抖缺失导致 create() 被调用多次，产生相同 id 的重复行
+ * 策略：同一 id 保留 updated_at / created_at 最新的那条
+ * @private
+ */
+function _migrateV8() {
+  var meta = _tables._meta;
+  if ((meta.version || 1) >= 8) return;
+
+  console.log('[Storage] 执行 v1.8 数据修复（清理 id 重复行）...');
+
+  var tableNames = ['customer', 'visit_record', 'plan', 'objection', 'objection_note', 'objection_links', 'operation_log', 'policy', 'insured_member', 'task_dismiss', 'referral_relation'];
+  var totalRemoved = 0;
+
+  for (var t = 0; t < tableNames.length; t++) {
+    var name = tableNames[t];
+    var rows = _tables[name];
+    if (!rows || rows.length === 0) continue;
+
+    var seen = {};
+    var clean = [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var rid = row.id;
+      if (rid === undefined || rid === null) { clean.push(row); continue; }
+      if (seen[rid] === undefined) {
+        seen[rid] = clean.length;
+        clean.push(row);
+      } else {
+        // 保留 updated_at / created_at 更新的那条
+        var existIdx = seen[rid];
+        var existTs = clean[existIdx].updated_at || clean[existIdx].created_at || '';
+        var newTs = row.updated_at || row.created_at || '';
+        if (newTs > existTs) {
+          clean[existIdx] = row;
+        }
+        totalRemoved++;
+      }
+    }
+
+    if (clean.length !== rows.length) {
+      _tables[name] = clean;
+      wx.setStorageSync(_key(name), clean);
+      console.log('[Storage] v1.8 ' + name + ' 去重 ' + (rows.length - clean.length) + ' 条');
+    }
+  }
+
+  meta.version = 8;
+  wx.setStorageSync(_key('meta'), meta);
+  console.log('[Storage] v1.8 迁移完成，共清理 ' + totalRemoved + ' 条重复记录 ✓');
 }
 
 /**

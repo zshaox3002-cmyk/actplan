@@ -143,8 +143,8 @@ Page({
     }
     if (!task) return;
 
-    if (action === '执行') this._handleExecute(task);
-    else if (action === '修改') this._handleModify(task);
+    if (action === '记录') this._handleExecute(task);
+    else if (action === '编辑') this._handleModify(task);
     else if (action === '删除') this._handleDelete(task);
     else if (action === '预约') this._handleBook(task);
     else if (action === '随手记') this._handleQuickNote(task);

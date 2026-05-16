@@ -82,9 +82,11 @@ function update(policyId, fields) {
   var all = storage.getTable('policy');
   var found = false;
 
+  var affectedCustomerId = null;
   for (var i = 0; i < all.length; i++) {
     if (all[i].id === policyId) {
       var policy = all[i];
+      affectedCustomerId = policy.customer_id;
       var editableFields = [
         'product_name', 'product_type', 'category',
         'premium', 'effective_date', 'expire_date',
@@ -101,6 +103,7 @@ function update(policyId, fields) {
 
   if (found) {
     storage.setTable('policy', all);
+    _invalidateDerivedCache(affectedCustomerId);
   }
   return found;
 }
